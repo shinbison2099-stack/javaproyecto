@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+	<title>Detalle Curso</title>
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+	<link rel="stylesheet" th:href="@{/css/menu.css}">
+
+</head>
+
+<body>
+
+	<div th:replace="~{fragments/menu :: menu}"></div>
+
+	<div class="container mt-4">
+
+		<h2 th:text="${curso.nombreCurso}"></h2>
+
+		<div class="card mb-4">
+
+			<div class="card-body">
+
+				<div class="row">
+
+					<div class="col-md-6">
+						<p><strong>Clave Curso:</strong>
+							<span th:text="${curso.claveCurso}"></span>
+						</p>
+
+						<p><strong>Institución:</strong>
+							<span th:text="${curso.claveInstitucion}"></span>
+						</p>
+
+						<p><strong>Área Temática:</strong>
+							<span th:text="${curso.claveAreaTematica}"></span>
+						</p>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<p><strong>Duración:</strong>
+							<span th:text="${curso.duracion + ' horas'}"></span>
+						</p>
+
+						<p><strong>Instructor:</strong>
+							<span th:text="${curso.instructor != null ? curso.instructor.nombre : 'Sin instructor'}"></span>
+						</p>
+
+						<p>
+							<strong>Inicio:</strong>
+							<span th:text="${#temporals.format(curso.fechaInicio,
+'dd MMM yyyy',
+T(java.util.Locale).forLanguageTag('es'))}">
+							</span>
+						</p>
+
+						<p>
+							<strong>Fin:</strong>
+							<span th:text="${#temporals.format(curso.fechaFin,
+'dd MMM yyyy',
+T(java.util.Locale).forLanguageTag('es'))}">
+							</span>
+						</p>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		</div>
+
+
+		<a th:href="@{/materiales/curso/{id}(id=${curso.id})}" class="btn btn-info mb-3">
+
+			Ver Materiales
+
+		</a>
+
+		<hr>
+
+		<h4>Trabajadores Inscritos</h4>
+
+		<table class="table table-bordered">
+
+			<thead class="table-dark">
+
+				<tr>
+
+					<th>Nombre</th>
+					<th>Email</th>
+					<th>Acción</th>
+
+				</tr>
+
+			</thead>
+
+			<tbody>
+
+				<tr th:each="ins : ${inscripciones}">
+
+					<td th:text="${ins.trabajador.nombre}"></td>
+
+					<td th:text="${ins.trabajador.email}"></td>
+
+					<td>
+
+						<form th:action="@{/cursos/{cursoId}/eliminar-inscripcion/{insId}
+(cursoId=${curso.id}, insId=${ins.id})}" method="post">
+
+							<button type="submit" class="btn btn-danger btn-sm">
+								Quitar
+							</button>
+
+						</form>
+
+					</td>
+
+				</tr>
+
+				<tr th:if="${#lists.isEmpty(inscripciones)}">
+
+					<td colspan="3" class="text-center">
+						No hay trabajadores inscritos
+					</td>
+
+				</tr>
+
+			</tbody>
+
+		</table>
+
+
+		<hr>
+
+		<h4>Agregar Trabajador</h4>
+
+		<form th:action="@{/cursos/{id}/inscribir(id=${curso.id})}" method="post">
+
+			<div class="mb-3">
+
+				<select name="trabajadorId" class="form-control" required>
+
+					<option value="">
+						Seleccione al Trabajador
+					</option>
+
+					<option th:each="t : ${trabajadores}" th:value="${t.id}" th:text="${t.nombre}">
+					</option>
+
+				</select>
+
+			</div>
+
+			<button type="submit" class="btn btn-success">
+
+				Inscribir
+
+			</button>
+
+		</form>
+
+		<br>
+
+		<a href="/cursos" class="btn btn-secondary">
+
+			Volver
+
+		</a>
+
+	</div>
+
+</body>
+
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Subir Material</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+		  <link rel="stylesheet"
+		  		            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+		  		  		  <link rel="stylesheet" th:href="@{/css/menu.css}">
+		  		  		      <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+							  
+							  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+							  	<!-- 🔥 ICONOS (TE FALTABA O ESTÁ MAL UBICADO) -->
+							  	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+							  	<!-- CSS -->
+							  	<link rel="stylesheet" th:href="@{/css/menu.css}">
+							  	<link rel="stylesheet" th:href="@{/css/sidebar.css}">
+							 
+							  
+</head>
+<body>
+	<div th:replace="~{fragments/menu :: menu}"></div>
+	<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+	
+<div class="container mt-4">
+
+    <h2>Agregar Material a Curso</h2>
+
+    <form th:action="@{/materiales/guardar}"
+          method="post"
+          enctype="multipart/form-data">
+
+        <div class="mb-3">
+            <label>Curso</label>
+			<select name="cursoId" class="form-control" required>
+			    <option value="">Seleccione</option>
+
+			    <option th:each="curso : ${cursos}"
+			            th:value="${curso.id}"
+			            th:text="${curso.nombre}"
+			            th:selected="${cursoSeleccionado != null} ? ${curso.id} == ${cursoSeleccionado.id} : false">
+			    </option>
+			</select>
+        </div>
+
+        <div class="mb-3">
+            <label>Archivo (PPT, PDF, Video)</label>
+            <input type="file"
+                   name="file"
+                   class="form-control"
+                   required>
+        </div>
+
+        <button type="submit" class="btn btn-success">
+            Subir Material
+        </button>
+
+        <a href="/cursos" class="btn btn-secondary">
+            Cancelar
+        </a>
+
+    </form>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,109 @@
+
+
+        body {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            font-family: Arial;
+        }
+
+        /* 🔥 CONTENIDO */
+		.content {
+		    margin-left: 120px; /* 🔥 igual al ancho */
+		}
+
+        /* 🔥 FONDO DINÁMICO */
+        .bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(270deg, #1abc9c, #3498db, #9b59b6, #e74c3c);
+            background-size: 800% 800%;
+            animation: gradientMove 12s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 🔥 CONTENIDO CENTRAL */
+        .center-box {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+        }
+
+        .center-box h1 {
+            font-size: 50px;
+            font-weight: bold;
+        }
+
+        .center-box p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+		
+		/* 🔥 SIDEBAR */
+		.sidebar {
+		    width: 120px; /* 🔥 más ancho */
+		    height: 100vh;
+
+		    position: fixed;
+		    top: 0;
+		    left: 0;
+
+		    background: #f1f2f6;
+
+		    display: flex;
+		    flex-direction: column;
+		    justify-content: center; /* 🔥 centra vertical */
+		    align-items: center;
+		    gap: 30px;
+
+		    border-right: 1px solid #ccc;
+		}
+
+		/* 🔥 ITEMS (tipo tarjeta) */
+		.sidebar .item {
+		    width: 80px;
+		    height: 80px;
+
+		    display: flex;
+		    flex-direction: column; /* 🔥 icono arriba, texto abajo */
+		    justify-content: center;
+		    align-items: center;
+
+		    color: #2f3542;
+		    text-decoration: none;
+
+		    border-radius: 15px;
+
+		    transition: 0.3s;
+		}
+
+		/* 🔥 ICONOS GRANDES */
+		.sidebar i {
+		    font-size: 32px; /* 🔥 más grande */
+		    margin-bottom: 5px;
+		}
+
+		/* 🔥 TEXTO */
+		.sidebar span {
+		    font-size: 12px;
+		}
+
+		/* 🔥 HOVER */
+		.sidebar .item:hover {
+		    background: #dfe4ea;
+		    transform: scale(1.1);
+		}
+
+ 

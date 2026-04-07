@@ -1,0 +1,51 @@
+<div class="container mt-4">
+
+    <!-- 🔥 TÍTULO CORREGIDO -->
+    <h2 th:text="${curso != null} ? 'Capacitaciones de: ' + curso.nombreCurso : 'Capacitaciones'"></h2>
+
+    <!-- 🔥 MENSAJE SI NO HAY CURSO -->
+    <div th:if="${curso == null}" class="alert alert-danger">
+        No se encontró el curso
+    </div>
+
+    <!-- 🔥 TABLA -->
+    <table class="table table-bordered" th:if="${curso != null}">
+
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Capacitación</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            <!-- 🔥 ITERACIÓN -->
+            <tr th:each="cap, iterStat : ${capacitaciones}">
+
+                <td th:text="${iterStat.count}"></td>
+
+                <td th:text="${cap.nombre}"></td>
+
+                <td>
+                    <a th:href="@{/cursos/asignar/{cursoId}/{capId}(cursoId=${curso.id}, capId=${cap.id})}"
+                       class="btn btn-success btn-sm">
+                        <i class="bi bi-check-circle"></i> Asignar
+                    </a>
+                </td>
+
+            </tr>
+
+            <!-- 🔥 SIN DATOS -->
+            <tr th:if="${#lists.isEmpty(capacitaciones)}">
+                <td colspan="3" class="text-center text-muted">
+                    No hay capacitaciones disponibles
+                </td>
+            </tr>
+
+        </tbody>
+
+    </table>
+
+</div>

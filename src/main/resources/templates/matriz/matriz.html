@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Matriz de Capacitación</title>
+
+    <style>
+        body{
+            font-family: Arial;
+            background:#f4f6f9;
+        }
+
+        table{
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 12px;
+        }
+
+        th, td{
+            border:1px solid #ccc;
+            padding:5px;
+            text-align:center;
+        }
+
+        th{
+            background:#1f2937;
+            color:white;
+        }
+
+        .nombre{
+            text-align:left;
+            font-weight:bold;
+        }
+
+        .nivel0{ background:#eee; }
+        .nivel1{ background:#fde68a; }
+        .nivel2{ background:#93c5fd; }
+        .nivel3{ background:#34d399; }
+        .nivel4{ background:#059669; color:white;}
+    </style>
+</head>
+
+<body>
+
+<h2>Matriz de Capacitación</h2>
+
+<table>
+
+    <!-- 🔥 ENCABEZADOS -->
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Empleado</th>
+
+        <th th:each="cap : ${capacitaciones}"
+            th:text="${cap.nombreCapacitacion}">
+        </th>
+    </tr>
+    </thead>
+
+    <!-- 🔥 FILAS -->
+    <tbody>
+
+    <tr th:each="trabajador, stat : ${trabajadores}">
+        <td th:text="${stat.index + 1}"></td>
+
+        <td class="nombre"
+            th:text="${trabajador.nombre + ' ' + trabajador.primerApellido}">
+        </td>
+
+        <!-- 🔥 MATRIZ CORREGIDA -->
+        <td th:each="cap : ${capacitaciones}"
+            th:with="key=${trabajador.id + '_' + cap.id},
+                     eval=${evaluacionesMap[key]}"
+            th:class="'nivel' + (${eval != null ? eval.nivel : 0})">
+
+            <span th:text="${eval != null ? eval.nivel : '-'}"></span>
+
+        </td>
+
+    </tr>
+
+    </tbody>
+
+</table>
+
+</body>
+</html>

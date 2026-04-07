@@ -1,0 +1,50 @@
+<html>
+
+<head>
+
+	<style>
+		table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+
+		th,
+		td {
+			border: 1px solid black;
+			padding: 8px;
+		}
+	</style>
+
+</head>
+
+<body>
+
+	<h2>Lista de Puestos</h2>
+
+	<table>
+
+		<thead>
+
+			<tr>
+				<th>Nombre</th>
+				<th>Nivel</th>
+			</tr>
+
+		</thead>
+
+		<tbody>
+
+			<tr th:each="p : ${puestos}">
+
+				<td th:text="${p.nombrePuesto}"></td>
+				<td th:text="${p.nivel}"></td>
+
+			</tr>
+
+		</tbody>
+
+	</table>
+
+</body>
+
+</html>

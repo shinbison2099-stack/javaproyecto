@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Inscripción</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+    <!-- Iconos -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <!-- Sidebar -->
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+
+    <style>
+
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            font-family: Arial;
+        }
+
+        .content {
+            margin-left: 120px;
+            padding: 40px;
+        }
+
+        /* 🔥 CARD */
+        .card-box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {opacity:0; transform: translateY(20px);}
+            to {opacity:1; transform: translateY(0);}
+        }
+
+        h2 {
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        /* SELECT */
+        .form-select {
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* TABLA */
+        table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* BOTÓN */
+        .btn-accion {
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-accion:hover {
+            transform: scale(1.05);
+        }
+
+        /* ALERT BONITO */
+        .alert-custom {
+            display: none;
+            border-radius: 10px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="content">
+
+    <div class="card-box">
+
+        <h2><i class="bi bi-person-plus-fill"></i> Inscribir Capacitación</h2>
+
+        <!-- ALERT -->
+        <div id="alerta" class="alert alert-danger alert-custom">
+            Selecciona un curso primero
+        </div>
+
+        <!-- SELECT -->
+        <div class="mb-4">
+            <label class="fw-semibold">Selecciona curso:</label>
+
+            <select id="cursoSelect" class="form-select mt-2">
+                <option value="">-- Selecciona --</option>
+
+                <option th:each="curso : ${cursos}"
+                        th:value="${curso.id}"
+                        th:text="${curso.nombreCurso}">
+                </option>
+            </select>
+        </div>
+
+        <!-- TABLA -->
+		<form id="formAsignar">
+
+		<div class="table-responsive">
+
+		    <table class="table table-hover table-bordered align-middle text-center">
+
+		        <thead class="table-dark">
+		        <tr>
+		            <th>
+		                <!-- SELECT ALL -->
+		                <input type="checkbox" onclick="seleccionarTodos(this)">
+		            </th>
+		            <th>#</th>
+		            <th>Capacitación</th>
+		        </tr>
+		        </thead>
+
+		        <tbody>
+
+		        <tr th:each="cap, iterStat : ${capacitaciones}"
+		            th:if="${cap.curso == null}">
+
+		            <td>
+		                <input type="checkbox" name="capIds"
+		                       th:value="${cap.id}"
+		                       class="form-check-input">
+		            </td>
+
+		            <td th:text="${iterStat.count}"></td>
+
+		            <td class="fw-semibold text-primary"
+		                th:text="${cap.nombreCapacitacion}">
+		            </td>
+
+		        </tr>
+
+		        </tbody>
+
+		    </table>
+
+		</div>
+
+		<div class="text-end mt-3">
+		    <button type="button" class="btn btn-success"
+		            onclick="asignarMultiple()">
+		        <i class="bi bi-check2-square"></i> Asignar seleccionadas
+		    </button>
+		</div>
+
+		</form>
+    </div>
+
+</div>
+
+<!-- SCRIPT -->
+<script>
+
+function seleccionarTodos(source){
+    document.querySelectorAll('input[name="capIds"]').forEach(cb => {
+        cb.checked = source.checked;
+    });
+}
+
+function asignarMultiple(){
+
+    let cursoId = document.getElementById("cursoSelect").value;
+    let checks = document.querySelectorAll('input[name="capIds"]:checked');
+    let alerta = document.getElementById("alerta");
+
+    if(!cursoId){
+        alerta.innerText = "Selecciona un curso";
+        alerta.style.display = "block";
+        return;
+    }
+
+    if(checks.length === 0){
+        alerta.innerText = "Selecciona al menos una capacitación";
+        alerta.style.display = "block";
+        return;
+    }
+
+    // 🔥 OBTENER IDS
+    let ids = [];
+
+    checks.forEach(c => ids.push(c.value));
+
+    // 🔥 REDIRECCIÓN CON VARIOS IDS
+    window.location.href = "/inscripcion/asignar-multiple/" 
+                            + cursoId + "/" + ids.join(",");
+}
+
+</script>
+
+</body>
+</html>

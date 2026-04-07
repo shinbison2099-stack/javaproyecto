@@ -1,0 +1,54 @@
+
+#page_container {
+			position: relative;
+			margin-left: auto;
+			margin-right: auto;
+			width: 904px;
+			top: -32px;
+		}
+		#toppanel {
+			position: absolute;
+			width: 900px;
+			left: 0px;
+			z-index: 25;
+			text-align: center;
+		
+		}
+		#panel {
+			width: 900px;
+			position: relative;
+			top: 1px;
+			height: 0px;
+			margin-left: auto;
+			margin-right: auto;
+			z-index: 10;
+			overflow: hidden;
+			text-align: left;
+		}
+		#panel_contents {
+			filter:alpha(opacity=60);
+			-moz-opacity:0.60;
+			-khtml-opacity: 0.60;
+			opacity: 0.60;
+			height: 100%;
+			width: 904px;
+			position: absolute;
+			z-index: -1;
+		}
+		#content {
+			margin-left: auto;
+			margin-right: auto;
+			width: 600px;
+			position: relative;
+			top: 90px;
+			
+		}
+		div#login {
+			width: 260px;
+			height: 110px;
+			position: absolute;
+			right: 300px;
+			top: 110px;
+			padding-left: 10px;
+			border: 15px #1d1d1d solid;
+		}

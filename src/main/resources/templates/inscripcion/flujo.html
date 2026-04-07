@@ -1,0 +1,28 @@
+<h2>Capacitación actual</h2>
+
+<div th:if="${actual != null}">
+
+    <h3 th:text="${actual.capacitacion.nombreCapacitacion}"></h3>
+
+    <form th:action="@{/inscripcion/calificar}" method="post">
+
+        <input type="hidden" name="trabajadorId"
+               th:value="${actual.trabajador.id}">
+
+        <input type="hidden" name="capId"
+               th:value="${actual.capacitacion.id}">
+
+        <input type="number" name="calificacion"
+               class="form-control" step="0.1" required>
+
+        <button class="btn btn-success mt-2">
+            Calificar
+        </button>
+
+    </form>
+
+</div>
+
+<div th:if="${actual == null}">
+    <h3>🎉 Curso completado</h3>
+</div>

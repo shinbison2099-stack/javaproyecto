@@ -1,0 +1,21 @@
+#sliderContent {
+	WIDTH: 590px; PADDING-RIGHT: 0px; PADDING-LEFT: 0px; PADDING-BOTTOM: 5px; PADDING-TOP: 5px;   /*BACKGROUND-COLOR: #10ebeb*/
+}
+.viewer {
+	HEIGHT: 35px; WIDTH: 590px; POSITION: relative; OVERFLOW: hidden; /*BACKGROUND-COLOR: yellow; PADDING-RIGHT: 5px; PADDING-LEFT: 5px; PADDING-BOTTOM: 5px; PADDING-TOP: 5px;*/
+}
+.content-conveyor {
+	WIDTH: 590px; POSITION: relative; HEIGHT: 35px;
+}
+.item {
+	FLOAT: left;height: 40px;   min-width: 60px;
+	/* min-width para IE6 */
+  	width: auto !important;
+    width: 60px;
+	FONT-FAMILY: Tahoma; font-size:70%; TEXT-ALIGN: center; /*BACKGROUND-COLOR: #ebebeb;*/ 
+}
+.item IMG {
+	BORDER-RIGHT: #898989 1px solid; PADDING-RIGHT: 1px; BORDER-TOP: #898989 1px solid; PADDING-LEFT: 1px; PADDING-BOTTOM: 1px; BORDER-LEFT: #898989 1px solid; PADDING-TOP: 1px; BORDER-BOTTOM: #898989 1px solid;
+}
+
+#contentSlider { HEIGHT: 40px; WIDTH: 590px;}

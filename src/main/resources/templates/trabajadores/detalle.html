@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>CV Trabajador</title>
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/css/menu.css}">
+</head>
+
+<body>
+
+<div th:replace="~{fragments/menu :: menu}"></div>
+
+<div class="container mt-4">
+
+    <h2>Ficha del Trabajador</h2>
+
+    <div class="card">
+        <div class="card-body">
+
+            <!-- 🔥 DATOS GENERALES -->
+            <div class="row">
+
+                <div class="col-md-3 text-center">
+                    <img th:src="@{/fotos/{id}.jpg(id=${trabajador.numeroPersonal})}" width="180">
+                </div>
+
+                <div class="col-md-9">
+
+                    <h3 th:text="${trabajador.nombre + ' ' + trabajador.primerApellido + ' ' + trabajador.segundoApellido}"></h3>
+
+                    <p><strong>No. Personal:</strong> <span th:text="${trabajador.numeroPersonal}"></span></p>
+                    <p><strong>CURP:</strong> <span th:text="${trabajador.curp}"></span></p>
+                    <p><strong>Área:</strong> <span th:text="${trabajador.areaEmpleado}"></span></p>
+                    <p><strong>Puesto:</strong>
+                        <span th:text="${trabajador.puesto != null ? trabajador.puesto.nombrePuesto : 'Sin puesto'}"></span>
+                    </p>
+
+                </div>
+
+            </div>
+
+            <hr>
+
+            <!-- 🔥 DATOS EXTRA -->
+            <div class="row">
+
+                <div class="col-md-6">
+                    <p><strong>Clave Estado:</strong> <span th:text="${trabajador.claveEstado}"></span></p>
+                    <p><strong>Clave Municipio:</strong> <span th:text="${trabajador.claveMunicipio}"></span></p>
+                    <p><strong>Clave Ocupación:</strong> <span th:text="${trabajador.claveOcupacion}"></span></p>
+                    <p><strong>Nivel Estudios:</strong> <span th:text="${trabajador.claveNivelEstudios}"></span></p>
+                </div>
+
+                <div class="col-md-6">
+                    <h5>Documento Probatorio</h5>
+                    <p th:text="${trabajador.claveDocumentoProbatorio}"></p>
+                </div>
+
+            </div>
+
+            <hr>
+
+            <!-- 🔥 TABLA -->
+            <h4>Capacitaciones</h4>
+
+            <table class="table table-bordered">
+
+                <thead class="table-dark">
+                <tr>
+                    <th>Curso</th>
+                    <th>Capacitación</th>
+                    <th>Fecha</th>
+                    <th>Calificación</th>
+                    <th>Estatus</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <tr th:each="ins : ${inscripciones}">
+
+                    <!-- CURSO -->
+                    <td th:text="${ins.curso.nombreCurso}"></td>
+
+                    <!-- CAPACITACIÓN -->
+                    <td th:text="${ins.curso.capacitacion != null ? ins.curso.capacitacion.nombreCapacitacion : 'Sin capacitación'}"></td>
+
+                    <!-- FECHA -->
+                    <td th:text="${ins.fechaInscripcion}"></td>
+
+                    <!-- 🔥 CALIFICACIÓN -->
+                    <td th:with="
+                        capId=${ins.curso.capacitacion != null ? ins.curso.capacitacion.id : 0},
+                        eval=${evaluaciones[ins.trabajador.id + '-' + capId]}
+                    ">
+                        <span th:text="${eval != null ? eval.calificacion : 'Sin calificar'}"></span>
+                    </td>
+
+                    <!-- 🔥 ESTATUS -->
+                    <td th:with="
+                        capId=${ins.curso.capacitacion != null ? ins.curso.capacitacion.id : 0},
+                        eval=${evaluaciones[ins.trabajador.id + '-' + capId]}
+                    ">
+
+                        <span th:if="${eval != null and eval.aprobada}" class="badge bg-success">
+                            Aprobado
+                        </span>
+
+                        <span th:if="${eval != null and !eval.aprobada}" class="badge bg-danger">
+                            Reprobado
+                        </span>
+
+                        <span th:if="${eval == null}" class="badge bg-secondary">
+                            Pendiente
+                        </span>
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+    <br>
+
+    <a href="/trabajadores" class="btn btn-secondary">Volver</a>
+
+</div>
+
+</body>
+</html>

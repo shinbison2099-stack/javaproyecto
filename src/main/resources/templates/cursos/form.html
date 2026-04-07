@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Curso</title>
+
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+			<!-- 🔥 ICONOS (TE FALTABA O ESTÁ MAL UBICADO) -->
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+			<!-- CSS -->
+			<link rel="stylesheet" th:href="@{/css/menu.css}">
+			<link rel="stylesheet" th:href="@{/css/sidebar.css}">
+		  
+</head>
+
+<body>
+	
+	<div th:replace="~{fragments/menu :: menu}"></div>
+	<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="container mt-4">
+
+    <h2 th:text="${curso.id == null} ? 'Nuevo Curso' : 'Editar Curso'"></h2>
+
+    <form th:action="${curso.id == null} ? @{/cursos/guardar} : @{/cursos/actualizar}"
+          th:object="${curso}"
+          method="post">
+
+        <input type="hidden" th:field="*{id}">
+        <input type="hidden" th:field="*{activo}">
+
+        <!-- CLAVE -->
+        <div class="mb-3">
+            <label>Clave Curso</label>
+            <input type="text" th:field="*{claveCurso}" class="form-control" required>
+        </div>
+
+        <!-- NOMBRE -->
+        <div class="mb-3">
+            <label>Nombre Curso</label>
+            <input type="text" th:field="*{nombreCurso}" class="form-control" required>
+        </div>
+
+        <!-- AREA -->
+        <div class="mb-3">
+            <label>Área Temática</label>
+            <input type="text" th:field="*{claveAreaTematica}" class="form-control">
+        </div>
+
+        <!-- DURACION -->
+        <div class="mb-3">
+            <label>Duración (horas)</label>
+            <input type="number" th:field="*{duracion}" class="form-control">
+        </div>
+
+        <!-- INSTRUCTOR -->
+        <div class="mb-3">
+            <label>Instructor</label>
+
+            <select th:field="*{instructor}" class="form-control">
+                <option value="">Seleccione instructor</option>
+
+                <option th:each="inst : ${instructores}"
+                        th:value="${inst.id}"
+                        th:text="${inst.nombre}">
+                </option>
+            </select>
+        </div>
+
+        <!-- FECHAS -->
+        <div class="mb-3">
+            <label>Fecha Inicio</label>
+            <input type="date" th:field="*{fechaInicio}" class="form-control">
+        </div>
+
+        <div class="mb-3">
+            <label>Fecha Fin</label>
+            <input type="date" th:field="*{fechaFin}" class="form-control">
+        </div>
+
+        <!-- 🔥 NUEVO: CAPACITACIONES -->
+        <div class="mb-3">
+            <label>Capacitaciones del curso</label>
+
+            <select name="capacitacionesIds"
+                    class="form-control"
+                    multiple
+                    size="6">
+
+                <option th:each="cap : ${capacitaciones}"
+                        th:value="${cap.id}"
+                        th:text="${cap.nombreCapacitacion}">
+                </option>
+
+            </select>
+
+            <small class="text-muted">
+                Puedes seleccionar varias (Ctrl + click)
+            </small>
+        </div>
+
+        <!-- BOTONES -->
+        <button type="submit" class="btn btn-success">
+            Guardar
+        </button>
+
+        <a href="/cursos" class="btn btn-secondary">
+            Cancelar
+        </a>
+
+    </form>
+
+</div>
+
+</body>
+
+</html>

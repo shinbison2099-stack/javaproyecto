@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Editar Evaluación</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container mt-4">
+
+    <h3>Editar Calificación</h3>
+
+    <form action="/evaluaciones/calificar" method="post">
+
+        <input type="hidden" name="trabajadorId"
+               th:value="${evaluacion.trabajador.id}">
+
+        <input type="hidden" name="capacitacionId"
+               th:value="${evaluacion.capacitacion.id}">
+
+        <div class="mb-3">
+            <label>Calificación</label>
+            <input type="number" name="calificacion"
+                   th:value="${evaluacion.calificacion}"
+                   min="0" max="10"
+                   class="form-control">
+        </div>
+
+        <button class="btn btn-success">Actualizar</button>
+
+    </form>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+	<meta charset="UTF-8" />
+	<title>Lista de Cursos</title>
+
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			font-size: 12px;
+		}
+
+		h2 {
+			text-align: center;
+			margin-bottom: 20px;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+
+		th,
+		td {
+			border: 1px solid black;
+			padding: 6px;
+			text-align: left;
+		}
+
+		th {
+			background: #f2f2f2;
+		}
+	</style>
+
+</head>
+
+<body>
+
+	<h2>Lista de Cursos</h2>
+
+	<table>
+
+		<thead>
+
+			<tr>
+				<th>ID</th>
+				<th>Clave Curso</th>
+				<th>Nombre Curso</th>
+				<th>Área</th>
+				<th>Duración</th>
+				<th>Instructor</th>
+				<th>Inicio</th>
+				<th>Fin</th>
+			</tr>
+
+		</thead>
+
+		<tbody>
+
+			<tr th:each="curso : ${cursos}">
+
+				<td th:text="${curso.id}"></td>
+
+				<td th:text="${curso.claveCurso}"></td>
+
+				<td th:text="${curso.nombreCurso}"></td>
+
+				<td th:text="${curso.claveAreaTematica}"></td>
+
+				<td th:text="${curso.duracion + ' hrs'}"></td>
+
+				<td th:text="${curso.instructor != null ? curso.instructor.nombre : 'Sin instructor'}"></td>
+
+				<td th:text="${curso.fechaInicio != null ? #temporals.format(curso.fechaInicio,'dd/MM/yyyy') : ''}">
+				</td>
+
+				<td th:text="${curso.fechaFin != null ? #temporals.format(curso.fechaFin,'dd/MM/yyyy') : ''}"></td>
+
+			</tr>
+
+		</tbody>
+
+	</table>
+
+</body>
+
+</html>

@@ -1,0 +1,37 @@
+.contenedorContactoVip{
+    position: relative;
+    display: inline-block;
+    text-align: right;
+}
+
+.centrado{
+    position: absolute;
+    top: 50%;
+    left: 70%;
+    font-family: Arial;
+    font-size: 70%;
+    transform: translate(-50%, -50%);
+    color: #085991;
+    font-weight: bold;
+}
+
+.letra{
+	font-weight: bold;
+	color: 	#FFD700;
+	font-size: small;
+}
+
+.info{
+    position: relative;
+    display: inline-block;
+    text-align: center;
+}
+
+.letra2{
+	font-weight: bold;
+	font-family: Calibri;
+}
+
+.letra3{
+	font-family: Calibri;
+}

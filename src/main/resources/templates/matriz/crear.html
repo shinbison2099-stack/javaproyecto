@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Crear matriz</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+    <!-- Icons -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <style>
+
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            font-family: 'Segoe UI', sans-serif;
+            color: white;
+        }
+
+        .container {
+            margin-top: 40px;
+        }
+
+        /* CARD PRINCIPAL */
+        .card-box {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {opacity:0; transform: translateY(20px);}
+            to {opacity:1; transform: translateY(0);}
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        /* INPUT */
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* SECCIONES */
+        .section {
+            margin-top: 20px;
+        }
+
+        /* GRID TARJETAS */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        /* TARJETAS */
+        .item-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+
+        .item-card:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.02);
+        }
+
+        input[type="checkbox"] {
+            transform: scale(1.2);
+        }
+
+        /* BOTÓN */
+        .btn-save {
+            width: 100%;
+            border-radius: 12px;
+            margin-top: 25px;
+            font-weight: bold;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card-box">
+
+        <h2>
+            <i class="bi bi-grid"></i>
+            Crear matriz
+        </h2>
+
+        <form action="/matriz/guardar" method="post">
+
+            <!-- NOMBRE -->
+            <input type="text" name="nombre"
+                   placeholder="Nombre de la matriz"
+                   class="form-control mb-3">
+
+            <!-- CURSO -->
+            <div class="section">
+                <h5><i class="bi bi-book"></i> Curso</h5>
+
+                <select id="cursoSelect" class="form-select">
+                    <option value="">-- Selecciona curso --</option>
+
+                    <option th:each="c : ${cursos}"
+                            th:value="${c.id}"
+                            th:text="${c.nombreCurso}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- CAPACITACIONES -->
+            <div class="section">
+                <h5><i class="bi bi-journal-check"></i> Capacitaciones</h5>
+
+                <div id="capacitacionesContainer" class="grid">
+                    <p class="text-muted">Selecciona un curso</p>
+                </div>
+            </div>
+
+            <!-- TRABAJADORES -->
+            <div class="section">
+                <h5><i class="bi bi-people"></i> Trabajadores</h5>
+
+                <div id="trabajadoresContainer" class="grid">
+                    <p class="text-muted">Selecciona un curso</p>
+                </div>
+            </div>
+
+            <button class="btn btn-success btn-save">
+                <i class="bi bi-check-circle"></i> Guardar matriz
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+document.getElementById("cursoSelect").addEventListener("change", function(){
+
+    let cursoId = this.value;
+
+    let capCont = document.getElementById("capacitacionesContainer");
+    let trabCont = document.getElementById("trabajadoresContainer");
+
+    if(!cursoId){
+        capCont.innerHTML = "<p class='text-muted'>Selecciona un curso</p>";
+        trabCont.innerHTML = "<p class='text-muted'>Selecciona un curso</p>";
+        return;
+    }
+
+    // CAPACITACIONES
+    fetch("/matriz/capacitaciones/" + cursoId)
+        .then(res => res.json())
+        .then(data => {
+
+            let html = "";
+
+            data.forEach(cap => {
+                html += `
+                    <div class="item-card">
+                        <input type="checkbox" name="capacitacionesIds" value="${cap.id}">
+                        <span>${cap.nombreCapacitacion} (${cap.duracionHoras} hrs)</span>
+                    </div>
+                `;
+            });
+
+            capCont.innerHTML = html;
+        });
+
+    // TRABAJADORES
+    fetch("/matriz/trabajadores/" + cursoId)
+        .then(res => res.json())
+        .then(data => {
+
+            let html = "";
+
+            data.forEach(trab => {
+                html += `
+                    <div class="item-card">
+                        <input type="checkbox" name="trabajadoresIds" value="${trab.id}">
+                        <span>${trab.nombre}</span>
+                    </div>
+                `;
+            });
+
+            trabCont.innerHTML = html;
+        });
+
+});
+</script>
+
+</body>
+</html>
+

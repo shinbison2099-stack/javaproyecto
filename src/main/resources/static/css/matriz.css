@@ -1,0 +1,34 @@
+.estado{
+
+width:20px;
+height:20px;
+border-radius:50%;
+display:inline-block;
+
+}
+
+.verde{
+background:#2ecc71;
+}
+
+.naranja{
+background:#e67e22;
+}
+
+.amarillo{
+background:#f1c40f;
+}
+
+.rojo{
+background:#e74c3c;
+}
+
+.circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: conic-gradient(
+        #2ecc71 calc(var(--p) * 1%),
+        #ddd 0
+    );
+}

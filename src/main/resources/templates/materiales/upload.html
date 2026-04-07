@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layout :: body">
+
+<div>
+    <h2>Subir Material</h2>
+
+    <form th:action="@{/materiales/upload}" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label>Curso</label>
+            <select name="cursoId" class="form-control">
+                <option th:each="curso : ${cursos}"
+                        th:value="${curso.id}"
+                        th:text="${curso.nombre}">
+                </option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label>Archivo (PPT / Video)</label>
+            <input type="file" name="file" class="form-control">
+        </div>
+
+        <button class="btn btn-success">Subir</button>
+    </form>
+</div>
+
+</html>

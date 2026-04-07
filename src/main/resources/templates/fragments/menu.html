@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/menu.css}">
+    <title>Menú</title>
+</head>
+<body>
+    <div th:fragment="menu">
+        <nav>
+            <div class="logo">MiApp</div>
+
+            <ul>
+                <li>
+                    <a th:href="@{/}">Home</a>
+                </li>
+                <li>
+                    <a th:href="@{/instructores}">Instructores</a>
+                </li>
+                <li>
+                    <a th:href="@{/cursos}">Cursos</a>
+                </li>
+                <li>
+                    <a th:href="@{/trabajadores}">Trabajadores</a>
+                </li>
+                <li>
+                    <a th:href="@{/api/usuarios}">API</a>
+                </li>
+				<li class="nav-item">
+				    <a th:href="@{/matriz}">Matriz</a>
+				</li>
+				<li class="nav-item">
+				   <a th:href="@{/capacitaciones}">Capacitaciones</a>
+				</li>
+				<li class="nav-item">
+				<a th:href="@{/puestos}">Puestos</a>
+				</li>
+				<li class="nav-item">
+				<a th:href="@{/matriz/habilidades}">Habilidades</a>
+				</li>
+				
+            </ul>
+			
+            <!-- Botón hamburguesa -->
+            <div class="hamburger" onclick="toggleMenu(this)">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        function toggleMenu(menu) {
+            menu.classList.toggle("active");
+            document.querySelector("nav ul").classList.toggle("show");
+        }
+    </script>
+</body>
+</html>

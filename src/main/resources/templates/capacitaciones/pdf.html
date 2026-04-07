@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+	<meta charset="UTF-8">
+
+	<style>
+		body {
+			font-family: Arial;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+
+		th,
+		td {
+			border: 1px solid black;
+			padding: 6px;
+			text-align: center;
+		}
+
+		th {
+			background: #dddddd;
+		}
+	</style>
+
+</head>
+
+<body>
+
+	<h2>Lista de Capacitaciones</h2>
+
+	<table>
+
+		<thead>
+
+			<tr>
+				<th>Clave</th>
+				<th>Nombre</th>
+				<th>Duración</th>
+				<th>Instructor</th>
+			</tr>
+
+		</thead>
+
+		<tbody>
+
+			<tr th:each="cap : ${capacitaciones}">
+
+				<td th:text="${cap.claveCapacitacion}"></td>
+				<td th:text="${cap.nombreCapacitacion}"></td>
+				<td th:text="${cap.duracionHoras + ' hrs'}"></td>
+				<td th:text="${cap.instructor != null ? cap.instructor.nombre : 'Sin instructor'}"></td>
+
+			</tr>
+
+		</tbody>
+
+	</table>
+
+</body>
+
+</html>

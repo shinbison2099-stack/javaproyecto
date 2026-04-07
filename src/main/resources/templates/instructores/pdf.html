@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+
+<meta charset="UTF-8"/>
+
+<style>
+
+body{
+font-family: Arial;
+}
+
+table{
+width:100%;
+border-collapse: collapse;
+}
+
+th,td{
+border:1px solid black;
+padding:8px;
+}
+
+th{
+background:#f2f2f2;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Lista de Instructores</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Nombre</th>
+<th>Email</th>
+<th>Activo</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr th:each="inst : ${instructores}">
+<td th:text="${inst.id}"></td>
+<td th:text="${inst.nombre}"></td>
+<td th:text="${inst.email}"></td>
+<td th:text="${inst.activo}"></td>
+</tr>
+
+</tbody>
+
+</table>
+
+</body>
+</html>
