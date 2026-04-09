@@ -20,10 +20,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+
 @Table(name = "capacitaciones")
 public class Capacitacion {
 
@@ -60,6 +63,7 @@ public class Capacitacion {
     
     @ManyToOne
     @JoinColumn(name = "instructor_id")
+    @JsonIgnore // 🔥 ESTA LÍNEA
     private Instructores instructor;
 
     @ManyToOne
@@ -67,6 +71,7 @@ public class Capacitacion {
     private Curso curso;
     
     @OneToMany(mappedBy = "capacitacion")
+    @JsonIgnore // 🔥 ESTA LÍNEA
     private List<CapacitacionTrabajador> capacitacionTrabajadores = new ArrayList<>();
     
 }

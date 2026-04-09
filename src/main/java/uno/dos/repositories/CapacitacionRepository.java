@@ -24,4 +24,8 @@ void restaurar(@Param("id") Long id);
 List<Capacitacion> findByActivoTrue();
 List<Capacitacion> findByActivoFalse();
 
+List<Capacitacion> findByCursoIdAndActivoTrue(Long cursoId);
+
+List<Capacitacion> findByCursoIdInAndActivoTrue(List<Long> cursoIds);
+
 }

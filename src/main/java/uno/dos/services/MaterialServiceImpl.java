@@ -22,4 +22,7 @@ public class MaterialServiceImpl implements MaterialService {
     public List<Material> listarPorCurso(Long cursoId) {
         return materialRepository.findByCursoId(cursoId);
     }
+    
+    
+    
 }

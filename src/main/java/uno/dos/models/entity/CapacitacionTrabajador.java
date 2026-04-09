@@ -2,6 +2,8 @@ package uno.dos.models.entity;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -25,9 +27,11 @@ public class CapacitacionTrabajador {
 	    private Long id;
 
 	    @ManyToOne
+	    @JsonIgnore // 🔥 rompe el loop
 	    private Trabajador trabajador;
 
 	    @ManyToOne
+	    @JsonIgnore // 🔥 rompe el loop
 	    private Capacitacion capacitacion;
 
 	    private LocalDate fechaInscripcion;

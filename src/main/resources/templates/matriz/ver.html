@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Ver matriz</title>
+
+    <style>
+        body {
+            background: #0f172a;
+            color: white;
+            font-family: 'Segoe UI';
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #334155;
+            padding: 8px;
+            text-align: center;
+            min-width: 70px;
+        }
+
+        th {
+            background: #1e293b;
+        }
+
+        .circulo {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            margin: auto;
+        }
+
+        .completo { background: #0ea5e9; }
+
+        .medio {
+            background: linear-gradient(to right, #0ea5e9 50%, transparent 50%);
+            border: 2px solid #0ea5e9;
+        }
+
+        .vacio {
+            border: 2px solid #64748b;
+        }
+
+        th[colspan] {
+            background: #0f172a;
+            color: #38bdf8;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>📊 Matriz</h2>
+
+<table>
+<thead>
+
+<tr>
+    <th rowspan="2">ID</th>
+    <th rowspan="2">Nombre</th>
+
+    <!-- CURSOS -->
+    <th:block th:each="entry : ${capsPorCurso}">
+        <th th:colspan="${#lists.size(entry.value)}"
+            th:text="${entry.key}">
+        </th>
+    </th:block>
+</tr>
+
+<tr>
+    <!-- CAPACITACIONES -->
+    <th:block th:each="entry : ${capsPorCurso}">
+        <th th:each="c : ${entry.value}"
+            th:text="${c.nombreCapacitacion}">
+        </th>
+    </th:block>
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr th:each="t : ${trabajadores}">
+    <td th:text="${t.id}"></td>
+    <td th:text="${t.nombre}"></td>
+
+    <!-- 🔥 UNA CELDA POR CAPACITACIÓN -->
+    <th:block th:each="entry : ${capsPorCurso}">
+        <td th:each="c : ${entry.value}">
+            <div class="circulo"
+                 th:classappend="${matrizEstados[t.id][c.id]}">
+            </div>
+        </td>
+    </th:block>
+
+</tr>
+
+</tbody>
+</table>
+
+</body>
+</html>

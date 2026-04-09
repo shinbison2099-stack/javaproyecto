@@ -22,5 +22,9 @@ public interface CapacitacionService {
     public void restaurarCapacitacion(Long id);
     
     List<Capacitacion> buscarPorIds(List<Long> ids);
+    
+    List<Capacitacion> buscarPorCursoId(Long cursoId);
+    
+    List<Capacitacion> buscarPorCursoIds(List<Long> cursoIds);
 
 }

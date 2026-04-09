@@ -67,6 +67,20 @@ public class CapacitacionServiceImpl implements CapacitacionService {
         public List<Capacitacion> buscarPorIds(List<Long> ids) {
             return capacitacionRepository.findAllById(ids);
         }
+        
+        @Override
+        public List<Capacitacion> buscarPorCursoId(Long cursoId) {
+            return capacitacionRepository.findByCursoIdAndActivoTrue(cursoId);
+        }
+        
+        @Override
+        public List<Capacitacion> buscarPorCursoIds(List<Long> cursoIds) {
+            return capacitacionRepository
+                    .findByCursoIdInAndActivoTrue(cursoIds)
+                    .stream()
+                    .distinct()
+                    .toList();
+        }
 	
 
 }

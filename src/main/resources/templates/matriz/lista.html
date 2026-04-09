@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Lista de matrices</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            margin: 0;
+            padding: 20px;
+            color: white;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        /* GRID */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        /* TARJETA */
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 20px;
+            transition: 0.3s;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.5);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            background: #22c55e;
+            color: white;
+        }
+
+        .btn {
+            margin-top: 15px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-ver {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-ver:hover {
+            background: #2563eb;
+        }
+
+    </style>
+</head>
+<body>
+
+<h1>📊 Lista de matrices</h1>
+
+<div class="grid">
+
+    <div class="card" th:each="m : ${matrices}">
+        
+        <div class="card-title" th:text="${m.nombre}"></div>
+
+        <div class="badge">
+            Matriz
+        </div>
+
+        <br>
+
+        <a th:href="@{'/matriz/' + ${m.id}}">
+            <button class="btn btn-ver">Ver matriz</button>
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -10,6 +10,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -54,6 +56,7 @@ public class Curso {
     }
     
     @OneToMany(mappedBy = "curso")
+    @JsonIgnore // 🔥 SOLUCIÓN
     private List<Capacitacion> capacitaciones = new ArrayList<>();
     
     @Transient
