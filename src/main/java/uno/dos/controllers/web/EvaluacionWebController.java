@@ -7,10 +7,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
+import uno.dos.models.entity.CapacitacionTrabajador;
 import uno.dos.models.entity.Curso;
 import uno.dos.models.entity.EvaluacionCapacitacion;
 import uno.dos.services.TrabajadorService;
 import uno.dos.services.CapacitacionService;
+import uno.dos.services.CapacitacionTrabajadorService;
 import uno.dos.services.CursoService;
 import uno.dos.services.EvaluacionService;
 
@@ -23,7 +25,7 @@ public class EvaluacionWebController {
     private final CapacitacionService capacitacionService;
     private final EvaluacionService evaluacionService;
     private final CursoService cursoService;
-    
+    private final CapacitacionTrabajadorService capacitacionTrabajadorService;
 
     @PostMapping("/calificar")
     public String calificar(
@@ -52,7 +54,9 @@ public class EvaluacionWebController {
         ev.setFechaEvaluacion(LocalDate.now());
 
         evaluacionService.guardar(ev);
-
+        
+        // 🔥 🔥 🔥 AQUÍ ESTÁ LA MAGIA 🔥 🔥 🔥
+        
         return "redirect:/capacitaciones/" + capacitacionId;
     }
     

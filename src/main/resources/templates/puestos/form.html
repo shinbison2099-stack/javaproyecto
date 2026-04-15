@@ -3,48 +3,190 @@
 
 <head>
 
-	<title>Matriz de habilidades</title>
+    <title>Puesto</title>
 
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 
-	<link rel="stylesheet" th:href="@{/css/matriz.css}">
-	<link rel="stylesheet" th:href="@{/css/menu.css}">
+    <style>
+
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            font-family: 'Segoe UI', sans-serif;
+            color: white;
+        }
+
+        .container-box {
+            max-width: 700px;
+            margin: 40px auto;
+        }
+
+        .card-glass {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(14px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            transition: 0.3s;
+        }
+
+        .card-glass:hover {
+            transform: scale(1.01);
+        }
+
+        .form-control, .form-select {
+            border-radius: 12px;
+            border: none;
+            padding: 10px;
+        }
+
+        .titulo {
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .cursos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+        }
+
+        .curso-item {
+            background: rgba(255,255,255,0.05);
+            padding: 8px;
+            border-radius: 10px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .curso-item:hover {
+            background: rgba(59,130,246,0.3);
+        }
+
+        .btn {
+            border-radius: 12px;
+            padding: 8px 15px;
+        }
+
+        .btn-success {
+            background: #22c55e;
+            border: none;
+        }
+
+        .btn-success:hover {
+            background: #16a34a;
+        }
+
+        .btn-secondary {
+            background: #475569;
+            border: none;
+        }
+
+    </style>
 
 </head>
 
 <body>
 
-	<div th:replace="~{fragments/menu :: menu}"></div>
+<div class="container-box">
 
-	<form th:object="${puesto}" th:action="@{/puestos/guardar}" method="post">
+    <div class="card-glass">
 
-		<input type="hidden" th:field="*{id}">
+        <h3 class="titulo">
+            💼 Crear / Editar Puesto
+        </h3>
 
-		<div class="mb-3">
+        <form th:object="${puesto}" th:action="@{/puestos/guardar}" method="post">
 
-			<label>Nombre Puesto</label>
+            <input type="hidden" th:field="*{id}">
 
-			<input type="text" th:field="*{nombrePuesto}" class="form-control">
+            <!-- NOMBRE -->
+            <div class="mb-3">
+                <label>Nombre del puesto</label>
+                <input type="text"
+                       th:field="*{nombrePuesto}"
+                       class="form-control"
+                       required>
+            </div>
 
-		</div>
+            <!-- NIVEL -->
+            <div class="mb-3">
+                <label>Nivel</label>
+                <input type="number"
+                       th:field="*{nivel}"
+                       class="form-control"
+                       required>
+            </div>
 
-		<div class="mb-3">
+            <!-- CATEGORÍA -->
+            <div class="mb-3">
+                <label>Categoría</label>
 
-			<label>Nivel</label>
+                <select th:field="*{categoria}"
+                        class="form-select"
+                        required>
 
-			<input type="number" th:field="*{nivel}" class="form-control">
+                    <option value="">-- Selecciona categoría --</option>
 
-		</div>
+                    <option th:each="c : ${categorias}"
+                            th:value="${c.id}"
+                            th:text="${c.nombre}">
+                    </option>
 
-		<button class="btn btn-success">
-			Guardar
-		</button>
+                </select>
+            </div>
 
-		<a href="/puestos" class="btn btn-secondary">
-			Cancelar
-		</a>
+            <!-- CURSOS -->
+            <div class="mb-3">
+                <label class="fw-semibold">Cursos</label>
 
-	</form>
+                <div class="cursos-grid">
 
+                    <div th:each="c : ${cursos}" class="curso-item">
+
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="cursosIds"
+                               th:value="${c.id}"
+                               th:checked="${puesto.cursosIds != null and puesto.cursosIds.contains(c.id)}"
+                               th:id="'curso_' + ${c.id}">
+
+                        <label th:for="'curso_' + ${c.id}"
+                               th:text="${c.nombreCurso}">
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- BOTONES -->
+            <div class="d-flex justify-content-between mt-4">
+
+                <a href="/puestos" class="btn btn-secondary">
+                    ← Cancelar
+                </a>
+
+                <button class="btn btn-success">
+                    💾 Guardar
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
 
 </body>
+</html>

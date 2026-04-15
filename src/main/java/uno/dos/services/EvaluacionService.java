@@ -15,7 +15,8 @@ public interface EvaluacionService {
     
     public EvaluacionCapacitacion buscarPorTrabajadorYCapacitacion(Long trabajadorId, Long capacitacionId);
     
+    List<EvaluacionCapacitacion> 
+    buscarPorCapacitaciones(List<Long> capacitacionIds);
+
     
-
-
 }

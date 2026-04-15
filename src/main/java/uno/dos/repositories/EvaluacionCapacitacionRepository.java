@@ -15,10 +15,7 @@ public interface EvaluacionCapacitacionRepository
 
     int countByTrabajadorIdAndAprobadaTrue(Long trabajadorId);
     
-    List<EvaluacionCapacitacion> findByTrabajador_IdAndCapacitacion_Id(
-            Long trabajadorId,
-            Long capacitacionId
-    );
+    List<EvaluacionCapacitacion> findByTrabajador_IdAndCapacitacion_Id(Long trabajadorId, Long capacitacionId);
     
     boolean existsByTrabajador_IdAndCapacitacion_Id(Long trabajadorId, Long capacitacionId);
     
@@ -28,6 +25,9 @@ public interface EvaluacionCapacitacionRepository
     	    Long trabajadorId,
     	    Long capacitacionId
     	);
-    
    
+    List<EvaluacionCapacitacion> 
+    findByCapacitacionIdIn(List<Long> capacitacionIds);
+   
+    
 }

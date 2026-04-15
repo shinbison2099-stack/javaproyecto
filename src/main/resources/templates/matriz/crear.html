@@ -71,19 +71,64 @@
         }
 
         .vacio { border: 2px solid #94a3b8; }
+		
+		table {
+		    display: block;
+		    overflow-x: auto;
+		}
+
+		thead th {
+		    position: sticky;
+		    top: 0;
+		    z-index: 2;
+		}
+		
     </style>
 </head>
 
 <body>
 
-<div class="container">
+	<div class="container">
 
-    <div class="card-box">
+	    <!-- 🔥 HEADER -->
+	    <div style="
+	        display:flex;
+	        justify-content:space-between;
+	        align-items:center;
+	        margin-bottom:20px;
+	    ">
 
-        <h3><i class="bi bi-grid"></i> Matriz de habilidades</h3>
+	        <!-- TÍTULO -->
+	        <h3 style="
+	            margin:0;
+	            font-weight:600;
+	            letter-spacing:1px;
+	        ">
+	            <i class="bi bi-grid"></i> Matriz de habilidades
+	        </h3>
 
-        <!-- 🔥 FORM -->
-        <form action="/matriz/guardar" method="post">
+	        <!-- BOTONES -->
+	        <div style="display:flex; gap:10px;">
+
+	            <a href="/matriz/lista">
+	                <button class="btn btn-primary">
+	                    📊 Ver matrices
+	                </button>
+	            </a>
+
+	            <button form="formMatriz"
+	                    class="btn btn-success">
+	                💾 Guardar
+	            </button>
+
+	        </div>
+
+	    </div>
+
+	    <div class="card-box">
+
+	        <!-- 🔥 FORM -->
+	        <form id="formMatriz" action="/matriz/guardar" method="post">
 
             <!-- NOMBRE -->
             <input type="text" name="nombre"
@@ -123,24 +168,36 @@ function cargarTodo(){
     let checks = document.querySelectorAll("input[name='cursoIds']:checked");
     let ids = Array.from(checks).map(c => c.value);
 
+    let container = document.getElementById("matrizContainer");
+
     if(ids.length === 0){
-        document.getElementById("matrizContainer").innerHTML = "";
+        container.innerHTML = "";
         return;
     }
 
+    container.innerHTML = `<div style="padding:20px;text-align:center;">
+        ⏳ Cargando matriz...
+    </div>`;
+
     fetch("/matriz/matriz-data?cursoIds=" + ids.join(","))
         .then(res => res.json())
-        .then(data => pintarMatriz(data));
+        .then(data => pintarMatriz(data))
+        .catch(err => {
+            container.innerHTML = `<div style="color:red;">Error al cargar</div>`;
+            console.error(err);
+        });
 }
 
 function pintarMatriz(data){
 
     let caps = data.capacitaciones || [];
     let trabajadores = data.trabajadores || [];
+    let evaluaciones = data.evaluaciones || [];
 
-    // 🔥 VALIDACIÓN IMPORTANTE
+    let container = document.getElementById("matrizContainer");
+
     if(caps.length === 0){
-        document.getElementById("matrizContainer").innerHTML = `
+        container.innerHTML = `
             <div style="
                 padding:20px;
                 text-align:center;
@@ -150,7 +207,7 @@ function pintarMatriz(data){
                 color:#facc15;
                 font-weight:bold;
             ">
-                ⚠️ Este curso no tiene capacitaciones
+                ⚠️ Los cursos seleccionados no tienen capacitaciones
             </div>
         `;
         return;
@@ -161,22 +218,25 @@ function pintarMatriz(data){
         <th rowspan="2">ID</th>
         <th rowspan="2">Nombre</th>`;
 
-    let cursosMap = {};
+    // 🔥 AGRUPAR CURSOS (ORDENADO)
+    let cursosMap = new Map();
 
-    // AGRUPAR CURSOS
     caps.forEach(c => {
-        let curso = c.curso?.nombreCurso || "Curso";
-        cursosMap[curso] = (cursosMap[curso] || 0) + 1;
+        let curso = c.curso?.nombreCurso || "Sin curso";
+
+        if(!cursosMap.has(curso)){
+            cursosMap.set(curso, 0);
+        }
+
+        cursosMap.set(curso, cursosMap.get(curso) + 1);
     });
 
-    // HEADER CURSOS
-    for(let curso in cursosMap){
-        html += `<th colspan="${cursosMap[curso]}">${curso}</th>`;
-    }
+    cursosMap.forEach((count, curso) => {
+        html += `<th colspan="${count}">${curso}</th>`;
+    });
 
     html += `</tr><tr>`;
 
-    // HEADER CAPACITACIONES
     caps.forEach(c => {
         html += `<th>
             ${c.nombreCapacitacion}
@@ -186,7 +246,6 @@ function pintarMatriz(data){
 
     html += `</tr></thead><tbody>`;
 
-    // SI NO HAY TRABAJADORES
     if(trabajadores.length === 0){
         html += `<tr>
             <td colspan="${caps.length + 2}" style="color:#94a3b8;">
@@ -195,26 +254,52 @@ function pintarMatriz(data){
         </tr>`;
     }
 
-    // FILAS
     trabajadores.forEach(t => {
 
         html += `<tr>
-            <td>${t.id}</td>
-            <td>
-                ${t.nombre}
-                <input type="hidden" name="trabajadoresIds" value="${t.id}">
-            </td>`;
+			<td>${t.id}</td>
+            
+			<td style="display:flex; align-items:center; gap:10px;">
+			    
+			    <img src="/foto/${t.numeroPersonal}"
+			         style="
+			            width:35px;
+			            height:35px;
+			            border-radius:50%;
+			            object-fit:cover;
+			            border:2px solid #334155;
+			         "
+			         onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+
+			    <span>
+			        ${t.nombre} ${t.primerApellido || ''} ${t.segundoApellido || ''}
+			    </span>
+
+			    <input type="hidden" name="trabajadoresIds" value="${t.id}">
+			</td>
+			
+			
+			
+			`;
 
         caps.forEach(c => {
 
             let estado = "vacio";
 
-            if(c.capacitacionTrabajadores){
-                let rel = c.capacitacionTrabajadores.find(ct => ct.trabajador.id === t.id);
-                if(rel){
-                    if(rel.aprobado) estado = "completo";
-                    else if(rel.nivel != null) estado = "medio";
-                }
+            // 🔥 BUSCAR EVALUACIÓN (LO IMPORTANTE)
+            let ev = evaluaciones.find(e =>
+                e.trabajador?.id === t.id &&
+                e.capacitacion?.id === c.id
+            );
+
+            if(ev){
+                estado = ev.aprobada ? "completo" : "medio";
+            } else {
+                // fallback inscripción
+                let rel = c.capacitacionTrabajadores?.find(
+                    ct => ct.trabajador?.id === t.id
+                );
+                if(rel) estado = "medio";
             }
 
             html += `<td>
@@ -229,7 +314,7 @@ function pintarMatriz(data){
 
     html += `</tbody></table>`;
 
-    document.getElementById("matrizContainer").innerHTML = html;
+    container.innerHTML = html;
 }
 
 function cambiarEstado(trabajadorId, capacitacionId, el){
@@ -240,7 +325,6 @@ function cambiarEstado(trabajadorId, capacitacionId, el){
         body: `trabajadorId=${trabajadorId}&capacitacionId=${capacitacionId}`
     });
 
-    // CAMBIO VISUAL
     if(el.classList.contains("completo")){
         el.className = "circulo vacio";
     } 

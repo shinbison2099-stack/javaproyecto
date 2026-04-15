@@ -39,4 +39,14 @@ public class EvaluacionServiceImpl implements EvaluacionService {
                 .findFirst()
                 .orElse(null);
     }
+    
+    @Override
+    public List<EvaluacionCapacitacion> 
+    buscarPorCapacitaciones(List<Long> capacitacionIds){
+
+        return repository.findByCapacitacionIdIn(capacitacionIds);
+    }
+    
+   
+    
 }

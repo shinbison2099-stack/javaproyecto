@@ -97,6 +97,9 @@ public class CursoServiceImpl implements CursoService {
         return curso.getDuracion() - usadas;
     }
 
-   
+    @Override
+    public List<Curso> buscarPorIds(List<Long> ids) {
+        return cursoRepository.findAllById(ids);
+    }
     
 }

@@ -26,5 +26,6 @@ public interface MatrizService {
     Matriz guardar(Matriz matriz);
     List<Matriz> listar();
     Optional<Matriz> buscarPorId(Long id);
+    void eliminar(Long id);
 
 }

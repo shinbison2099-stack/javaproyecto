@@ -278,6 +278,14 @@ public class MatrizServiceImpl implements MatrizService {
     }
 
     
-    
+    @Override
+    public void eliminar(Long id) {
+
+        if (!matrizRepository.existsById(id)) {
+            throw new RuntimeException("La matriz no existe");
+        }
+
+        matrizRepository.deleteById(id);
+    }
     
 }

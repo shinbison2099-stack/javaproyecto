@@ -19,7 +19,7 @@
 
         body {
             margin: 0;
-            font-family: Arial;
+            font-family: 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #0f172a, #1e293b);
             overflow: hidden;
         }
@@ -33,19 +33,18 @@
             align-items: center;
         }
 
-        /* 🔥 GRID PRO */
+        /* GRID */
         .tiles {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 30px;
-            max-width: 700px;
+            max-width: 750px;
             width: 100%;
         }
 
-        /* 🔥 TILE */
+        /* TARJETAS */
         .tile {
             height: 180px;
-
             border-radius: 20px;
 
             display: flex;
@@ -67,6 +66,9 @@
         .tile:nth-child(1) { animation-delay: 0.1s; }
         .tile:nth-child(2) { animation-delay: 0.2s; }
         .tile:nth-child(3) { animation-delay: 0.3s; }
+        .tile:nth-child(4) { animation-delay: 0.4s; }
+        .tile:nth-child(5) { animation-delay: 0.5s; }
+        .tile:nth-child(6) { animation-delay: 0.6s; }
 
         @keyframes aparecer {
             to {
@@ -77,13 +79,13 @@
 
         /* ICONOS */
         .tile i {
-            font-size: 60px;
+            font-size: 55px;
             margin-bottom: 10px;
         }
 
         /* TEXTO */
         .tile span {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             text-align: center;
             padding: 0 10px;
@@ -91,7 +93,7 @@
 
         /* HOVER */
         .tile:hover {
-            transform: scale(1.1);
+            transform: scale(1.08);
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             filter: brightness(1.2);
         }
@@ -105,9 +107,26 @@
             background: linear-gradient(135deg, #00b894, #55efc4);
         }
 
-        /* 🔥 NUEVO BOTÓN PRO */
         .inscripcion {
             background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+        }
+
+        .cursos {
+            background: linear-gradient(135deg, #e17055, #fab1a0);
+        }
+
+        .evaluaciones {
+            background: linear-gradient(135deg, #00cec9, #81ecec);
+        }
+
+        /* 🔥 NUEVO CALENDARIO PRO */
+        .calendario {
+            background: linear-gradient(135deg, #fdcb6e, #ffeaa7);
+            color: #2d3436;
+        }
+
+        .calendario i {
+            color: #2d3436;
         }
 
     </style>
@@ -125,10 +144,10 @@
     <div class="tiles">
 
         <!-- MATRIZ -->
-		<a href="/matriz/crear" class="tile matriz">
-		    <i class="bi bi-grid-3x3-gap"></i>
-		    <span>Matriz</span>
-		</a>
+        <a href="/matriz/crear" class="tile matriz">
+            <i class="bi bi-grid-3x3-gap"></i>
+            <span>Matriz</span>
+        </a>
 
         <!-- HABILIDADES -->
         <a href="/matriz/habilidades" class="tile habilidades">
@@ -136,22 +155,30 @@
             <span>Habilidades</span>
         </a>
 
-        <!-- 🔥 INSCRIPCIÓN -->
+        <!-- INSCRIPCIÓN -->
         <a href="/inscripcion" class="tile inscripcion">
             <i class="bi bi-person-plus-fill"></i>
-            <span>Inscribir Capacitación a Curso</span>
+            <span>Inscribir Capacitación</span>
         </a>
 
-		<a href="/cursos/asignados" class="tile" style="background:#e17055;">
-		    <i class="bi bi-check2-square"></i>
-		    <span>Cursos con Capacitaciones</span>
-		</a>
-		
-		<a href="/evaluaciones/cursos" class="tile" style="background:#00cec9;">
-		    <i class="bi bi-clipboard-check"></i>
-		    <span>Calificar Capacitaciones</span>
-		</a>
-		
+        <!-- CURSOS -->
+        <a href="/cursos/asignados" class="tile cursos">
+            <i class="bi bi-check2-square"></i>
+            <span>Cursos con Capacitaciones</span>
+        </a>
+
+        <!-- EVALUACIONES -->
+        <a href="/evaluaciones/cursos" class="tile evaluaciones">
+            <i class="bi bi-clipboard-check"></i>
+            <span>Calificar Capacitaciones</span>
+        </a>
+
+        <!-- 🔥 CALENDARIO PRO -->
+        <a href="/calendario" class="tile calendario">
+            <i class="bi bi-calendar-event-fill"></i>
+            <span>Calendario de Capacitaciones</span>
+        </a>
+
     </div>
 
 </div>

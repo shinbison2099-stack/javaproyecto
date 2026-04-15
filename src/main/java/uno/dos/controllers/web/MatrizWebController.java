@@ -4,22 +4,29 @@ import lombok.RequiredArgsConstructor;
 import uno.dos.models.entity.Capacitacion;
 import uno.dos.models.entity.CapacitacionTrabajador;
 import uno.dos.models.entity.Curso;
+import uno.dos.models.entity.EvaluacionCapacitacion;
 import uno.dos.models.entity.Inscripcion;
 import uno.dos.models.entity.Matriz;
 import uno.dos.models.entity.Trabajador;
 import uno.dos.services.CapacitacionService;
 import uno.dos.services.CapacitacionTrabajadorService;
 import uno.dos.services.CursoService;
+import uno.dos.services.EvaluacionService;
 import uno.dos.services.InscripcionService;
 import uno.dos.services.MatrizService;
 import uno.dos.services.TrabajadorService;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,7 +47,10 @@ public class MatrizWebController {
     private final CapacitacionService capacitacionService;
     private final MatrizService matrizService;
     private final CursoService cursoService;
-    private final InscripcionService inscripcionService;
+    private final EvaluacionService evaluacionService;
+    
+    @Value("${ruta.fotos}")
+    private String rutaFotos;
     /**
      * 🔥 MATRIZ PRINCIPAL
      */
@@ -91,7 +101,8 @@ public class MatrizWebController {
 
         List<Trabajador> trabajadores = matriz.getTrabajadores();
         List<Capacitacion> capacitaciones = matriz.getCapacitaciones();
-        
+
+        // 🔥 AGRUPAR POR CURSO (IMPORTANTE PARA EL HTML)
         Map<String, List<Capacitacion>> capsPorCurso = new LinkedHashMap<>();
 
         for (Capacitacion c : capacitaciones) {
@@ -101,16 +112,28 @@ public class MatrizWebController {
             String nombreCurso = c.getCurso().getNombreCurso();
 
             capsPorCurso
-                .computeIfAbsent(nombreCurso, k -> new ArrayList<>())
-                .add(c);
+                    .computeIfAbsent(nombreCurso, k -> new ArrayList<>())
+                    .add(c);
         }
 
-        // 🔥 eliminar cursos vacíos
-        capsPorCurso.entrySet().removeIf(e -> e.getValue().isEmpty());
+        // 🔥 IDS
+        List<Long> capsIds = capacitaciones.stream()
+                .map(Capacitacion::getId)
+                .toList();
 
-        model.addAttribute("capsPorCurso", capsPorCurso);
+        // 🔥 TRAER EVALUACIONES
+        List<EvaluacionCapacitacion> evaluaciones =
+                evaluacionService.buscarPorCapacitaciones(capsIds);
 
-        // 🔥 MAPA DE ESTADOS
+        // 🔥 MAPA EVALUACIONES
+        Map<String, EvaluacionCapacitacion> evalMap = new HashMap<>();
+
+        for(EvaluacionCapacitacion ev : evaluaciones){
+            String key = ev.getTrabajador().getId() + "-" + ev.getCapacitacion().getId();
+            evalMap.put(key, ev);
+        }
+
+        // 🔥 MATRIZ
         Map<Long, Map<Long, String>> matrizEstados = new HashMap<>();
 
         for (Trabajador t : trabajadores) {
@@ -120,18 +143,27 @@ public class MatrizWebController {
             for (Capacitacion c : capacitaciones) {
 
                 String estado = "vacio";
+                String key = t.getId() + "-" + c.getId();
 
-                for (CapacitacionTrabajador ct : c.getCapacitacionTrabajadores()) {
+                EvaluacionCapacitacion ev = evalMap.get(key);
 
-                    if (ct.getTrabajador().getId().equals(t.getId())) {
+                if (ev != null) {
 
-                        if (Boolean.TRUE.equals(ct.getAprobado())) {
-                            estado = "completo";
-                        } else if (ct.getNivel() != null) {
-                            estado = "medio";
-                        }
+                    if (Boolean.TRUE.equals(ev.getAprobada())) {
+                        estado = "completo";
+                    } else {
+                        estado = "medio";
+                    }
 
-                        break;
+                } else {
+
+                    // 🔥 MEJOR VALIDACIÓN DE INSCRIPCIÓN
+                    boolean inscrito = c.getCapacitacionTrabajadores() != null &&
+                            c.getCapacitacionTrabajadores().stream()
+                                    .anyMatch(ct -> ct.getTrabajador().getId().equals(t.getId()));
+
+                    if(inscrito){
+                        estado = "medio";
                     }
                 }
 
@@ -141,11 +173,14 @@ public class MatrizWebController {
             matrizEstados.put(t.getId(), capsEstado);
         }
 
+        // 🔥 ENVIAR TODO
         model.addAttribute("trabajadores", trabajadores);
         model.addAttribute("capacitaciones", capacitaciones);
-        model.addAttribute("matrizEstados", matrizEstados); // 🔥 IMPORTANTE
+        model.addAttribute("capsPorCurso", capsPorCurso); // 🔥 FALTABA
+        model.addAttribute("matrizEstados", matrizEstados);
+        model.addAttribute("nombreMatriz", matriz.getNombre());
 
-        return "matriz/ver";
+        return "/matriz/ver";
     }
     
     @GetMapping("/capacitaciones/{cursoId}")
@@ -172,35 +207,30 @@ public class MatrizWebController {
     
     @GetMapping("/matriz-data")
     @ResponseBody
-    public Map<String, Object> obtenerMatriz(@RequestParam List<Long> cursoIds){
+    public Map<String, Object> obtenerDatos(@RequestParam List<Long> cursoIds){
 
-        // 🔥 TRAER CAPACITACIONES
         List<Capacitacion> caps = capacitacionService.buscarPorCursoIds(cursoIds);
 
-        // ⚠️ (OPCIONAL PERO REALMENTE NO NECESARIO)
-        caps = caps.stream()
-                .filter(c -> c.getCurso() != null)
+        List<Long> capsIds = caps.stream()
+                .map(Capacitacion::getId)
                 .toList();
 
-        // 🔥 SI NO HAY CAPACITACIONES
-        if(caps.isEmpty()){
-            Map<String, Object> data = new HashMap<>();
-            data.put("capacitaciones", caps);
-            data.put("trabajadores", List.of());
-            return data;
-        }
+        // 🔥 TRAER EVALUACIONES
+        List<EvaluacionCapacitacion> evaluaciones =
+                evaluacionService.buscarPorCapacitaciones(capsIds);
 
-        // 🔥 TRAER TRABAJADORES INSCRITOS
         List<Trabajador> trabajadores = caps.stream()
                 .flatMap(c -> c.getCapacitacionTrabajadores().stream())
                 .map(ct -> ct.getTrabajador())
                 .distinct()
                 .toList();
 
-        // 🔥 RESPUESTA
         Map<String, Object> data = new HashMap<>();
         data.put("capacitaciones", caps);
         data.put("trabajadores", trabajadores);
+
+        // 🔥 ESTA LÍNEA TE FALTA
+        data.put("evaluaciones", evaluaciones);
 
         return data;
     }
@@ -222,6 +252,44 @@ public class MatrizWebController {
         data.put("trabajadores", trabajadores);
 
         return data;
+    }
+    
+    @GetMapping("/foto/{numero}")
+    @ResponseBody
+    public ResponseEntity<byte[]> verFoto(@PathVariable String numero) {
+
+        try {
+
+            // 🔥 RUTA REAL DEL PROYECTO
+            String basePath = System.getProperty("user.dir");
+
+            Path ruta = Paths.get(basePath, rutaFotos, numero + ".jpg");
+
+            System.out.println("BUSCANDO: " + ruta);
+
+            if (!Files.exists(ruta)) {
+                System.out.println("NO EXISTE");
+                return ResponseEntity.notFound().build();
+            }
+
+            byte[] imagen = Files.readAllBytes(ruta);
+
+            return ResponseEntity.ok()
+                    .header("Content-Type", "image/jpeg")
+                    .body(imagen);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    @GetMapping("/eliminar/{id}")
+    public String eliminar(@PathVariable Long id) {
+
+        matrizService.eliminar(id);
+
+        return "redirect:/matriz/lista";
     }
     
 }

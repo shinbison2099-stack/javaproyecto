@@ -20,7 +20,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import lombok.RequiredArgsConstructor;
+import uno.dos.models.entity.Curso;
 import uno.dos.models.entity.Puesto;
+import uno.dos.services.CategoriaPuestoService;
+import uno.dos.services.CursoService;
 import uno.dos.services.PuestoService;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,6 +38,8 @@ public class PuestoWebController {
 
     private final PuestoService puestoService;
     private final TemplateEngine templateEngine;
+    private final CategoriaPuestoService categoriaService;
+    private final CursoService cursoService;
 
     /* LISTAR */
 
@@ -53,6 +58,8 @@ public class PuestoWebController {
     public String nuevo(Model model){
 
         model.addAttribute("puesto", new Puesto());
+        model.addAttribute("categorias", categoriaService.listar());
+        model.addAttribute("cursos", cursoService.listarActivos());
 
         return "puestos/form";
     }
@@ -60,7 +67,15 @@ public class PuestoWebController {
     /* GUARDAR */
 
     @PostMapping("/guardar")
-    public String guardar(@ModelAttribute Puesto puesto){
+    public String guardar(@ModelAttribute Puesto puesto,
+                          @RequestParam(required = false) List<Long> cursosIds){
+
+    	if (cursosIds != null) {
+    	    List<Curso> cursos = cursoService.buscarPorIds(cursosIds);
+    	    puesto.setCursos(cursos);
+    	} else {
+    	    puesto.setCursos(List.of());
+    	}
 
         puesto.setActivo(true);
 
@@ -76,6 +91,10 @@ public class PuestoWebController {
 
         model.addAttribute("puesto",
                 puestoService.buscarPorId(id).orElseThrow());
+        
+     // 🔥 AGREGAR ESTO
+        model.addAttribute("categorias", categoriaService.listar());
+        model.addAttribute("cursos", cursoService.listarActivos());
 
         return "puestos/form";
     }

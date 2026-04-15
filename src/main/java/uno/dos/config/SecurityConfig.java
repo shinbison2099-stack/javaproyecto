@@ -12,7 +12,9 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            // Desactivar CSRF para formularios simples
+            
+        
+        // Desactivar CSRF para formularios simples
             .csrf(csrf -> csrf.disable())
 
             // Permitir acceso a todas las rutas

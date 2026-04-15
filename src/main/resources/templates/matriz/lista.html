@@ -54,13 +54,15 @@
             color: white;
         }
 
+        /* BOTONES */
         .btn {
-            margin-top: 15px;
+            margin-top: 10px;
             padding: 8px 12px;
             border-radius: 10px;
             border: none;
             cursor: pointer;
             font-size: 13px;
+            transition: 0.2s;
         }
 
         .btn-ver {
@@ -70,6 +72,25 @@
 
         .btn-ver:hover {
             background: #2563eb;
+        }
+
+        /* 🔥 NUEVO BOTÓN ELIMINAR */
+        .btn-eliminar {
+            background: #ef4444;
+            color: white;
+            margin-left: 5px;
+        }
+
+        .btn-eliminar:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        /* CONTENEDOR BOTONES */
+        .acciones {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
         }
 
     </style>
@@ -88,11 +109,21 @@
             Matriz
         </div>
 
-        <br>
+        <!-- BOTONES -->
+        <div class="acciones">
 
-        <a th:href="@{'/matriz/' + ${m.id}}">
-            <button class="btn btn-ver">Ver matriz</button>
-        </a>
+            <!-- VER -->
+            <a th:href="@{'/matriz/' + ${m.id}}">
+                <button class="btn btn-ver">👁 Ver</button>
+            </a>
+
+            <!-- ELIMINAR -->
+            <a th:href="@{'/matriz/eliminar/' + ${m.id}}"
+               onclick="return confirm('¿Eliminar esta matriz?')">
+                <button class="btn btn-eliminar">🗑 Eliminar</button>
+            </a>
+
+        </div>
 
     </div>
 

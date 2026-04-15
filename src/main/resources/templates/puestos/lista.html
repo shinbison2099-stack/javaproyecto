@@ -30,7 +30,6 @@
             padding: 30px;
         }
 
-        /* 🔥 CARD PRINCIPAL */
         .card-box {
             background: rgba(255,255,255,0.08);
             backdrop-filter: blur(12px);
@@ -39,7 +38,6 @@
             box-shadow: 0 15px 40px rgba(0,0,0,0.3);
         }
 
-        /* 🔥 HEADER */
         .header {
             display: flex;
             justify-content: space-between;
@@ -47,12 +45,10 @@
             margin-bottom: 20px;
         }
 
-        /* BOTONES */
         .btn {
             border-radius: 10px;
         }
 
-        /* TABLA */
         table {
             background: white;
             color: black;
@@ -60,18 +56,11 @@
             overflow: hidden;
         }
 
-        /* FILAS */
         tbody tr:hover {
             background: #f1f1f1;
             transition: 0.2s;
         }
 
-        /* INPUT FILE */
-        .form-control {
-            border-radius: 10px;
-        }
-
-        /* GRUPO BOTONES */
         .acciones {
             display: flex;
             gap: 10px;
@@ -91,7 +80,6 @@
 
     <div class="card-box">
 
-        <!-- 🔥 HEADER -->
         <div class="header">
 
             <h2>
@@ -104,11 +92,14 @@
 
         </div>
 
-        <!-- 🔥 BOTONES -->
         <div class="acciones mb-3">
 
             <a href="/puestos/nuevo" class="btn btn-primary">
                 <i class="bi bi-plus-circle"></i> Nuevo
+            </a>
+
+            <a href="/categorias/nuevo" class="btn btn-info">
+                <i class="bi bi-folder-plus"></i> Categorías
             </a>
 
             <a href="/puestos/eliminados" class="btn btn-secondary">
@@ -121,7 +112,6 @@
 
         </div>
 
-        <!-- 🔥 IMPORTAR -->
         <form action="/puestos/importar"
               method="post"
               enctype="multipart/form-data"
@@ -139,7 +129,6 @@
 
         </form>
 
-        <!-- 🔥 TABLA -->
         <div class="table-responsive">
 
             <table class="table table-hover text-center align-middle">
@@ -148,7 +137,9 @@
                 <tr>
                     <th>#</th>
                     <th>Nombre</th>
+                    <th>Categoría</th>
                     <th>Nivel</th>
+                    <th>Cursos</th> <!-- 🔥 NUEVO -->
                     <th>Acciones</th>
                 </tr>
                 </thead>
@@ -164,8 +155,31 @@
                     </td>
 
                     <td>
+                        <span class="badge bg-secondary"
+                              th:text="${p.categoria != null ? p.categoria.nombre : 'Sin categoría'}">
+                        </span>
+                    </td>
+
+                    <td>
                         <span class="badge bg-info"
                               th:text="${p.nivel}"></span>
+                    </td>
+
+                    <!-- 🔥 CURSOS -->
+                    <td>
+                        <div th:if="${p.cursos != null and !p.cursos.isEmpty()}">
+
+                            <span th:each="c : ${p.cursos}"
+                                  class="badge rounded-pill bg-primary me-1 mb-1"
+                                  th:text="${c.nombreCurso}">
+                            </span>
+
+                        </div>
+
+                        <span th:if="${p.cursos == null or p.cursos.isEmpty()}"
+                              class="text-muted">
+                            Sin cursos
+                        </span>
                     </td>
 
                     <td>

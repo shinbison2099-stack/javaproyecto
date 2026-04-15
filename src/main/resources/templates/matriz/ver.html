@@ -14,6 +14,8 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            display: block;
+            overflow-x: auto;
         }
 
         th, td {
@@ -25,6 +27,11 @@
 
         th {
             background: #1e293b;
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
         }
 
         .circulo {
@@ -55,16 +62,23 @@
 
 <body>
 
-<h2>📊 Matriz</h2>
+	<h2 style="
+	    text-transform: uppercase;
+	    letter-spacing: 2px;
+	    font-weight: 600;
+	    color: #38bdf8;
+	">
+	    📊 <span th:text="${nombreMatriz}"></span>
+	</h2>
 
 <table>
 <thead>
 
+<!-- CURSOS -->
 <tr>
     <th rowspan="2">ID</th>
     <th rowspan="2">Nombre</th>
 
-    <!-- CURSOS -->
     <th:block th:each="entry : ${capsPorCurso}">
         <th th:colspan="${#lists.size(entry.value)}"
             th:text="${entry.key}">
@@ -72,12 +86,12 @@
     </th:block>
 </tr>
 
+<!-- CAPACITACIONES -->
 <tr>
-    <!-- CAPACITACIONES -->
     <th:block th:each="entry : ${capsPorCurso}">
-        <th th:each="c : ${entry.value}"
-            th:text="${c.nombreCapacitacion}">
-        </th>
+        <th:block th:each="c : ${entry.value}">
+            <th th:text="${c.nombreCapacitacion}"></th>
+        </th:block>
     </th:block>
 </tr>
 
@@ -87,15 +101,32 @@
 
 <tr th:each="t : ${trabajadores}">
     <td th:text="${t.id}"></td>
-    <td th:text="${t.nombre}"></td>
+	<td style="display:flex; align-items:center; gap:10px;">
 
-    <!-- 🔥 UNA CELDA POR CAPACITACIÓN -->
+	    <img th:src="@{/foto/{num}(num=${t.numeroPersonal})}"
+	         style="
+	            width:35px;
+	            height:35px;
+	            border-radius:50%;
+	            object-fit:cover;
+	            border:2px solid #334155;
+	         "
+	         onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+
+	    <span th:text="${t.nombre + ' ' + t.primerApellido + ' ' + t.segundoApellido}"></span>
+
+	</td>
+
     <th:block th:each="entry : ${capsPorCurso}">
-        <td th:each="c : ${entry.value}">
-            <div class="circulo"
-                 th:classappend="${matrizEstados[t.id][c.id]}">
-            </div>
-        </td>
+        <th:block th:each="c : ${entry.value}">
+            <td>
+                <div class="circulo"
+                     th:classappend="${matrizEstados[t.id] != null && matrizEstados[t.id][c.id] != null 
+                                      ? matrizEstados[t.id][c.id] 
+                                      : 'vacio'}">
+                </div>
+            </td>
+        </th:block>
     </th:block>
 
 </tr>

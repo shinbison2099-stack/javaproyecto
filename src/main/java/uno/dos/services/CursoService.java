@@ -26,4 +26,8 @@ public interface CursoService {
     public int horasUsadas(Long cursoId);
     
     public int horasRestantes(Long cursoId);
+    
+    public List<Curso> buscarPorIds(List<Long> ids);
+    
+    
 }

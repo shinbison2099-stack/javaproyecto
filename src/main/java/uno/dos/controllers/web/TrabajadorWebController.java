@@ -8,7 +8,9 @@ import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
@@ -21,11 +23,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import org.apache.poi.ss.usermodel.*;
 
+import uno.dos.models.entity.Capacitacion;
+import uno.dos.models.entity.CapacitacionTrabajador;
+import uno.dos.models.entity.EvaluacionCapacitacion;
 import uno.dos.models.entity.Inscripcion;
 import uno.dos.models.entity.Puesto;
 import uno.dos.models.entity.Trabajador;
+import uno.dos.repositories.CapacitacionTrabajadorRepository;
 import uno.dos.repositories.InscripcionRepository;
 import uno.dos.services.TrabajadorService;
+import uno.dos.services.EvaluacionService;
 import uno.dos.services.MatrizService;
 import uno.dos.services.PuestoService;
 
@@ -44,6 +51,8 @@ public class TrabajadorWebController {
     private final PuestoService puestoService;
     private final InscripcionRepository inscripcionRepository;
     private final MatrizService matrizService;
+    private final EvaluacionService evaluacionService;
+    private final CapacitacionTrabajadorRepository capacitacionTrabajadorRepository;
 
     @Value("${ruta.fotos}")
     private String rutaFotos;
@@ -55,8 +64,21 @@ public class TrabajadorWebController {
     @GetMapping
     public String listar(Model model) {
 
-        model.addAttribute("trabajadores",
-                trabajadorService.listarActivos());
+        List<Trabajador> trabajadores = trabajadorService.listarActivos();
+
+        model.addAttribute("trabajadores", trabajadores);
+
+        // 🔥 NUEVO: MAPA DE INSCRIPCIONES
+        Map<Long, List<Inscripcion>> inscripcionesPorTrabajador = new HashMap<>();
+
+        for (Trabajador t : trabajadores) {
+
+            List<Inscripcion> ins = inscripcionRepository.findByTrabajadorId(t.getId());
+
+            inscripcionesPorTrabajador.put(t.getId(), ins);
+        }
+
+        model.addAttribute("inscripcionesPorTrabajador", inscripcionesPorTrabajador);
 
         return "trabajadores/lista";
     }
@@ -103,13 +125,22 @@ public class TrabajadorWebController {
             String nombreArchivo =
                     trabajador.getNumeroPersonal() + ".jpg";
 
-            Path ruta = Paths.get("data/trabajadores/" + nombreArchivo);
+            Path ruta = Paths.get("uploads/trabajadores/" + nombreArchivo);
 
             Files.createDirectories(ruta.getParent());
 
             ImageIO.write(imagenRedimensionada,"jpg",ruta.toFile());
 
             trabajador.setFoto(nombreArchivo);
+        }
+        
+     // 🔥 RECONSTRUIR PUESTO
+        if(trabajador.getPuesto() != null && trabajador.getPuesto().getId() != null){
+            Puesto p = puestoService
+                    .buscarPorId(trabajador.getPuesto().getId())
+                    .orElse(null);
+
+            trabajador.setPuesto(p);
         }
 
         trabajador.setActivo(true);
@@ -247,19 +278,36 @@ public class TrabajadorWebController {
        =============================== */
 
     @GetMapping("/{id}")
-    public String verDetalle(@PathVariable Long id, Model model){
+    public String ver(@PathVariable Long id, Model model){
 
-        Trabajador trabajador = trabajadorService.buscarPorId(id)
-                .orElseThrow(() -> new RuntimeException("Trabajador no encontrado"));
+        Trabajador trabajador = trabajadorService.buscarPorId(id).orElseThrow();
 
-        // 🔥 SOLO inscripciones del trabajador
-        List<Inscripcion> inscripciones = inscripcionRepository.findByTrabajadorId(id);
+        // 🔥 CORRECTO
+        List<CapacitacionTrabajador> inscripciones =
+                capacitacionTrabajadorRepository
+                .findByTrabajador_IdAndActivoTrue(trabajador.getId());
+
+        Map<String, EvaluacionCapacitacion> evaluaciones = new HashMap<>();
+
+        for(CapacitacionTrabajador ins : inscripciones){
+
+            EvaluacionCapacitacion ev =
+                    evaluacionService.buscarPorTrabajadorYCapacitacion(
+                            trabajador.getId(),
+                            ins.getCapacitacion().getId()
+                    );
+
+            if(ev != null){
+                String key = trabajador.getId() + "-" + ins.getCapacitacion().getId();
+                evaluaciones.put(key, ev);
+            }
+        }
 
         model.addAttribute("trabajador", trabajador);
         model.addAttribute("inscripciones", inscripciones);
+        model.addAttribute("evaluaciones", evaluaciones);
 
-        // 🔥 mapa evaluaciones
-        model.addAttribute("evaluaciones", matrizService.mapaEvaluaciones());
+        System.out.println("INSCRIPCIONES: " + inscripciones.size());
 
         return "trabajadores/detalle";
     }
@@ -273,9 +321,15 @@ public class TrabajadorWebController {
 
         try {
 
-            Path ruta = Paths.get(rutaFotos, numero + ".jpg");
+            // 🔥 RUTA REAL DEL PROYECTO
+            String basePath = System.getProperty("user.dir");
+
+            Path ruta = Paths.get(basePath, rutaFotos, numero + ".jpg");
+
+            System.out.println("BUSCANDO: " + ruta);
 
             if (!Files.exists(ruta)) {
+                System.out.println("NO EXISTE");
                 return ResponseEntity.notFound().build();
             }
 
@@ -321,6 +375,15 @@ public class TrabajadorWebController {
         Trabajador original = trabajadorService
                 .buscarPorId(trabajador.getId())
                 .orElseThrow();
+        
+        // 🔥 reconstruir puesto
+        if(trabajador.getPuesto() != null && trabajador.getPuesto().getId() != null){
+            Puesto p = puestoService
+                    .buscarPorId(trabajador.getPuesto().getId())
+                    .orElse(null);
+
+            trabajador.setPuesto(p);
+        }
 
         // mantener foto anterior si no sube nueva
         trabajador.setFoto(original.getFoto());
@@ -399,6 +462,40 @@ public class TrabajadorWebController {
         trabajadorService.guardar(trabajador);
 
         return "redirect:/trabajadores/eliminados";
+    }
+    
+    @Controller
+    @RequestMapping("/foto")
+    public class FotoController {
+
+        @Value("${ruta.fotos}")
+        private String rutaFotos;
+
+        @GetMapping("/{numero}")
+        @ResponseBody
+        public ResponseEntity<byte[]> verFoto(@PathVariable String numero) {
+
+            try {
+
+                String basePath = System.getProperty("user.dir");
+
+                Path ruta = Paths.get(basePath, rutaFotos, numero + ".jpg");
+
+                if (!Files.exists(ruta)) {
+                    return ResponseEntity.notFound().build();
+                }
+
+                byte[] imagen = Files.readAllBytes(ruta);
+
+                return ResponseEntity.ok()
+                        .header("Content-Type", "image/jpeg")
+                        .body(imagen);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.internalServerError().build();
+            }
+        }
     }
     
   

@@ -39,4 +39,6 @@ List<CapacitacionTrabajador> findByTrabajadorId(Long trabajadorId);
 
 List<CapacitacionTrabajador> findByCapacitacion_Id(Long capId);
 
+List<CapacitacionTrabajador> findByTrabajador_IdAndActivoTrue(Long trabajadorId);
+
 }

@@ -6,6 +6,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -54,4 +57,26 @@ public class Puesto {
 	                .map(PuestoCapacitacion::getCapacitacion)
 	                .toList();
 	    }
+	    
+	    @ManyToOne
+	    @JoinColumn(name = "categoria_id")
+	    private CategoriaPuesto categoria;
+	    
+	    @ManyToMany
+	    @JoinTable(
+	        name = "puesto_curso",
+	        joinColumns = @JoinColumn(name = "puesto_id"),
+	        inverseJoinColumns = @JoinColumn(name = "curso_id")
+	    )
+	    @Transient
+	    private List<Long> cursosIds;
+	    
+	    @ManyToMany
+	    private List<Curso> cursos;
+	    
+	    @Override
+	    public String toString() {
+	        return nombrePuesto;
+	    }
+	    
 }
