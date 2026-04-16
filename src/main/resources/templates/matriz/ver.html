@@ -22,7 +22,7 @@
             border: 1px solid #334155;
             padding: 8px;
             text-align: center;
-            min-width: 70px;
+            min-width: 80px;
         }
 
         th {
@@ -57,24 +57,19 @@
             color: #38bdf8;
             font-weight: bold;
         }
+
     </style>
 </head>
 
 <body>
 
-	<h2 style="
-	    text-transform: uppercase;
-	    letter-spacing: 2px;
-	    font-weight: 600;
-	    color: #38bdf8;
-	">
-	    📊 <span th:text="${nombreMatriz}"></span>
-	</h2>
+<h2 style="color:#38bdf8;">
+    📊 <span th:text="${nombreMatriz}"></span>
+</h2>
 
 <table>
 <thead>
 
-<!-- CURSOS -->
 <tr>
     <th rowspan="2">ID</th>
     <th rowspan="2">Nombre</th>
@@ -84,9 +79,11 @@
             th:text="${entry.key}">
         </th>
     </th:block>
+
+    <!-- 🔥 TOTAL -->
+    <th rowspan="2">TOTAL</th>
 </tr>
 
-<!-- CAPACITACIONES -->
 <tr>
     <th:block th:each="entry : ${capsPorCurso}">
         <th:block th:each="c : ${entry.value}">
@@ -100,33 +97,57 @@
 <tbody>
 
 <tr th:each="t : ${trabajadores}">
+
     <td th:text="${t.id}"></td>
-	<td style="display:flex; align-items:center; gap:10px;">
 
-	    <img th:src="@{/foto/{num}(num=${t.numeroPersonal})}"
-	         style="
-	            width:35px;
-	            height:35px;
-	            border-radius:50%;
-	            object-fit:cover;
-	            border:2px solid #334155;
-	         "
-	         onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+    <!-- 👤 NOMBRE + PUESTO -->
+    <td style="display:flex; align-items:center; gap:10px;">
 
-	    <span th:text="${t.nombre + ' ' + t.primerApellido + ' ' + t.segundoApellido}"></span>
+        <img th:src="@{/matriz/foto/{num}(num=${t.numeroPersonal})}"
+             style="width:35px;height:35px;border-radius:50%;object-fit:cover;"
+             onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
 
-	</td>
+        <div>
+            <span th:text="${t.nombre + ' ' + t.primerApellido + ' ' + t.segundoApellido}"></span>
+            <br>
+            <span style="font-size:11px;color:#94a3b8;"
+                  th:text="${t.puesto != null ? t.puesto.nombrePuesto : 'Sin puesto'}">
+            </span>
+        </div>
 
-    <th:block th:each="entry : ${capsPorCurso}">
-        <th:block th:each="c : ${entry.value}">
-            <td>
-                <div class="circulo"
-                     th:classappend="${matrizEstados[t.id] != null && matrizEstados[t.id][c.id] != null 
-                                      ? matrizEstados[t.id][c.id] 
-                                      : 'vacio'}">
-                </div>
-            </td>
+    </td>
+
+    <!-- 🔥 CONTADOR -->
+    <th:block th:with="totalCaps=${#lists.size(capacitaciones)}, completadas=0">
+
+        <!-- 🔥 MATRIZ -->
+        <th:block th:each="entry : ${capsPorCurso}">
+            <th:block th:each="c : ${entry.value}">
+
+                <td th:with="
+                    estado=${matrizEstados[t.id] != null && matrizEstados[t.id][c.id] != null 
+                            ? matrizEstados[t.id][c.id] 
+                            : 'vacio'}
+                ">
+
+                    <div class="circulo"
+                         th:classappend="${estado}"></div>
+
+                    <!-- 🔥 SUMAR COMPLETADOS -->
+                    <span th:if="${estado == 'completo'}"
+                          th:with="completadas=${completadas + 1}">
+                    </span>
+
+                </td>
+
+            </th:block>
         </th:block>
+
+        <!-- 🔥 TOTAL -->
+		<td th:text="${totalPorTrabajador[t.id] + '%'}"
+		    style="font-weight:bold; color:#38bdf8;">
+		</td>
+
     </th:block>
 
 </tr>

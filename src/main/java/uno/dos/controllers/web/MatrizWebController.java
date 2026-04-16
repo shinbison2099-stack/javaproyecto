@@ -1,42 +1,19 @@
 package uno.dos.controllers.web;
 
 import lombok.RequiredArgsConstructor;
-import uno.dos.models.entity.Capacitacion;
-import uno.dos.models.entity.CapacitacionTrabajador;
-import uno.dos.models.entity.Curso;
-import uno.dos.models.entity.EvaluacionCapacitacion;
-import uno.dos.models.entity.Inscripcion;
-import uno.dos.models.entity.Matriz;
-import uno.dos.models.entity.Trabajador;
-import uno.dos.services.CapacitacionService;
-import uno.dos.services.CapacitacionTrabajadorService;
-import uno.dos.services.CursoService;
-import uno.dos.services.EvaluacionService;
-import uno.dos.services.InscripcionService;
-import uno.dos.services.MatrizService;
-import uno.dos.services.TrabajadorService;
+import uno.dos.models.entity.*;
+import uno.dos.services.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/matriz")
@@ -48,44 +25,50 @@ public class MatrizWebController {
     private final MatrizService matrizService;
     private final CursoService cursoService;
     private final EvaluacionService evaluacionService;
-    
+
     @Value("${ruta.fotos}")
     private String rutaFotos;
-    /**
-     * 🔥 MATRIZ PRINCIPAL
-     */
-      
+
+    /* =========================
+       CREAR MATRIZ
+    ========================== */
     @GetMapping("/crear")
     public String crear(Model model){
 
         model.addAttribute("trabajadores", trabajadorService.listarActivos());
         model.addAttribute("cursos", cursoService.listarActivos());
-        
+
         return "/matriz/crear";
     }
-    
+
+    /* =========================
+       GUARDAR
+    ========================== */
     @PostMapping("/guardar")
     public String guardar(@RequestParam String nombre,
-                          @RequestParam List<Long> trabajadoresIds,
-                          @RequestParam List<Long> capacitacionesIds){
+                          @RequestParam(required = false) List<Long> trabajadoresIds,
+                          @RequestParam(required = false) List<Long> capacitacionesIds){
 
         Matriz matriz = new Matriz();
 
-        matriz.setNombre(nombre); // 🔥 IMPORTANTE
+        matriz.setNombre(nombre);
 
-        matriz.setTrabajadores(
-            trabajadorService.buscarPorIds(trabajadoresIds)
-        );
+        if(trabajadoresIds != null){
+            matriz.setTrabajadores(trabajadorService.buscarPorIds(trabajadoresIds));
+        }
 
-        matriz.setCapacitaciones(
-            capacitacionService.buscarPorIds(capacitacionesIds)
-        );
+        if(capacitacionesIds != null){
+            matriz.setCapacitaciones(capacitacionService.buscarPorIds(capacitacionesIds));
+        }
 
         matrizService.guardar(matriz);
 
         return "redirect:/matriz/lista";
     }
-    
+
+    /* =========================
+       LISTA
+    ========================== */
     @GetMapping("/lista")
     public String lista(Model model){
 
@@ -93,16 +76,31 @@ public class MatrizWebController {
 
         return "/matriz/lista";
     }
-    
+
+    /* =========================
+       VER MATRIZ (🔥 AQUÍ METIMOS DNC)
+    ========================== */
     @GetMapping("/{id}")
     public String ver(@PathVariable Long id, Model model){
 
         Matriz matriz = matrizService.buscarPorId(id).orElseThrow();
 
-        List<Trabajador> trabajadores = matriz.getTrabajadores();
         List<Capacitacion> capacitaciones = matriz.getCapacitaciones();
 
-        // 🔥 AGRUPAR POR CURSO (IMPORTANTE PARA EL HTML)
+        // 🔥 SOLO TRABAJADORES INSCRITOS
+        Set<Trabajador> trabajadoresSet = new HashSet<>();
+
+        for (Capacitacion c : capacitaciones) {
+            if(c.getCapacitacionTrabajadores() != null){
+                for (CapacitacionTrabajador ct : c.getCapacitacionTrabajadores()) {
+                    trabajadoresSet.add(ct.getTrabajador());
+                }
+            }
+        }
+
+        List<Trabajador> trabajadores = new ArrayList<>(trabajadoresSet);
+
+        // 🔥 AGRUPAR POR CURSO
         Map<String, List<Capacitacion>> capsPorCurso = new LinkedHashMap<>();
 
         for (Capacitacion c : capacitaciones) {
@@ -121,11 +119,10 @@ public class MatrizWebController {
                 .map(Capacitacion::getId)
                 .toList();
 
-        // 🔥 TRAER EVALUACIONES
+        // 🔥 EVALUACIONES
         List<EvaluacionCapacitacion> evaluaciones =
                 evaluacionService.buscarPorCapacitaciones(capsIds);
 
-        // 🔥 MAPA EVALUACIONES
         Map<String, EvaluacionCapacitacion> evalMap = new HashMap<>();
 
         for(EvaluacionCapacitacion ev : evaluaciones){
@@ -133,7 +130,7 @@ public class MatrizWebController {
             evalMap.put(key, ev);
         }
 
-        // 🔥 MATRIZ
+        // 🔥 MATRIZ ESTADOS
         Map<Long, Map<Long, String>> matrizEstados = new HashMap<>();
 
         for (Trabajador t : trabajadores) {
@@ -148,16 +145,8 @@ public class MatrizWebController {
                 EvaluacionCapacitacion ev = evalMap.get(key);
 
                 if (ev != null) {
-
-                    if (Boolean.TRUE.equals(ev.getAprobada())) {
-                        estado = "completo";
-                    } else {
-                        estado = "medio";
-                    }
-
+                    estado = Boolean.TRUE.equals(ev.getAprobada()) ? "completo" : "medio";
                 } else {
-
-                    // 🔥 MEJOR VALIDACIÓN DE INSCRIPCIÓN
                     boolean inscrito = c.getCapacitacionTrabajadores() != null &&
                             c.getCapacitacionTrabajadores().stream()
                                     .anyMatch(ct -> ct.getTrabajador().getId().equals(t.getId()));
@@ -173,25 +162,54 @@ public class MatrizWebController {
             matrizEstados.put(t.getId(), capsEstado);
         }
 
-        // 🔥 ENVIAR TODO
+        // 🔥🔥🔥 TOTAL POR TRABAJADOR (LA CLAVE)
+        Map<Long, Integer> totalPorTrabajador = new HashMap<>();
+
+        for(Trabajador t : trabajadores){
+
+            int totalCaps = capacitaciones.size();
+            int completadas = 0;
+
+            Map<Long, String> capsEstado = matrizEstados.get(t.getId());
+
+            if(capsEstado != null){
+                for(String estado : capsEstado.values()){
+                    if("completo".equals(estado)){
+                        completadas++;
+                    }
+                }
+            }
+
+            int porcentaje = totalCaps > 0
+                    ? (completadas * 100) / totalCaps
+                    : 0;
+
+            totalPorTrabajador.put(t.getId(), porcentaje);
+        }
+
+        // 🔥 ENVIAR A VISTA
         model.addAttribute("trabajadores", trabajadores);
         model.addAttribute("capacitaciones", capacitaciones);
-        model.addAttribute("capsPorCurso", capsPorCurso); // 🔥 FALTABA
+        model.addAttribute("capsPorCurso", capsPorCurso);
         model.addAttribute("matrizEstados", matrizEstados);
+        model.addAttribute("totalPorTrabajador", totalPorTrabajador); // 🔥 NUEVO
         model.addAttribute("nombreMatriz", matriz.getNombre());
 
         return "/matriz/ver";
     }
-    
+
+    /* =========================
+       CAPACITACIONES POR CURSO
+    ========================== */
     @GetMapping("/capacitaciones/{cursoId}")
     @ResponseBody
     public List<Capacitacion> obtenerCapacitaciones(@PathVariable Long cursoId){
-    	List<Capacitacion> lista = capacitacionService.buscarPorCursoId(cursoId);
-        Curso curso = cursoService.buscarPorId(cursoId).orElseThrow();
-        System.out.println("🔥 CAPACITACIONES: " + lista.size());
-    	return capacitacionService.buscarPorCursoId(cursoId);
+        return capacitacionService.buscarPorCursoId(cursoId);
     }
-    
+
+    /* =========================
+       TRABAJADORES POR CURSO
+    ========================== */
     @GetMapping("/trabajadores/{cursoId}")
     @ResponseBody
     public List<Trabajador> trabajadoresPorCurso(@PathVariable Long cursoId){
@@ -200,75 +218,23 @@ public class MatrizWebController {
 
         return caps.stream()
                 .flatMap(cap -> cap.getCapacitacionTrabajadores().stream())
-                .map(ct -> ct.getTrabajador())
+                .map(CapacitacionTrabajador::getTrabajador)
                 .distinct()
                 .toList();
     }
-    
-    @GetMapping("/matriz-data")
-    @ResponseBody
-    public Map<String, Object> obtenerDatos(@RequestParam List<Long> cursoIds){
 
-        List<Capacitacion> caps = capacitacionService.buscarPorCursoIds(cursoIds);
-
-        List<Long> capsIds = caps.stream()
-                .map(Capacitacion::getId)
-                .toList();
-
-        // 🔥 TRAER EVALUACIONES
-        List<EvaluacionCapacitacion> evaluaciones =
-                evaluacionService.buscarPorCapacitaciones(capsIds);
-
-        List<Trabajador> trabajadores = caps.stream()
-                .flatMap(c -> c.getCapacitacionTrabajadores().stream())
-                .map(ct -> ct.getTrabajador())
-                .distinct()
-                .toList();
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("capacitaciones", caps);
-        data.put("trabajadores", trabajadores);
-
-        // 🔥 ESTA LÍNEA TE FALTA
-        data.put("evaluaciones", evaluaciones);
-
-        return data;
-    }
-    
-    @GetMapping("/matriz-dinamica")
-    @ResponseBody
-    public Map<String, Object> obtenerMatrizDinamica(@RequestParam List<Long> cursosIds){
-
-        List<Capacitacion> caps = capacitacionService.buscarPorCursoIds(cursosIds);
-
-        List<Trabajador> trabajadores = caps.stream()
-                .flatMap(c -> c.getCapacitacionTrabajadores().stream())
-                .map(ct -> ct.getTrabajador())
-                .distinct()
-                .toList();
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("capacitaciones", caps);
-        data.put("trabajadores", trabajadores);
-
-        return data;
-    }
-    
+    /* =========================
+       FOTO
+    ========================== */
     @GetMapping("/foto/{numero}")
     @ResponseBody
     public ResponseEntity<byte[]> verFoto(@PathVariable String numero) {
 
         try {
-
-            // 🔥 RUTA REAL DEL PROYECTO
             String basePath = System.getProperty("user.dir");
-
             Path ruta = Paths.get(basePath, rutaFotos, numero + ".jpg");
 
-            System.out.println("BUSCANDO: " + ruta);
-
             if (!Files.exists(ruta)) {
-                System.out.println("NO EXISTE");
                 return ResponseEntity.notFound().build();
             }
 
@@ -279,11 +245,76 @@ public class MatrizWebController {
                     .body(imagen);
 
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
     
+    @GetMapping("/matriz-data")
+    @ResponseBody
+    public Map<String, Object> matrizData(@RequestParam(required = false) List<Long> cursoIds){
+
+        Map<String, Object> data = new HashMap<>();
+
+        // 🔥 VALIDACIÓN
+        if(cursoIds == null || cursoIds.isEmpty()){
+            data.put("capacitaciones", List.of());
+            data.put("trabajadores", List.of());
+            data.put("evaluaciones", List.of());
+            data.put("porcentajes", Map.of());
+            return data;
+        }
+
+        // 🔥 CAPACITACIONES POR CURSO
+        List<Capacitacion> caps = capacitacionService.buscarPorCursoIds(cursoIds);
+
+        // 🔥 SOLO TRABAJADORES INSCRITOS
+        Set<Trabajador> trabajadoresSet = new LinkedHashSet<>();
+
+        for(Capacitacion c : caps){
+            if(c.getCapacitacionTrabajadores() != null){
+                for(CapacitacionTrabajador ct : c.getCapacitacionTrabajadores()){
+                    trabajadoresSet.add(ct.getTrabajador());
+                }
+            }
+        }
+
+        List<Trabajador> trabajadores = new ArrayList<>(trabajadoresSet);
+
+        // 🔥 EVALUACIONES
+        List<EvaluacionCapacitacion> evaluaciones =
+                evaluacionService.buscarPorCapacitaciones(
+                        caps.stream().map(Capacitacion::getId).toList()
+                );
+
+        // 🔥🔥🔥 DNC POR CURSO
+        Map<String, Integer> porcentajes = new HashMap<>();
+
+        for(Trabajador t : trabajadores){
+            for(Capacitacion c : caps){
+
+                if(c.getCurso() == null) continue;
+
+                int p = matrizService.calcularPorcentajeCurso(
+                        t.getId(),
+                        c.getCurso()
+                );
+
+                porcentajes.put(t.getId() + "-" + c.getCurso().getId(), p);
+            }
+        }
+
+        // 🔥 RESPUESTA
+        data.put("capacitaciones", caps);
+        data.put("trabajadores", trabajadores);
+        data.put("evaluaciones", evaluaciones);
+        data.put("porcentajes", porcentajes); // 🔥 NUEVO
+
+        return data;
+    }
+
+    /* =========================
+       ELIMINAR
+    ========================== */
     @GetMapping("/eliminar/{id}")
     public String eliminar(@PathVariable Long id) {
 
@@ -291,5 +322,4 @@ public class MatrizWebController {
 
         return "redirect:/matriz/lista";
     }
-    
 }

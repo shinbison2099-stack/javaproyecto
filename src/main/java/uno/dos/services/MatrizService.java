@@ -27,5 +27,7 @@ public interface MatrizService {
     List<Matriz> listar();
     Optional<Matriz> buscarPorId(Long id);
     void eliminar(Long id);
-
+    public int calcularPorcentajeCurso(Long trabajadorId, Curso curso);
+    public Map<String, Integer> matrizCursosPorcentaje();
+    
 }

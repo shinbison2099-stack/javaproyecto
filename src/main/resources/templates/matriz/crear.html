@@ -11,6 +11,7 @@
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
     <style>
+
         body {
             background: linear-gradient(135deg, #0f172a, #1e293b);
             font-family: 'Segoe UI', sans-serif;
@@ -45,6 +46,8 @@
             width: 100%;
             margin-top: 20px;
             border-collapse: collapse;
+            display: block;
+            overflow-x: auto;
         }
 
         th, td {
@@ -53,7 +56,12 @@
             text-align: center;
         }
 
-        th { background: #1e293b; }
+        th {
+            background: #1e293b;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
 
         .circulo {
             width: 20px;
@@ -71,64 +79,38 @@
         }
 
         .vacio { border: 2px solid #94a3b8; }
-		
-		table {
-		    display: block;
-		    overflow-x: auto;
-		}
 
-		thead th {
-		    position: sticky;
-		    top: 0;
-		    z-index: 2;
-		}
-		
     </style>
 </head>
 
 <body>
 
-	<div class="container">
+<div class="container">
 
-	    <!-- 🔥 HEADER -->
-	    <div style="
-	        display:flex;
-	        justify-content:space-between;
-	        align-items:center;
-	        margin-bottom:20px;
-	    ">
+    <!-- HEADER -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
 
-	        <!-- TÍTULO -->
-	        <h3 style="
-	            margin:0;
-	            font-weight:600;
-	            letter-spacing:1px;
-	        ">
-	            <i class="bi bi-grid"></i> Matriz de habilidades
-	        </h3>
+        <h3 style="margin:0; font-weight:600;">
+            <i class="bi bi-grid"></i> Matriz de habilidades
+        </h3>
 
-	        <!-- BOTONES -->
-	        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:10px;">
 
-	            <a href="/matriz/lista">
-	                <button class="btn btn-primary">
-	                    📊 Ver matrices
-	                </button>
-	            </a>
+            <a href="/matriz/lista" class="btn btn-primary">
+                📊 Ver matrices
+            </a>
 
-	            <button form="formMatriz"
-	                    class="btn btn-success">
-	                💾 Guardar
-	            </button>
+            <button type="submit" form="formMatriz" class="btn btn-success">
+                💾 Guardar
+            </button>
 
-	        </div>
+        </div>
 
-	    </div>
+    </div>
 
-	    <div class="card-box">
+    <div class="card-box">
 
-	        <!-- 🔥 FORM -->
-	        <form id="formMatriz" action="/matriz/guardar" method="post">
+        <form id="formMatriz" action="/matriz/guardar" method="post">
 
             <!-- NOMBRE -->
             <input type="text" name="nombre"
@@ -149,11 +131,6 @@
 
             <!-- MATRIZ -->
             <div id="matrizContainer"></div>
-
-            <!-- 🔥 BOTÓN GUARDAR -->
-            <button class="btn btn-success mt-3">
-                Guardar matriz
-            </button>
 
         </form>
 
@@ -179,7 +156,7 @@ function cargarTodo(){
         ⏳ Cargando matriz...
     </div>`;
 
-    fetch("/matriz/matriz-data?cursoIds=" + ids.join(","))
+    fetch("/matriz/matriz-data?cursoIds=" + encodeURIComponent(ids.join(",")))
         .then(res => res.json())
         .then(data => pintarMatriz(data))
         .catch(err => {
@@ -197,117 +174,118 @@ function pintarMatriz(data){
     let container = document.getElementById("matrizContainer");
 
     if(caps.length === 0){
-        container.innerHTML = `
-            <div style="
-                padding:20px;
-                text-align:center;
-                background:#1e293b;
-                border-radius:10px;
-                margin-top:20px;
-                color:#facc15;
-                font-weight:bold;
-            ">
-                ⚠️ Los cursos seleccionados no tienen capacitaciones
-            </div>
-        `;
+        container.innerHTML = `<div style="padding:20px;text-align:center;background:#1e293b;border-radius:10px;">
+            ⚠️ Sin capacitaciones
+        </div>`;
         return;
     }
 
-    let html = `<table><thead>
-    <tr>
+    // 🔥 AGRUPAR POR CURSO
+    let cursos = {};
+
+    caps.forEach(c => {
+        let cursoId = c.curso?.id || 0;
+        let nombreCurso = c.curso?.nombreCurso || "Sin curso";
+
+        if(!cursos[cursoId]){
+            cursos[cursoId] = {
+                nombre: nombreCurso,
+                lista: []
+            };
+        }
+
+        cursos[cursoId].lista.push(c);
+    });
+
+    let html = `<table><thead>`;
+
+    // 🔥 HEADER
+    html += `<tr>
         <th rowspan="2">ID</th>
         <th rowspan="2">Nombre</th>`;
 
-    // 🔥 AGRUPAR CURSOS (ORDENADO)
-    let cursosMap = new Map();
-
-    caps.forEach(c => {
-        let curso = c.curso?.nombreCurso || "Sin curso";
-
-        if(!cursosMap.has(curso)){
-            cursosMap.set(curso, 0);
-        }
-
-        cursosMap.set(curso, cursosMap.get(curso) + 1);
+    Object.entries(cursos).forEach(([cursoId, obj]) => {
+        html += `<th colspan="${obj.lista.length}">
+                    ${obj.nombre}
+                </th>`;
     });
 
-    cursosMap.forEach((count, curso) => {
-        html += `<th colspan="${count}">${curso}</th>`;
+    html += `<th rowspan="2">TOTAL</th>`;
+    html += `</tr>`;
+
+    // 🔥 CAPACITACIONES
+    html += `<tr>`;
+    Object.values(cursos).forEach(obj => {
+        obj.lista.forEach(c => {
+            html += `<th>${c.nombreCapacitacion}</th>`;
+        });
     });
-
-    html += `</tr><tr>`;
-
-    caps.forEach(c => {
-        html += `<th>
-            ${c.nombreCapacitacion}
-            <input type="hidden" name="capacitacionesIds" value="${c.id}">
-        </th>`;
-    });
-
     html += `</tr></thead><tbody>`;
 
-    if(trabajadores.length === 0){
-        html += `<tr>
-            <td colspan="${caps.length + 2}" style="color:#94a3b8;">
-                No hay trabajadores inscritos
-            </td>
-        </tr>`;
-    }
-
+    // 🔥 FILAS
     trabajadores.forEach(t => {
 
+        let totalCaps = caps.length;
+        let completadas = 0;
+
         html += `<tr>
-			<td>${t.id}</td>
-            
-			<td style="display:flex; align-items:center; gap:10px;">
-			    
-			    <img src="/foto/${t.numeroPersonal}"
-			         style="
-			            width:35px;
-			            height:35px;
-			            border-radius:50%;
-			            object-fit:cover;
-			            border:2px solid #334155;
-			         "
-			         onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+            <td>${t.id}</td>
 
-			    <span>
-			        ${t.nombre} ${t.primerApellido || ''} ${t.segundoApellido || ''}
-			    </span>
+            <!-- 🔥 INPUT TRABAJADOR -->
+            <input type="hidden" name="trabajadoresIds" value="${t.id}">
 
-			    <input type="hidden" name="trabajadoresIds" value="${t.id}">
-			</td>
-			
-			
-			
-			`;
+            <td style="display:flex; align-items:center; gap:10px;">
 
-        caps.forEach(c => {
+                <img src="/matriz/foto/${t.numeroPersonal}"
+                     style="width:35px;height:35px;border-radius:50%;object-fit:cover;"
+                     onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
 
-            let estado = "vacio";
-
-            // 🔥 BUSCAR EVALUACIÓN (LO IMPORTANTE)
-            let ev = evaluaciones.find(e =>
-                e.trabajador?.id === t.id &&
-                e.capacitacion?.id === c.id
-            );
-
-            if(ev){
-                estado = ev.aprobada ? "completo" : "medio";
-            } else {
-                // fallback inscripción
-                let rel = c.capacitacionTrabajadores?.find(
-                    ct => ct.trabajador?.id === t.id
-                );
-                if(rel) estado = "medio";
-            }
-
-            html += `<td>
-                <div class="circulo ${estado}"
-                     onclick="cambiarEstado(${t.id}, ${c.id}, this)">
+                <div>
+                    ${t.nombre} ${t.primerApellido || ''} ${t.segundoApellido || ''}
+                    <br>
+                    <span style="font-size:11px;color:#94a3b8;">
+                        ${t.puesto?.nombrePuesto || 'Sin puesto'}
+                    </span>
                 </div>
             </td>`;
+
+        Object.values(cursos).forEach(obj => {
+
+            obj.lista.forEach(c => {
+
+                let ev = evaluaciones.find(e =>
+                    e.trabajador?.id === t.id &&
+                    e.capacitacion?.id === c.id
+                );
+
+                let estado = ev ? (ev.aprobada ? "completo" : "medio") : "vacio";
+
+                if(estado === "completo"){
+                    completadas++;
+                }
+
+                html += `<td>
+                    <div class="circulo ${estado}"></div>
+
+                    <!-- 🔥 INPUT CAPACITACION -->
+                    <input type="hidden" name="capacitacionesIds" value="${c.id}">
+                </td>`;
+            });
+
         });
+
+        // 🔥 TOTAL
+        let totalPorcentaje = totalCaps > 0 
+            ? Math.round((completadas * 100) / totalCaps)
+            : 0;
+
+        let color = "#ef4444";
+        if(totalPorcentaje >= 80) color = "#22c55e";
+        else if(totalPorcentaje >= 50) color = "#f59e0b";
+
+        html += `<td style="font-weight:bold;color:${color};">
+                    ${totalPorcentaje}%
+                 </td>`;
 
         html += `</tr>`;
     });
@@ -317,27 +295,7 @@ function pintarMatriz(data){
     container.innerHTML = html;
 }
 
-function cambiarEstado(trabajadorId, capacitacionId, el){
-
-    fetch("/matriz/actualizar-estado", {
-        method: "POST",
-        headers: {"Content-Type": "application/x-www-form-urlencoded"},
-        body: `trabajadorId=${trabajadorId}&capacitacionId=${capacitacionId}`
-    });
-
-    if(el.classList.contains("completo")){
-        el.className = "circulo vacio";
-    } 
-    else if(el.classList.contains("medio")){
-        el.className = "circulo completo";
-    } 
-    else {
-        el.className = "circulo medio";
-    }
-}
-
 </script>
 
 </body>
 </html>
-

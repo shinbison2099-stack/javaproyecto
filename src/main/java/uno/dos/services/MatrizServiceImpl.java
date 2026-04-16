@@ -288,4 +288,50 @@ public class MatrizServiceImpl implements MatrizService {
         matrizRepository.deleteById(id);
     }
     
+ // 🔥 DNC POR CURSO (%)
+    public int calcularPorcentajeCurso(Long trabajadorId, Curso curso){
+
+        List<Capacitacion> caps = curso.getCapacitaciones();
+
+        int total = caps.size();
+        if(total == 0) return 0;
+
+        int aprobadas = 0;
+
+        for(Capacitacion cap : caps){
+
+            boolean aprobado = evaluacionRepository
+                    .existsByTrabajador_IdAndCapacitacion_IdAndAprobadaTrue(
+                            trabajadorId,
+                            cap.getId()
+                    );
+
+            if(aprobado){
+                aprobadas++;
+            }
+        }
+
+        return (aprobadas * 100) / total;
+    }
+    
+    @Override
+    public Map<String, Integer> matrizCursosPorcentaje(){
+
+        List<Trabajador> trabajadores = trabajadorRepository.findByActivoTrue();
+        List<Curso> cursos = cursoRepository.findAll();
+
+        Map<String, Integer> matriz = new HashMap<>();
+
+        for(Trabajador t : trabajadores){
+            for(Curso c : cursos){
+
+                int porcentaje = calcularPorcentajeCurso(t.getId(), c);
+
+                matriz.put(t.getId() + "-" + c.getId(), porcentaje);
+            }
+        }
+
+        return matriz;
+    }
+    
 }
