@@ -63,22 +63,30 @@
             z-index: 2;
         }
 
-        .circulo {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            margin: auto;
-            cursor: pointer;
-        }
+		.semaforo {
+		    width: 18px;
+		    height: 18px;
+		    border-radius: 50%;
+		    margin: auto;
+		    box-shadow: 0 0 8px rgba(0,0,0,0.5);
+		}
 
-        .completo { background: #0ea5e9; }
+		/* 🔴 NO INSCRITO */
+		.vacio {
+		    background: #475569;
+		}
 
-        .medio {
-            background: linear-gradient(to right, #0ea5e9 50%, transparent 50%);
-            border: 2px solid #0ea5e9;
-        }
+		/* 🟡 INSCRITO */
+		.medio {
+		    background: #facc15;
+		    box-shadow: 0 0 10px #facc15;
+		}
 
-        .vacio { border: 2px solid #94a3b8; }
+		/* 🟢 APROBADO */
+		.completo {
+		    background: #22c55e;
+		    box-shadow: 0 0 10px #22c55e;
+		}
 
     </style>
 </head>
@@ -265,7 +273,9 @@ function pintarMatriz(data){
                 }
 
                 html += `<td>
-                    <div class="circulo ${estado}"></div>
+					<div class="semaforo ${estado}" 
+					     title="${estado === 'completo' ? 'Aprobado' : estado === 'medio' ? 'Inscrito' : 'No inscrito'}">
+					</div>
 
                     <!-- 🔥 INPUT CAPACITACION -->
                     <input type="hidden" name="capacitacionesIds" value="${c.id}">

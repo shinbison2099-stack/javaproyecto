@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Crear Plan de Carrera</title>
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+    <style>
+        body {
+            background: #0f172a;
+            color: white;
+            font-family: 'Segoe UI';
+        }
+
+        .container-box {
+            max-width: 900px;
+            margin: auto;
+            margin-top: 40px;
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 15px;
+        }
+
+        .nivel {
+            background: #334155;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-add {
+            background: #22c55e;
+            border: none;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            border: none;
+        }
+
+        select {
+            flex: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-box">
+
+    <h3>🚀 Crear Plan de Carrera</h3>
+
+    <form method="post" th:action="@{/plan-carrera/guardar}">
+
+        <!-- NOMBRE -->
+        <div class="mb-3">
+            <label>Nombre del plan</label>
+            <input type="text" name="nombre" class="form-control" required>
+        </div>
+
+        <!-- NIVELES -->
+        <label>Niveles</label>
+
+        <div id="nivelesContainer"></div>
+
+        <!-- BOTÓN AGREGAR -->
+        <button type="button" class="btn btn-add mt-2" onclick="agregarNivel()">
+            + Agregar nivel
+        </button>
+
+        <br><br>
+
+        <button class="btn btn-primary">Guardar</button>
+
+    </form>
+
+</div>
+
+<!-- 🔥 PASAR PUESTOS A JS -->
+<script th:inline="javascript">
+    let puestos = [[${puestos}]];
+</script>
+
+<script>
+
+let contador = 0;
+
+// 🔥 GENERAR OPCIONES
+function getPuestosOptions(){
+
+    let html = "";
+
+    puestos.forEach(p => {
+        html += `<option value="${p.id}">${p.nombrePuesto}</option>`;
+    });
+
+    return html;
+}
+
+// 🔥 AGREGAR NIVEL
+function agregarNivel(){
+
+    const container = document.getElementById("nivelesContainer");
+
+    const div = document.createElement("div");
+    div.classList.add("nivel");
+
+    const puestosHTML = getPuestosOptions();
+
+    div.innerHTML = `
+        <span style="width:80px;">Nivel ${contador + 1}</span>
+
+        <select name="niveles[${contador}]" class="form-control" required>
+            <option value="">-- Selecciona puesto --</option>
+            ${puestosHTML}
+        </select>
+
+        <button type="button" class="btn btn-delete" onclick="this.parentElement.remove()">
+            ✖
+        </button>
+    `;
+
+    container.appendChild(div);
+
+    contador++;
+}
+
+// 🔥 NIVELES INICIALES
+agregarNivel();
+agregarNivel();
+agregarNivel();
+
+</script>
+
+</body>
+</html>
