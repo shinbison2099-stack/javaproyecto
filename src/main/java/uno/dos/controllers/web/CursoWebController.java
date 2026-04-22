@@ -58,9 +58,33 @@ public class CursoWebController {
     public String guardarCurso(@ModelAttribute Curso curso,
                                @RequestParam(required = false) List<Long> capacitacionesIds){
 
+        // 🔥 1. SETEAR ACTIVO SI ES NUEVO
+    	if(curso.getId() == null){
+    	    curso.setActivo(true);
+    	}
+
+        // 🔥 2. RESOLVER INSTRUCTOR (MUY IMPORTANTE)
+        if(curso.getInstructor() != null && curso.getInstructor().getId() != null){
+
+            Instructores instructor = instructorService
+                    .buscarPorId(curso.getInstructor().getId())
+                    .orElse(null);
+
+            curso.setInstructor(instructor);
+        } else {
+            curso.setInstructor(null);
+        }
+
+        // 🔥 3. VALIDACIONES BÁSICAS (OPCIONAL PERO RECOMENDADO)
+        if(curso.getDuracion() != null && curso.getDuracion() < 0){
+            curso.setDuracion(0);
+        }
+
+        // 🔥 4. GUARDAR CURSO
         Curso guardado = cursoService.guardar(curso);
 
-        if(capacitacionesIds != null){
+        // 🔥 5. CAPACITACIONES (si decides volver a usarlas)
+        if(capacitacionesIds != null && !capacitacionesIds.isEmpty()){
             cursoService.asignarCapacitaciones(guardado.getId(), capacitacionesIds);
         }
 
@@ -258,11 +282,11 @@ public class CursoWebController {
     }
     
     @PostMapping("/actualizar")
-    public String actualizar(@ModelAttribute Curso curso,
-                             @RequestParam Long instructor){
+    public String actualizar(@ModelAttribute Curso curso){
 
         Curso original = cursoService.buscarPorId(curso.getId()).orElseThrow();
 
+        // 🔥 conservar fechas si vienen null
         if(curso.getFechaInicio() == null){
             curso.setFechaInicio(original.getFechaInicio());
         }
@@ -271,9 +295,18 @@ public class CursoWebController {
             curso.setFechaFin(original.getFechaFin());
         }
 
-        Instructores inst = instructorService.buscarPorId(instructor).orElseThrow();
+        // 🔥 RESOLVER INSTRUCTOR (IGUAL QUE EN GUARDAR)
+        if(curso.getInstructor() != null && curso.getInstructor().getId() != null){
 
-        curso.setInstructor(inst);
+            Instructores inst = instructorService
+                    .buscarPorId(curso.getInstructor().getId())
+                    .orElse(null);
+
+            curso.setInstructor(inst);
+        } else {
+            curso.setInstructor(null);
+        }
+
         curso.setActivo(true);
 
         cursoService.guardar(curso);

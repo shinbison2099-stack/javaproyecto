@@ -85,5 +85,11 @@ public class InstructorServiceImpl implements InstructorService {
 
     }
     
+    @Override
+    public void eliminarDefinitivo(Long id){
+
+        instructorRepository.deleteById(id);
+    }
+    
     
 }

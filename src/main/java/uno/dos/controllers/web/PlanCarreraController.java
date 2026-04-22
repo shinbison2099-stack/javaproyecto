@@ -19,15 +19,25 @@ public class PlanCarreraController {
 
     private final PlanCarreraService service;
     private final PuestoService puestoService;
-    
+
+    // 🔥 CREAR
     @GetMapping("/crear")
     public String crear(Model model){
 
-        model.addAttribute("puestos", puestoService.listarActivos());
+        // 🔥 IMPORTANTE: mandar DTO simple para JS
+        model.addAttribute("puestos",
+                puestoService.listarActivos().stream()
+                        .map(p -> Map.of(
+                                "id", p.getId(),
+                                "nombre", p.getNombrePuesto()
+                        ))
+                        .toList()
+        );
 
         return "plan-carrera/crear";
     }
 
+    // 🔥 GUARDAR
     @PostMapping("/guardar")
     public String guardar(@RequestParam String nombre,
                           @RequestParam Map<String, String> niveles){
@@ -39,17 +49,32 @@ public class PlanCarreraController {
 
         int orden = 1;
 
-        for(String key : niveles.keySet()){
+        // 🔥 ORDENAR claves (niveles[0], niveles[1], etc.)
+        List<String> keysOrdenadas = new ArrayList<>(niveles.keySet());
+        Collections.sort(keysOrdenadas);
 
-            Long puestoId = Long.parseLong(niveles.get(key));
+        for(String key : keysOrdenadas){
 
-            Puesto puesto = puestoService.buscarPorId(puestoId).orElseThrow();
+            String valor = niveles.get(key);
+
+            // 🔥 VALIDACIÓN (evita "test", "", null, etc.)
+            if(valor == null || !valor.matches("\\d+")){
+                continue;
+            }
+
+            Long puestoId = Long.parseLong(valor);
+
+            Puesto puesto = puestoService.buscarPorId(puestoId)
+                    .orElseThrow(() -> new RuntimeException("Puesto no encontrado: " + puestoId));
 
             PlanNivel n = new PlanNivel();
-            n.setNombre(puesto.getNombrePuesto()); // opcional
+
+            // 🔥 OPCIONAL (puedes quitarlo si quieres)
+            n.setNombre(puesto.getNombrePuesto());
+
             n.setOrden(orden++);
             n.setPlan(plan);
-            n.setPuesto(puesto); // 🔥 IMPORTANTE
+            n.setPuesto(puesto);
 
             lista.add(n);
         }

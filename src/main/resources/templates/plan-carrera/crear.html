@@ -36,11 +36,13 @@
         .btn-add {
             background: #22c55e;
             border: none;
+            color: white;
         }
 
         .btn-delete {
             background: #ef4444;
             border: none;
+            color: white;
         }
 
         select {
@@ -81,9 +83,9 @@
 
 </div>
 
-<!-- 🔥 PASAR PUESTOS A JS -->
+<!-- 🔥 PASAR PUESTOS DESDE BACKEND -->
 <script th:inline="javascript">
-    let puestos = [[${puestos}]];
+    let puestos = /*[[${puestos}]]*/ [];
 </script>
 
 <script>
@@ -96,7 +98,7 @@ function getPuestosOptions(){
     let html = "";
 
     puestos.forEach(p => {
-        html += `<option value="${p.id}">${p.nombrePuesto}</option>`;
+        html += `<option value="${p.id}">${p.nombre}</option>`;
     });
 
     return html;
@@ -113,14 +115,14 @@ function agregarNivel(){
     const puestosHTML = getPuestosOptions();
 
     div.innerHTML = `
-        <span style="width:80px;">Nivel ${contador + 1}</span>
+        <span style="width:90px;">Nivel ${contador + 1}</span>
 
         <select name="niveles[${contador}]" class="form-control" required>
             <option value="">-- Selecciona puesto --</option>
             ${puestosHTML}
         </select>
 
-        <button type="button" class="btn btn-delete" onclick="this.parentElement.remove()">
+        <button type="button" class="btn btn-delete" onclick="eliminarNivel(this)">
             ✖
         </button>
     `;
@@ -128,6 +130,26 @@ function agregarNivel(){
     container.appendChild(div);
 
     contador++;
+}
+
+// 🔥 ELIMINAR NIVEL + REORDENAR
+function eliminarNivel(btn){
+
+    btn.parentElement.remove();
+
+    // 🔥 REORDENAR NIVELES
+    const niveles = document.querySelectorAll("#nivelesContainer .nivel");
+
+    contador = 0;
+
+    niveles.forEach((nivel, index) => {
+
+        nivel.querySelector("span").innerText = "Nivel " + (index + 1);
+
+        nivel.querySelector("select").name = `niveles[${index}]`;
+
+        contador++;
+    });
 }
 
 // 🔥 NIVELES INICIALES

@@ -10,14 +10,16 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.context.Context;
-
+import org.thymeleaf.TemplateEngine;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
 import uno.dos.models.entity.Rol;
+import uno.dos.models.entity.TipoInstructor;
 import uno.dos.models.entity.Instructores;
 import uno.dos.services.InstructorService;
 import uno.dos.services.util.PdfService;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
 @Controller
 @RequestMapping("/instructores")
@@ -26,6 +28,7 @@ public class InstructorWebController {
 
     private final InstructorService instructorService;
     private final PdfService pdfService;
+    private final TemplateEngine templateEngine;
 
     /* ===============================
        LISTAR
@@ -47,7 +50,13 @@ public class InstructorWebController {
     @GetMapping("/nuevo")
     public String nuevo(Model model) {
 
-        model.addAttribute("instructor", new Instructores());
+        Instructores instructor = new Instructores();
+
+        // 🔥 valores por defecto (opcional pero recomendado)
+        instructor.setActivo(true);
+        instructor.setRol(Rol.INSTRUCTOR);
+
+        model.addAttribute("instructor", instructor);
 
         return "instructores/form";
     }
@@ -57,7 +66,15 @@ public class InstructorWebController {
     =============================== */
 
     @PostMapping("/guardar")
-    public String guardar(@ModelAttribute Instructores instructor) {
+    public String guardar(@ModelAttribute Instructores instructor,
+                          Model model) {
+
+        // 🔥 VALIDAR TIPO
+        if(instructor.getTipo() == null){
+            model.addAttribute("error", "Selecciona tipo de instructor");
+            model.addAttribute("instructor", instructor);
+            return "instructores/form";
+        }
 
         instructor.setRol(Rol.INSTRUCTOR);
         instructor.setActivo(true);
@@ -81,35 +98,54 @@ public class InstructorWebController {
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
 
-                Row row = sheet.getRow(i);
-                if (row == null) continue;
-
-                String nombre = formatter.formatCellValue(row.getCell(0)).trim();
-                String email = formatter.formatCellValue(row.getCell(1)).trim().toLowerCase();
-                String password = formatter.formatCellValue(row.getCell(2)).trim();
-                String rolTexto = formatter.formatCellValue(row.getCell(3)).trim();
-                
-                boolean activo = true;
-                if (instructorService.existeEmail(email)) {
-                    continue;
-                }
-
-                Rol rol;
                 try {
-                    rol = Rol.valueOf(rolTexto.toUpperCase());
+                    Row row = sheet.getRow(i);
+                    if (row == null) continue;
+
+                    String nombre = formatter.formatCellValue(row.getCell(0)).trim();
+                    String email = formatter.formatCellValue(row.getCell(1)).trim().toLowerCase();
+                    String password = formatter.formatCellValue(row.getCell(2)).trim();
+                    String tipoTexto = formatter.formatCellValue(row.getCell(3)).trim();
+
+                    // 🔥 VALIDACIONES
+                    if (nombre.isEmpty() || email.isEmpty()) {
+                        System.out.println("Fila " + i + " inválida");
+                        continue;
+                    }
+
+                    if (instructorService.existeEmail(email)) {
+                        System.out.println("Email duplicado: " + email);
+                        continue;
+                    }
+
+                    // 🔥 TIPO FLEXIBLE
+                    TipoInstructor tipo;
+
+                    if (tipoTexto.equalsIgnoreCase("interno") || tipoTexto.equalsIgnoreCase("i")) {
+                        tipo = TipoInstructor.INTERNO;
+                    } else if (tipoTexto.equalsIgnoreCase("externo") || tipoTexto.equalsIgnoreCase("e")) {
+                        tipo = TipoInstructor.EXTERNO;
+                    } else {
+                        System.out.println("Tipo inválido en fila " + i + ": " + tipoTexto);
+                        continue;
+                    }
+
+                    // 🔥 CREAR
+                    Instructores instructor = new Instructores();
+                    instructor.setNombre(nombre);
+                    instructor.setEmail(email);
+                    instructor.setPassword(password);
+
+                    instructor.setRol(Rol.INSTRUCTOR);
+                    instructor.setActivo(true);
+                    instructor.setTipo(tipo);
+
+                    instructorService.guardar(instructor);
+
                 } catch (Exception e) {
-                    System.out.println("Rol inválido: " + rolTexto);
+                    System.out.println("Error en fila " + i + ": " + e.getMessage());
                     continue;
                 }
-
-                Instructores instructor = new Instructores();
-                instructor.setNombre(nombre);
-                instructor.setEmail(email);
-                instructor.setPassword(password);
-                instructor.setRol(rol);
-                instructor.setActivo(activo);
-
-                instructorService.guardar(instructor);
             }
 
         } catch (Exception e) {
@@ -124,21 +160,23 @@ public class InstructorWebController {
     =============================== */
 
     @GetMapping("/pdf")
-    public ResponseEntity<byte[]> exportarPdf() {
+    public void exportarPdf(HttpServletResponse response) throws Exception {
 
-        List<Instructores> instructores =
-                instructorService.listarInstructores();
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=instructores.pdf");
+
+        List<Instructores> lista = instructorService.listarActivos();
 
         Context context = new Context();
-        context.setVariable("instructores", instructores);
+        context.setVariable("instructores", lista);
 
-        byte[] pdf = pdfService.generarPdf("instructores/pdf", context);
+        String html = templateEngine.process("instructores/pdf", context);
 
-        return ResponseEntity.ok()
-                .header("Content-Disposition",
-                        "attachment; filename=instructores.pdf")
-                .header("Content-Type", "application/pdf")
-                .body(pdf);
+        PdfRendererBuilder builder = new PdfRendererBuilder();
+
+        builder.withHtmlContent(html, null);
+        builder.toStream(response.getOutputStream());
+        builder.run();
     }
 
     /* ===============================
@@ -189,11 +227,9 @@ public class InstructorWebController {
        ELIMINAR
     =============================== */
 
-    @GetMapping("/eliminar/{id}")
-    public String eliminar(@PathVariable Long id) {
-
+    @PostMapping("/eliminar/{id}")
+    public String eliminar(@PathVariable Long id){
         instructorService.eliminar(id);
-
         return "redirect:/instructores";
     }
     
@@ -232,35 +268,36 @@ public class InstructorWebController {
             header.createCell(0).setCellValue("nombre");
             header.createCell(1).setCellValue("email");
             header.createCell(2).setCellValue("password");
-            header.createCell(3).setCellValue("rol");
+            header.createCell(3).setCellValue("tipo"); // 🔥 CAMBIO
 
             // 🔥 FILA EJEMPLO
             Row ejemplo = sheet.createRow(1);
             ejemplo.createCell(0).setCellValue("Juan Perez");
             ejemplo.createCell(1).setCellValue("juan@mail.com");
             ejemplo.createCell(2).setCellValue("1234");
-            ejemplo.createCell(3).setCellValue("INSTRUCTOR");
+            ejemplo.createCell(3).setCellValue("INTERNO"); // 🔥 CAMBIO
 
             // =====================================
-            // 🔥 AQUÍ VA LA VALIDACIÓN 👇
+            // 🔥 VALIDACIÓN (TIPO)
             // =====================================
 
             DataValidationHelper helper = sheet.getDataValidationHelper();
 
             DataValidationConstraint constraint =
-                    helper.createExplicitListConstraint(new String[]{"INSTRUCTOR", "ADMIN"});
+                    helper.createExplicitListConstraint(new String[]{"INTERNO", "EXTERNO"});
 
-            // columna 3 = rol
-            CellRangeAddressList addressList = new CellRangeAddressList(1, 100, 3, 3);
+            // columna 3 = tipo
+            CellRangeAddressList addressList = new CellRangeAddressList(1, 1000, 3, 3);
 
             DataValidation validation = helper.createValidation(constraint, addressList);
             validation.setShowErrorBox(true);
+            validation.setSuppressDropDownArrow(false);
 
             sheet.addValidationData(validation);
 
             // =====================================
 
-            // 🔥 AJUSTAR COLUMNAS
+            // 🔥 AUTO SIZE
             for (int i = 0; i < 4; i++) {
                 sheet.autoSizeColumn(i);
             }
@@ -277,5 +314,24 @@ public class InstructorWebController {
         }
     }
     
+    @PostMapping("/eliminar-masivo")
+    public String eliminarMasivo(@RequestParam List<Long> ids){
+
+        for(Long id : ids){
+            instructorService.eliminar(id); // soft delete
+        }
+
+        return "redirect:/instructores";
+    }
+    
+    @PostMapping("/eliminar-definitivo")
+    public String eliminarDefinitivo(@RequestParam List<Long> ids){
+
+        for(Long id : ids){
+            instructorService.eliminarDefinitivo(id);
+        }
+
+        return "redirect:/instructores/eliminados";
+    }
    
 }

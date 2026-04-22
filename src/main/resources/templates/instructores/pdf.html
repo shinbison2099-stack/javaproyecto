@@ -1,31 +1,31 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
+    <meta charset="UTF-8" />
+    <title>Instructores PDF</title>
 
-<meta charset="UTF-8"/>
+    <style>
+        body {
+            font-family: Arial;
+            font-size: 12px;
+        }
 
-<style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
-body{
-font-family: Arial;
-}
+        th, td {
+            border: 1px solid #000;
+            padding: 6px;
+            text-align: left;
+        }
 
-table{
-width:100%;
-border-collapse: collapse;
-}
-
-th,td{
-border:1px solid black;
-padding:8px;
-}
-
-th{
-background:#f2f2f2;
-}
-
-</style>
-
+        th {
+            background: #eee;
+        }
+    </style>
 </head>
 
 <body>
@@ -33,27 +33,25 @@ background:#f2f2f2;
 <h2>Lista de Instructores</h2>
 
 <table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Tipo</th>
+            <th>Activo</th>
+        </tr>
+    </thead>
 
-<thead>
-<tr>
-<th>ID</th>
-<th>Nombre</th>
-<th>Email</th>
-<th>Activo</th>
-</tr>
-</thead>
-
-<tbody>
-
-<tr th:each="inst : ${instructores}">
-<td th:text="${inst.id}"></td>
-<td th:text="${inst.nombre}"></td>
-<td th:text="${inst.email}"></td>
-<td th:text="${inst.activo}"></td>
-</tr>
-
-</tbody>
-
+    <tbody>
+        <tr th:each="instructor, iterStat : ${instructores}">
+            <td th:text="${iterStat.count}"></td>
+            <td th:text="${instructor.nombre}"></td>
+            <td th:text="${instructor.email}"></td>
+            <td th:text="${instructor.tipo}"></td>
+            <td th:text="${instructor.activo} ? 'Sí' : 'No'"></td>
+        </tr>
+    </tbody>
 </table>
 
 </body>

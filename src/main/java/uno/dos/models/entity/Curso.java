@@ -12,11 +12,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+@Entity
+@Table(name = "cursos")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Table(name = "cursos")
 public class Curso {
 
     @Id
@@ -36,6 +36,17 @@ public class Curso {
 
     private Integer duracion; // horas del curso
 
+    // 🔥 NUEVO
+    @Enumerated(EnumType.STRING)
+    private TipoCurso tipoCurso;
+
+    // 🔥 NUEVO
+    @Enumerated(EnumType.STRING)
+    private TipoTrabajador tipoTrabajador;
+
+    // 🔥 NUEVO
+    private String areaResponsable;
+
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "fecha_inicio")
     private LocalDate fechaInicio;
@@ -49,16 +60,16 @@ public class Curso {
     private Instructores instructor;
 
     private boolean activo;
-    
+
     @Transient
     public String getNombre() {
         return nombreCurso;
     }
-    
+
     @OneToMany(mappedBy = "curso")
-    @JsonIgnore // 🔥 SOLUCIÓN
+    @JsonIgnore
     private List<Capacitacion> capacitaciones = new ArrayList<>();
-    
+
     @Transient
     public int getHorasUsadas(){
         return capacitaciones.stream()
@@ -68,17 +79,17 @@ public class Curso {
 
     @Transient
     public int getHorasRestantes(){
-        return duracion - getHorasUsadas();
+        return duracion != null ? duracion - getHorasUsadas() : 0;
     }
-    
+
     @Transient
     public int getTotalInscritos(){
-
         return capacitaciones.stream()
             .flatMap(cap -> cap.getCapacitacionTrabajadores().stream())
             .mapToInt(ct -> ct.getActivo() != null && ct.getActivo() ? 1 : 0)
             .sum();
     }
     
-    
+    @Column(length = 1000)
+    private String comentarios;
 }

@@ -28,5 +28,7 @@ public interface InstructorService {
 	public List<Instructores> listarEliminados();
 	
 	public Instructores buscarPorNombre(String nombre);
+	
+	public void eliminarDefinitivo(Long id);
 
 }
