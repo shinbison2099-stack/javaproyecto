@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
@@ -78,16 +79,21 @@ public class PuestoServiceImpl implements PuestoService{
 
         List<Puesto> puestos = puestoRepository.findAll();
 
+        List<Long> ids = puestos.stream()
+                .map(Puesto::getId)
+                .toList();
+
+        List<PuestoCapacitacion> relaciones =
+                puestoCapacitacionRepository.findAllByPuestoIds(ids);
+
+        Map<Long, List<Capacitacion>> mapa = relaciones.stream()
+                .collect(Collectors.groupingBy(
+                        pc -> pc.getPuesto().getId(),
+                        Collectors.mapping(PuestoCapacitacion::getCapacitacion, Collectors.toList())
+                ));
+
         for (Puesto p : puestos) {
-
-            List<PuestoCapacitacion> relaciones =
-                    puestoCapacitacionRepository.findByPuestoId(p.getId());
-
-            List<Capacitacion> caps = relaciones.stream()
-                    .map(pc -> pc.getCapacitacion())
-                    .toList();
-
-            p.setCapacitaciones(caps);
+            p.setCapacitaciones(mapa.getOrDefault(p.getId(), List.of()));
         }
 
         return puestos;

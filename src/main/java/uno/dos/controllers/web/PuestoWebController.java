@@ -22,6 +22,7 @@ import org.thymeleaf.context.Context;
 import lombok.RequiredArgsConstructor;
 import uno.dos.models.entity.Curso;
 import uno.dos.models.entity.Puesto;
+import uno.dos.models.entity.PuestoCurso;
 import uno.dos.services.CategoriaPuestoService;
 import uno.dos.services.CursoService;
 import uno.dos.services.PuestoService;
@@ -70,14 +71,34 @@ public class PuestoWebController {
     public String guardar(@ModelAttribute Puesto puesto,
                           @RequestParam(required = false) List<Long> cursosIds){
 
-    	if (cursosIds != null) {
-    	    List<Curso> cursos = cursoService.buscarPorIds(cursosIds);
-    	    puesto.setCursos(cursos);
-    	} else {
-    	    puesto.setCursos(List.of());
-    	}
-
+        // 🔥 ACTIVO POR DEFAULT
         puesto.setActivo(true);
+
+        // 🔥 LIMPIAR RELACIONES ANTERIORES (IMPORTANTE EN EDIT)
+        if(puesto.getPuestoCursos() != null){
+            puesto.getPuestoCursos().clear();
+        }
+
+        // 🔥 CREAR RELACIONES NUEVAS
+        if(cursosIds != null){
+
+            for(Long cursoId : cursosIds){
+
+                Curso curso = cursoService.buscarPorId(cursoId).orElse(null);
+
+                if(curso != null){
+
+                    PuestoCurso pc = new PuestoCurso();
+                    pc.setPuesto(puesto);
+                    pc.setCurso(curso);
+
+                    // opcional
+                    pc.setObligatorio(true);
+
+                    puesto.getPuestoCursos().add(pc);
+                }
+            }
+        }
 
         puestoService.guardar(puesto);
 

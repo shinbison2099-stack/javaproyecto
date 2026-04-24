@@ -34,17 +34,14 @@ public class Curso {
     @Column(name = "clave_area_tematica")
     private String claveAreaTematica;
 
-    private Integer duracion; // horas del curso
+    private Integer duracion;
 
-    // 🔥 NUEVO
     @Enumerated(EnumType.STRING)
     private TipoCurso tipoCurso;
 
-    // 🔥 NUEVO
     @Enumerated(EnumType.STRING)
     private TipoTrabajador tipoTrabajador;
 
-    // 🔥 NUEVO
     private String areaResponsable;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
@@ -61,14 +58,31 @@ public class Curso {
 
     private boolean activo;
 
+    // 🔥 RELACIÓN CORRECTA CON PUESTO_CURSO
+    @OneToMany(mappedBy = "curso", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<PuestoCurso> puestoCursos = new ArrayList<>();
+
+    // 🔥 SOLO PARA USO EN VISTA
     @Transient
-    public String getNombre() {
-        return nombreCurso;
+    public List<Puesto> getPuestos() {
+        return puestoCursos.stream()
+                .map(PuestoCurso::getPuesto)
+                .toList();
     }
+
+    // ===============================
+    // LO QUE YA TENÍAS (BIEN)
+    // ===============================
 
     @OneToMany(mappedBy = "curso")
     @JsonIgnore
     private List<Capacitacion> capacitaciones = new ArrayList<>();
+
+    @Transient
+    public String getNombre() {
+        return nombreCurso;
+    }
 
     @Transient
     public int getHorasUsadas(){
@@ -89,7 +103,7 @@ public class Curso {
             .mapToInt(ct -> ct.getActivo() != null && ct.getActivo() ? 1 : 0)
             .sum();
     }
-    
+
     @Column(length = 1000)
     private String comentarios;
 }

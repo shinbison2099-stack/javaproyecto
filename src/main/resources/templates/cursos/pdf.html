@@ -2,88 +2,111 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
+    <meta charset="UTF-8" />
+    <title>Lista de Cursos</title>
 
-	<meta charset="UTF-8" />
-	<title>Lista de Cursos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+        }
 
-	<style>
-		body {
-			font-family: Arial, sans-serif;
-			font-size: 12px;
-		}
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-		h2 {
-			text-align: center;
-			margin-bottom: 20px;
-		}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
-		table {
-			width: 100%;
-			border-collapse: collapse;
-		}
+        th, td {
+            border: 1px solid black;
+            padding: 5px;
+            text-align: center;
+        }
 
-		th,
-		td {
-			border: 1px solid black;
-			padding: 6px;
-			text-align: left;
-		}
+        th {
+            background: #f2f2f2;
+        }
 
-		th {
-			background: #f2f2f2;
-		}
-	</style>
+        .interno { background: #dbeafe; }
+        .externo { background: #fef3c7; }
 
+        .hourly { background: #d1fae5; }
+        .salary { background: #ede9fe; }
+        .ambos { background: #e5e7eb; }
+
+        .activo { color: green; font-weight: bold; }
+        .inactivo { color: red; font-weight: bold; }
+    </style>
 </head>
 
 <body>
 
-	<h2>Lista de Cursos</h2>
+<h2>📚 Lista de Cursos</h2>
 
-	<table>
+<table>
 
-		<thead>
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Clave</th>
+        <th>Nombre</th>
+        <th>Área</th>
+        <th>Duración</th>
+        <th>Tipo Curso</th>
+        <th>Tipo Trabajador</th>
+        <th>Instructor</th>
+        <th>Inicio</th>
+        <th>Fin</th>
+        <th>Activo</th>
+    </tr>
+    </thead>
 
-			<tr>
-				<th>ID</th>
-				<th>Clave Curso</th>
-				<th>Nombre Curso</th>
-				<th>Área</th>
-				<th>Duración</th>
-				<th>Instructor</th>
-				<th>Inicio</th>
-				<th>Fin</th>
-			</tr>
+    <tbody>
 
-		</thead>
+    <tr th:each="curso, iterStat : ${cursos}">
 
-		<tbody>
+        <td th:text="${iterStat.count}"></td>
 
-			<tr th:each="curso : ${cursos}">
+        <td th:text="${curso.claveCurso}"></td>
 
-				<td th:text="${curso.id}"></td>
+        <td th:text="${curso.nombreCurso}"></td>
 
-				<td th:text="${curso.claveCurso}"></td>
+        <td th:text="${curso.claveAreaTematica}"></td>
 
-				<td th:text="${curso.nombreCurso}"></td>
+        <td th:text="${curso.duracion != null ? curso.duracion + ' hrs' : '0 hrs'}"></td>
 
-				<td th:text="${curso.claveAreaTematica}"></td>
+        <!-- ✅ TIPO CURSO -->
+        <td th:classappend="${curso.tipoCurso == 'INTERNO'} ? 'interno' : 'externo'"
+            th:text="${curso.tipoCurso != null ? curso.tipoCurso : 'SIN TIPO'}">
+        </td>
 
-				<td th:text="${curso.duracion + ' hrs'}"></td>
+        <!-- ✅ TIPO TRABAJADOR -->
+        <td th:classappend="
+            ${curso.tipoTrabajador == 'HOURLY'} ? 'hourly' :
+            (${curso.tipoTrabajador == 'SALARY'} ? 'salary' : 'ambos')"
+            th:text="${curso.tipoTrabajador != null ? curso.tipoTrabajador : 'SIN TIPO'}">
+        </td>
 
-				<td th:text="${curso.instructor != null ? curso.instructor.nombre : 'Sin instructor'}"></td>
+        <td th:text="${curso.instructor != null ? curso.instructor.nombre : 'Sin instructor'}"></td>
 
-				<td th:text="${curso.fechaInicio != null ? #temporals.format(curso.fechaInicio,'dd/MM/yyyy') : ''}">
-				</td>
+        <td th:text="${curso.fechaInicio != null ? #temporals.format(curso.fechaInicio,'dd/MM/yyyy') : '-'}"></td>
 
-				<td th:text="${curso.fechaFin != null ? #temporals.format(curso.fechaFin,'dd/MM/yyyy') : ''}"></td>
+        <td th:text="${curso.fechaFin != null ? #temporals.format(curso.fechaFin,'dd/MM/yyyy') : '-'}"></td>
 
-			</tr>
+        <!-- ✅ ACTIVO -->
+        <td th:classappend="${curso.activo} ? 'activo' : 'inactivo'"
+            th:text="${curso.activo ? 'Sí' : 'No'}">
+        </td>
 
-		</tbody>
+    </tr>
 
-	</table>
+    </tbody>
+
+</table>
 
 </body>
-
 </html>

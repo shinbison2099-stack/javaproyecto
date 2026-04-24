@@ -2,171 +2,203 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
+    <title>Cursos</title>
 
-	<title>Cursos</title>
+    <!-- Bootstrap -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-	<!-- 🔥 ICONOS (TE FALTABA O ESTÁ MAL UBICADO) -->
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <!-- Iconos -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
-	<!-- CSS -->
-	<link rel="stylesheet" th:href="@{/css/menu.css}">
-	<link rel="stylesheet" th:href="@{/css/sidebar.css}">
+    <!-- CSS -->
+    <link rel="stylesheet" th:href="@{/css/menu.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
 
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            font-family: 'Segoe UI', sans-serif;
+            color: #e2e8f0;
+        }
+
+        .bg-glow {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            background: #3b82f6;
+            filter: blur(150px);
+            top: 10%;
+            left: 20%;
+            z-index: -1;
+        }
+
+        .container-box {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(20px);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        h2 {
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        table {
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+        }
+
+        th {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .badge-interno { background: #3b82f6; }
+        .badge-externo { background: #f59e0b; color: black; }
+        .badge-hourly { background: #10b981; }
+        .badge-salary { background: #8b5cf6; }
+        .badge-ambos { background: #64748b; }
+
+        .btn { border-radius: 10px; }
+    </style>
 </head>
 
 <body>
 
-	<div th:replace="~{fragments/menu :: menu}"></div>
-	<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<div class="bg-glow"></div>
 
-	<div class="container mt-4">
+<div th:replace="~{fragments/menu :: menu}"></div>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-		<h2>Lista de Cursos</h2>
+<div class="container mt-4">
 
+    <div class="container-box">
 
+        <h2>📚 Lista de Cursos</h2>
 
-		<div class="mb-3">
+        <div class="mb-3 d-flex flex-wrap gap-2">
 
-			<a href="/cursos/nuevo" class="btn btn-primary">
-				<i class="bi bi-plus-circle"></i>Nuevo Curso
-			</a>
+            <a href="/cursos/nuevo" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nuevo Curso
+            </a>
 
-			<a href="/cursos/pdf" class="btn btn-danger">
-				<i class="bi bi-file-earmark-pdf"></i> Exportar PDF
-			</a>
+            <a href="/cursos/pdf" class="btn btn-danger">
+                <i class="bi bi-file-earmark-pdf"></i> PDF
+            </a>
 
-			<a href="/cursos/eliminados" class="btn btn-dark">
-				<i class="bi bi-trash"></i> Cursos Eliminados
-			</a>
+            <a href="/cursos/eliminados" class="btn btn-dark">
+                <i class="bi bi-trash"></i> Eliminados
+            </a>
 
-			<form th:action="@{/cursos/importar}" method="post" enctype="multipart/form-data"
-				style="display:inline-block;">
+            <form th:action="@{/cursos/importar}" method="post"
+                  enctype="multipart/form-data"
+                  class="d-flex gap-2">
 
-				<input type="file" name="archivo" required>
+                <input type="file" name="archivo" required class="form-control">
 
-				<button type="submit" class="btn btn-success">
-					<i class="bi bi-upload"></i>Importar Excel
-				</button>
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-upload"></i>
+                </button>
+            </form>
 
-			</form>
+            <a href="/cursos/plantilla" class="btn btn-info">
+                <i class="bi bi-download"></i>
+            </a>
 
-			<a href="/cursos/plantilla" class="btn btn-info">
-				<i class="bi bi-download"></i> Descargar plantilla
-			</a>
+        </div>
 
+        <div style="max-height:500px; overflow:auto;">
 
+            <table class="table table-bordered table-hover">
 
-		</div>
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Clave</th>
+                    <th>Nombre</th>
+                    <th>Área</th>
+                    <th>Duración</th>
+                    <th>Tipo Curso</th>
+                    <th>Tipo Trabajador</th>
+                    <th>Instructor</th>
+                    <th>Inicio</th>
+                    <th>Fin</th>
+                    <th>Activo</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
 
+                <tbody>
 
-		<table class="table table-bordered table-striped">
+                <tr th:each="curso, iterStat : ${cursos}">
 
-			<thead class="table-dark">
-			    <tr>
-			        <th>#</th>
-			        <th>Clave Curso</th>
-			        <th>Nombre Curso</th>
-			        <th>Área Temática</th>
-			        <th>Duración</th>
-			        <th>Instructor</th>
-			        <th>Inicio</th>
-			        <th>Fin</th>
-			        <th>Activo</th>
-			        <th>Materiales</th>
-			        <th>Opciones</th>
-			    </tr>
-			</thead>
+                    <td th:text="${iterStat.count}"></td>
+                    <td th:text="${curso.claveCurso}"></td>
+                    <td th:text="${curso.nombreCurso}"></td>
+                    <td th:text="${curso.claveAreaTematica}"></td>
+                    <td th:text="${curso.duracion + ' hrs'}"></td>
 
-			<tbody>
-
-			<tr th:each="curso, iterStat : ${cursos}">
-
-			    <!-- 🔥 ENUMERACIÓN -->
-			    <td th:text="${iterStat.count}"></td>
-
-			    <td th:text="${curso.claveCurso}"></td>
-			    <td th:text="${curso.nombreCurso}"></td>
-			    <td th:text="${curso.claveAreaTematica}"></td>
-			    <td th:text="${curso.duracion + ' hrs'}"></td>
-
-			    <td th:text="${curso.instructor != null ? curso.instructor.nombre : 'Sin instructor'}"></td>
-
-			   
-
-
-					<!-- FECHA INICIO -->
-					<td th:classappend="${curso.fechaInicio != null and curso.fechaInicio.isAfter(T(java.time.LocalDate).now())} ?
-'text-warning fw-bold' :
-(${curso.fechaFin != null and curso.fechaFin.isBefore(T(java.time.LocalDate).now())} ?
-'text-danger fw-bold' :
-'text-success fw-bold')">
-
-						<span th:text="${curso.fechaInicio != null ?
-#temporals.format(curso.fechaInicio,'dd MMM yyyy',T(java.util.Locale).forLanguageTag('es'))
-: 'Sin fecha'}"></span>
-
-					</td>
-
-
-					<!-- FECHA FIN -->
-					<td th:classappend="${curso.fechaInicio != null and curso.fechaInicio.isAfter(T(java.time.LocalDate).now())} ?
-'text-warning fw-bold' :
-(${curso.fechaFin != null and curso.fechaFin.isBefore(T(java.time.LocalDate).now())} ?
-'text-danger fw-bold' :
-'text-success fw-bold')">
-
-						<span th:text="${curso.fechaFin != null ?
-#temporals.format(curso.fechaFin,'dd MMM yyyy',T(java.util.Locale).forLanguageTag('es'))
-: 'Sin fecha'}"></span>
-
-					</td>
-
-
-					<td th:text="${curso.activo} ? 'Sí' : 'No'"></td>
-
-
+                    <!-- ✅ TIPO CURSO -->
 					<td>
-
-						<a th:href="@{/materiales/curso/{id}(id=${curso.id})}" class="btn btn-primary btn-sm">
-							Ver Materiales
-						</a>
-
-						<a th:href="@{/materiales/nuevo/{id}(id=${curso.id})}" class="btn btn-secondary btn-sm">
-							Subir Material
-						</a>
-
+					    <span class="badge"
+					          th:classappend="
+					            ${curso.tipoCurso != null and curso.tipoCurso == 'INTERNO'} 
+					            ? ' badge-interno' 
+					            : ' badge-externo'"
+					          th:text="${curso.tipoCurso != null ? curso.tipoCurso : 'SIN TIPO'}">
+					    </span>
 					</td>
 
+                    <!-- ✅ TIPO TRABAJADOR -->
 					<td>
-
-					    <a th:href="@{/cursos/editar/{id}(id=${curso.id})}"
-					       class="btn btn-warning btn-sm">
-					        <i class="bi bi-pencil"></i>
-					    </a>
-
-					    <a th:href="@{/cursos/eliminar/{id}(id=${curso.id})}"
-					       class="btn btn-danger btn-sm"
-					       onclick="return confirm('¿Eliminar curso?')">
-					        <i class="bi bi-trash"></i>
-					    </a>
-
-					    <!-- 🔥 NUEVO BOTÓN -->
-					    <a th:href="@{/temas/curso/{id}(id=${curso.id})}"
-					       class="btn btn-info btn-sm">
-					        <i class="bi bi-calendar3"></i>
-					    </a>
-
+					    <span class="badge"
+					          th:classappend="
+					            ${curso.tipoTrabajador != null and curso.tipoTrabajador == 'HOURLY'} ? ' badge-hourly' :
+					            (${curso.tipoTrabajador != null and curso.tipoTrabajador == 'SALARY'} ? ' badge-salary' : ' badge-ambos')"
+					          th:text="${curso.tipoTrabajador != null ? curso.tipoTrabajador : 'SIN TIPO'}">
+					    </span>
 					</td>
 
-				</tr>
+                    <td th:text="${curso.instructor != null ? curso.instructor.nombre : 'Sin instructor'}"></td>
 
-			</tbody>
+                    <td th:text="${curso.fechaInicio != null ? #temporals.format(curso.fechaInicio,'dd/MM/yyyy') : '-'}"></td>
+                    <td th:text="${curso.fechaFin != null ? #temporals.format(curso.fechaFin,'dd/MM/yyyy') : '-'}"></td>
 
-		</table>
+                    <td>
+                        <span class="badge bg-success" th:if="${curso.activo}">Activo</span>
+                        <span class="badge bg-danger" th:if="${!curso.activo}">Inactivo</span>
+                    </td>
 
-	</div>
+                    <td>
+
+                        <a th:href="@{/cursos/editar/{id}(id=${curso.id})}"
+                           class="btn btn-warning btn-sm">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+
+                        <a th:href="@{/cursos/eliminar/{id}(id=${curso.id})}"
+                           class="btn btn-danger btn-sm"
+                           onclick="return confirm('¿Eliminar curso?')">
+                            <i class="bi bi-trash"></i>
+                        </a>
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
 
 </body>
-
 </html>

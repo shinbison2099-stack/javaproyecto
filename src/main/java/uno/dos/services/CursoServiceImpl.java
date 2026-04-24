@@ -102,4 +102,20 @@ public class CursoServiceImpl implements CursoService {
         return cursoRepository.findAllById(ids);
     }
     
+    @Transactional
+    public void eliminarDefinitivo(Long id){
+
+        Curso curso = cursoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Curso no encontrado"));
+
+        // 🔥 romper relación
+        curso.getPuestos().forEach(p -> p.getCursos().remove(curso));
+        curso.getPuestos().clear();
+
+        cursoRepository.save(curso);
+
+        // 🔥 eliminar
+        cursoRepository.delete(curso);
+    }
+    
 }

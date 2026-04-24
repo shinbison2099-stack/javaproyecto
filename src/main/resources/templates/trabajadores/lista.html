@@ -3,129 +3,254 @@
 
 <head>
 
-	<title>Trabajadores</title>
+    <title>Trabajadores</title>
 
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 
-	<link rel="stylesheet" th:href="@{/css/menu.css}">
+    <!-- Iconos -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" th:href="@{/css/menu.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+
+    <!-- 🔥 WINDOWS 11 STYLE -->
+    <style>
+
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            font-family: 'Segoe UI', sans-serif;
+            color: #e2e8f0;
+        }
+
+        .bg-glow {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            background: #3b82f6;
+            filter: blur(150px);
+            top: 10%;
+            left: 10%;
+            z-index: -1;
+        }
+
+        .container-box {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(20px);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+
+        h2 {
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        /* BOTONES */
+        .btn {
+            border-radius: 10px;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* 🔥 TABLA CORREGIDA */
+        .table {
+            background: #ffffff !important;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        /* 🔥 ENCABEZADO */
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+
+            background: linear-gradient(135deg, #1e293b, #334155);
+            color: #ffffff;
+            font-weight: 600;
+            border-bottom: 2px solid #3b82f6;
+        }
+
+        /* 🔥 FILAS */
+        .table tbody tr {
+            background: #ffffff !important;
+        }
+
+        /* 🔥 TEXTO */
+        .table tbody td {
+            color: #1e293b !important;
+        }
+
+        /* 🔥 HOVER */
+        .table tbody tr:hover {
+            background: #e2e8f0 !important;
+        }
+
+        /* 🔥 ZEBRA */
+        .table tbody tr:nth-child(even) {
+            background: #f8fafc !important;
+        }
+
+        /* SCROLL */
+        .table-responsive {
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: 12px;
+        }
+
+        .table-responsive::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+		
+		/* 🔥 FORZAR TEXTO EN TODA LA TABLA */
+		.table,
+		.table * {
+		    color: #ffffff !important;
+		}
+
+		/* 🔥 EXCEPCIÓN: BOTONES (para no romper colores) */
+		.table .btn {
+		    color: white !important;
+		}
+
+		/* 🔥 FILAS BLANCAS */
+		.table tbody tr {
+		    background: #ffffff !important;
+		}
+
+		/* 🔥 HOVER */
+		.table tbody tr:hover {
+		    background: #e2e8f0 !important;
+		}
+
+    </style>
 
 </head>
 
 <body>
 
-	<div th:replace="~{fragments/menu :: menu}"></div>
+<div class="bg-glow"></div>
 
-	<div class="container mt-4">
+<div th:replace="~{fragments/menu :: menu}"></div>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-		<h2>Lista de Trabajadores</h2>
+<div class="container mt-4">
 
-		<div class="mb-3">
+    <div class="container-box">
 
-			<a href="/trabajadores/nuevo" class="btn btn-primary">
-				Nuevo trabajador
-			</a>
+        <h2>👨‍💼 Lista de Trabajadores</h2>
 
-			<form th:action="@{/trabajadores/importar}" method="post" enctype="multipart/form-data"
-				style="display:inline-block">
+        <!-- 🔥 BOTONES (NO TOCADOS) -->
+        <div class="mb-3 d-flex flex-wrap gap-2">
 
-				<input type="file" name="archivo" required>
+            <a href="/trabajadores/nuevo" class="btn btn-primary">
+                Nuevo trabajador
+            </a>
 
-				<button type="submit" class="btn btn-success">
-					Importar Excel
-				</button>
+            <form th:action="@{/trabajadores/importar}" method="post" enctype="multipart/form-data"
+                  class="d-flex gap-2">
 
-			</form>
+                <input type="file" name="archivo" required class="form-control" style="max-width:250px">
 
-			<a href="/trabajadores/pdf" class="btn btn-danger">
-				Exportar PDF
-			</a>
-			
-			<a href="/trabajadores/eliminados" class="btn btn-dark">
-			Trabajadores Eliminados
-			</a>
-			
+                <button type="submit" class="btn btn-success">
+                    Importar Excel
+                </button>
+            </form>
 
+            <a href="/trabajadores/pdf" class="btn btn-danger">
+                Exportar PDF
+            </a>
 
-		</div>
+            <a href="/trabajadores/eliminados" class="btn btn-dark">
+                Trabajadores Eliminados
+            </a>
 
-		<table class="table table-bordered table-striped">
+        </div>
 
-			<thead class="table-dark">
+        <!-- 🔥 TABLA -->
+        <div class="table-responsive">
 
-				<tr>
+            <table class="table table-bordered">
 
-					<th>ID</th>
-					<th>No. Personal</th>
-					<th>CURP</th>
-					<th>Nombre</th>
-					<th>Área</th>
-					<th>Puesto</th>
-					<th>Email</th>
-					<th>Acciones</th>
-					<th>Opciones</th>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>No. Personal</th>
+                    <th>CURP</th>
+                    <th>Nombre</th>
+                    <th>Área</th>
+                    <th>Puesto</th>
+                    <th>Email</th>
+                    <th>Acciones</th>
+                    <th>Opciones</th>
+                </tr>
+                </thead>
 
-				</tr>
+                <tbody>
 
-			</thead>
+                <tr th:each="trabajador : ${trabajadores}">
 
-			<tbody>
+                    <td th:text="${trabajador.id}"></td>
 
-			<tr th:each="trabajador : ${trabajadores}">
+                    <td th:text="${trabajador.numeroPersonal}"></td>
 
-			    <td th:text="${trabajador.id}"></td>
+                    <td th:text="${trabajador.curp}"></td>
 
-			    <td th:text="${trabajador.numeroPersonal}"></td>
+                    <td th:text="${trabajador.nombre + ' ' + trabajador.primerApellido + ' ' + trabajador.segundoApellido}"></td>
 
-			    <td th:text="${trabajador.curp}"></td>
+                    <td th:text="${trabajador.areaEmpleado}"></td>
 
-			    <td
-			        th:text="${trabajador.nombre + ' ' + trabajador.primerApellido + ' ' + trabajador.segundoApellido}">
-			    </td>
+                    <td th:text="${trabajador.puesto != null ? trabajador.puesto.nombrePuesto : 'Sin puesto'}"></td>
 
-			    <td th:text="${trabajador.areaEmpleado}"></td>
+                    <td th:text="${trabajador.email}"></td>
 
-			    <td th:text="${trabajador.puesto != null ? trabajador.puesto.nombrePuesto : 'Sin puesto'}"></td>
+                    <td>
+                        <a th:href="@{/trabajadores/{id}(id=${trabajador.id})}"
+                           class="btn btn-info btn-sm">
+                            Ver CV
+                        </a>
+                    </td>
 
-			    <td th:text="${trabajador.email}"></td>
+                    <td>
+                        <a th:href="@{/trabajadores/editar/{id}(id=${trabajador.id})}"
+                           class="btn btn-warning btn-sm">
+                            Editar
+                        </a>
 
-			    <td>
+                        <a th:href="@{/trabajadores/eliminar/{id}(id=${trabajador.id})}"
+                           class="btn btn-danger btn-sm"
+                           onclick="return confirm('¿Eliminar trabajador?')">
+                            Eliminar
+                        </a>
 
-			        <a th:href="@{/trabajadores/{id}(id=${trabajador.id})}"
-			           class="btn btn-info btn-sm">
-			            Ver CV
-			        </a>
+                        <a th:href="@{/matriz/plan-carrera/{id}(id=${trabajador.id})}"
+                           class="btn btn-primary btn-sm">
+                           Plan carrera
+                        </a>
+                    </td>
 
-			    </td>
+                </tr>
 
-			    <td>
+                </tbody>
 
-			        <a th:href="@{/trabajadores/editar/{id}(id=${trabajador.id})}"
-			           class="btn btn-warning btn-sm">
-			            Editar
-			        </a>
+            </table>
 
-			        <a th:href="@{/trabajadores/eliminar/{id}(id=${trabajador.id})}"
-			           class="btn btn-danger btn-sm"
-			           onclick="return confirm('¿Eliminar trabajador?')">
-			            Eliminar
-			        </a>
+        </div>
 
-			        <!-- 🔥 AQUÍ VA EL BOTÓN -->
-			        <a th:href="@{/matriz/plan-carrera/{id}(id=${trabajador.id})}"
-			           class="btn btn-primary btn-sm">
-			           Plan carrera
-			        </a>
+    </div>
 
-			    </td>
-
-			</tr>
-
-			</tbody>
-
-		</table>
-
-	</div>
+</div>
 
 </body>
-
 </html>

@@ -2,6 +2,7 @@ package uno.dos.controllers.web;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -16,6 +17,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import uno.dos.models.entity.Capacitacion;
 import uno.dos.models.entity.Curso;
 import uno.dos.models.entity.Instructores;
+import uno.dos.models.entity.TipoCurso;
+import uno.dos.models.entity.TipoTrabajador;
 import uno.dos.services.TrabajadorService;
 import uno.dos.services.CapacitacionService;
 import uno.dos.services.CursoService;
@@ -58,32 +61,39 @@ public class CursoWebController {
     public String guardarCurso(@ModelAttribute Curso curso,
                                @RequestParam(required = false) List<Long> capacitacionesIds){
 
-        // 🔥 1. SETEAR ACTIVO SI ES NUEVO
-    	if(curso.getId() == null){
-    	    curso.setActivo(true);
-    	}
+        // 🔥 DEFAULTS (ANTES DE GUARDAR)
+        if(curso.getTipoCurso() == null){
+            curso.setTipoCurso(TipoCurso.INTERNO);
+        }
 
-        // 🔥 2. RESOLVER INSTRUCTOR (MUY IMPORTANTE)
+        if(curso.getTipoTrabajador() == null){
+            curso.setTipoTrabajador(TipoTrabajador.AMBOS);
+        }
+
+        // 🔥 ACTIVO
+        if(curso.getId() == null){
+            curso.setActivo(true);
+        }
+
+        // 🔥 INSTRUCTOR
         if(curso.getInstructor() != null && curso.getInstructor().getId() != null){
-
             Instructores instructor = instructorService
                     .buscarPorId(curso.getInstructor().getId())
                     .orElse(null);
-
             curso.setInstructor(instructor);
         } else {
             curso.setInstructor(null);
         }
 
-        // 🔥 3. VALIDACIONES BÁSICAS (OPCIONAL PERO RECOMENDADO)
+        // 🔥 VALIDACIÓN
         if(curso.getDuracion() != null && curso.getDuracion() < 0){
             curso.setDuracion(0);
         }
 
-        // 🔥 4. GUARDAR CURSO
+        // 🔥 GUARDAR
         Curso guardado = cursoService.guardar(curso);
 
-        // 🔥 5. CAPACITACIONES (si decides volver a usarlas)
+        // 🔥 CAPACITACIONES
         if(capacitacionesIds != null && !capacitacionesIds.isEmpty()){
             cursoService.asignarCapacitaciones(guardado.getId(), capacitacionesIds);
         }
@@ -136,85 +146,79 @@ public class CursoWebController {
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
 
-                Row row = sheet.getRow(i);
-
-                if (row == null) {
-                    vacios++;
-                    continue;
-                }
-
-                // 🔥 COLUMNAS CORREGIDAS (SIN INSTRUCTOR)
-                String claveInstitucion = formatter.formatCellValue(row.getCell(0)).trim();
-                String claveCurso = formatter.formatCellValue(row.getCell(1)).trim();
-                String nombreCurso = formatter.formatCellValue(row.getCell(2)).trim();
-                String claveAreaTematica = formatter.formatCellValue(row.getCell(3)).trim();
-                String duracionTexto = formatter.formatCellValue(row.getCell(4)).trim();
-
-                // 🔥 VALIDACIÓN
-                if (claveCurso.isEmpty() || nombreCurso.isEmpty()) {
-                    vacios++;
-                    continue;
-                }
-
-                // 🔥 DUPLICADOS
-                if (cursoService.existeClaveCurso(claveCurso)) {
-                    duplicados++;
-                    continue;
-                }
-
-                // 🔥 DURACIÓN SEGURA
-                Integer duracion = 0;
-                try {
-                    if (!duracionTexto.isEmpty()) {
-                        duracion = Integer.parseInt(duracionTexto);
-                    }
-                } catch (Exception e) {
-                    duracion = 0;
-                }
-
-                // 🔥 FECHAS CORREGIDAS (COLUMNAS 5 y 6)
-                LocalDate fechaInicio = null;
-                LocalDate fechaFin = null;
-
                 try {
 
-                    if (row.getCell(5) != null &&
-                            row.getCell(5).getCellType() == CellType.NUMERIC &&
-                            DateUtil.isCellDateFormatted(row.getCell(5))) {
+                    Row row = sheet.getRow(i);
 
-                        fechaInicio = row.getCell(5)
-                                .getLocalDateTimeCellValue()
-                                .toLocalDate();
+                    if (row == null) {
+                        vacios++;
+                        continue;
                     }
 
-                    if (row.getCell(6) != null &&
-                            row.getCell(6).getCellType() == CellType.NUMERIC &&
-                            DateUtil.isCellDateFormatted(row.getCell(6))) {
+                    String claveCurso = formatter.formatCellValue(row.getCell(1)).trim();
+                    String nombreCurso = formatter.formatCellValue(row.getCell(2)).trim();
 
-                        fechaFin = row.getCell(6)
-                                .getLocalDateTimeCellValue()
-                                .toLocalDate();
+                    // 🔥 VALIDACIÓN CRÍTICA
+                    if (claveCurso.isEmpty() || nombreCurso.isEmpty()) {
+                        vacios++;
+                        System.out.println("Fila " + i + " incompleta");
+                        continue;
                     }
+
+                    // 🔥 DUPLICADO
+                    if (cursoService.existeClaveCurso(claveCurso)) {
+                        duplicados++;
+                        continue;
+                    }
+
+                    // 🔥 DURACIÓN SEGURA
+                    Integer duracion = 0;
+                    try {
+                        String duracionTexto = formatter.formatCellValue(row.getCell(4)).trim();
+                        if (!duracionTexto.isEmpty()) {
+                            duracion = Integer.parseInt(duracionTexto);
+                        }
+                    } catch (Exception e) {
+                        duracion = 0;
+                    }
+
+                    // 🔥 ENUMS SEGUROS
+                    TipoCurso tipoCurso;
+                    try {
+                        String tipoCursoTexto = formatter.formatCellValue(row.getCell(7)).trim();
+                        tipoCurso = TipoCurso.valueOf(tipoCursoTexto.toUpperCase());
+                    } catch (Exception e) {
+                        tipoCurso = TipoCurso.INTERNO;
+                    }
+
+                    TipoTrabajador tipoTrabajador;
+                    try {
+                        String tipoTrabajadorTexto = formatter.formatCellValue(row.getCell(8)).trim();
+                        tipoTrabajador = TipoTrabajador.valueOf(tipoTrabajadorTexto.toUpperCase());
+                    } catch (Exception e) {
+                        tipoTrabajador = TipoTrabajador.AMBOS;
+                    }
+
+                    // 🔥 CREAR OBJETO
+                    Curso curso = new Curso();
+                    curso.setClaveCurso(claveCurso);
+                    curso.setNombreCurso(nombreCurso);
+                    curso.setDuracion(duracion);
+                    curso.setTipoCurso(tipoCurso);
+                    curso.setTipoTrabajador(tipoTrabajador);
+                    curso.setActivo(true);
+
+                    cursoService.guardar(curso);
+
+                    importados++;
 
                 } catch (Exception e) {
-                    // ignorar errores de fecha
+
+                    // 🔥 AQUÍ NO SE ROMPE NADA
+                    System.out.println("Error en fila " + i + ": " + e.getMessage());
+
+                    continue;
                 }
-
-                // 🔥 CREAR CURSO
-                Curso curso = new Curso();
-
-                curso.setClaveInstitucion(claveInstitucion);
-                curso.setClaveCurso(claveCurso);
-                curso.setNombreCurso(nombreCurso);
-                curso.setClaveAreaTematica(claveAreaTematica);
-                curso.setDuracion(duracion);
-                curso.setFechaInicio(fechaInicio);
-                curso.setFechaFin(fechaFin);
-                curso.setActivo(true); // 🔥 SIEMPRE ACTIVO
-
-                cursoService.guardar(curso);
-
-                importados++;
             }
 
         } catch (Exception e) {
@@ -223,8 +227,8 @@ public class CursoWebController {
 
         model.addAttribute("mensaje",
                 "Cursos importados: " + importados +
-                " | Duplicados ignorados: " + duplicados +
-                " | Filas vacías: " + vacios);
+                " | Duplicados: " + duplicados +
+                " | Vacíos: " + vacios);
 
         model.addAttribute("cursos", cursoService.listarActivos());
 
@@ -352,7 +356,7 @@ public class CursoWebController {
 
             Sheet sheet = workbook.createSheet("Cursos");
 
-            // ENCABEZADOS
+            // 🔥 ENCABEZADOS (SIN ACTIVO)
             Row header = sheet.createRow(0);
 
             header.createCell(0).setCellValue("claveInstitucion");
@@ -360,10 +364,13 @@ public class CursoWebController {
             header.createCell(2).setCellValue("nombreCurso");
             header.createCell(3).setCellValue("claveAreaTematica");
             header.createCell(4).setCellValue("duracion");
-            header.createCell(5).setCellValue("fechaInicio");
-            header.createCell(6).setCellValue("fechaFin");
+            header.createCell(5).setCellValue("tipoCurso");
+            header.createCell(6).setCellValue("tipoTrabajador");
+            header.createCell(7).setCellValue("areaResponsable");
+            header.createCell(8).setCellValue("fechaInicio");
+            header.createCell(9).setCellValue("fechaFin");
 
-            // EJEMPLO
+            // 🔥 EJEMPLO
             Row ejemplo = sheet.createRow(1);
 
             ejemplo.createCell(0).setCellValue("INST01");
@@ -371,15 +378,44 @@ public class CursoWebController {
             ejemplo.createCell(2).setCellValue("Java Básico");
             ejemplo.createCell(3).setCellValue("SISTEMAS");
             ejemplo.createCell(4).setCellValue(40);
-            ejemplo.createCell(5).setCellValue("01/03/2026");
-            ejemplo.createCell(6).setCellValue("10/10/2026");
+            ejemplo.createCell(5).setCellValue("INTERNO");
+            ejemplo.createCell(6).setCellValue("AMBOS");
+            ejemplo.createCell(7).setCellValue("TI");
+            ejemplo.createCell(8).setCellValue("2026-03-01");
+            ejemplo.createCell(9).setCellValue("2026-03-10");
 
-            // AUTO SIZE
-            for (int i = 0; i < 7; i++) {
+            // =========================================
+            // 🔥 VALIDACIONES (DROP DOWN)
+            // =========================================
+
+            DataValidationHelper helper = sheet.getDataValidationHelper();
+
+            // Tipo Curso
+            DataValidationConstraint tipoCursoConstraint =
+                    helper.createExplicitListConstraint(new String[]{"INTERNO", "EXTERNO"});
+
+            CellRangeAddressList tipoCursoRange =
+                    new CellRangeAddressList(1, 100, 5, 5);
+
+            sheet.addValidationData(helper.createValidation(tipoCursoConstraint, tipoCursoRange));
+
+            // Tipo Trabajador
+            DataValidationConstraint tipoTrabajadorConstraint =
+                    helper.createExplicitListConstraint(new String[]{"SALARY", "HOURLY", "AMBOS"});
+
+            CellRangeAddressList tipoTrabajadorRange =
+                    new CellRangeAddressList(1, 100, 6, 6);
+
+            sheet.addValidationData(helper.createValidation(tipoTrabajadorConstraint, tipoTrabajadorRange));
+
+            // =========================================
+
+            // 🔥 AUTO SIZE
+            for (int i = 0; i <= 9; i++) {
                 sheet.autoSizeColumn(i);
             }
 
-            // RESPUESTA
+            // 🔥 RESPUESTA
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.setHeader("Content-Disposition", "attachment; filename=plantilla_cursos.xlsx");
 
@@ -440,6 +476,14 @@ public class CursoWebController {
         return "cursos/capacitaciones";
     }
     
-    
+    @PostMapping("/eliminar-masivo")
+    public String eliminarMasivo(@RequestParam List<Long> ids){
+
+        for(Long id : ids){
+            cursoService.eliminarDefinitivo(id);
+        }
+
+        return "redirect:/cursos/eliminados";
+    }
     
 }

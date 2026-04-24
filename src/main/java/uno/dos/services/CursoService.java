@@ -29,5 +29,6 @@ public interface CursoService {
     
     public List<Curso> buscarPorIds(List<Long> ids);
     
+    public void eliminarDefinitivo(Long id);
     
 }

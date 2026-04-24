@@ -1,18 +1,9 @@
 package uno.dos.models.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,59 +15,54 @@ import lombok.NoArgsConstructor;
 @Table(name = "puesto")
 public class Puesto {
 
-	 @Id
-	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	    private String nombrePuesto;
+    private String nombrePuesto;
 
-	    // Nivel jerárquico
-	    private Integer nivel;
+    private Integer nivel;
+    private Integer ordenAscenso;
+    private Boolean activo;
 
-	    // orden dentro del área
-	    private Integer ordenAscenso;
+    @ManyToOne
+    private Area area;
 
-	    // activo o eliminado lógico
-	    private Boolean activo;
-	    
-	    @Transient
-	    private List<Capacitacion> capacitaciones;
+    @ManyToOne
+    @JoinColumn(name = "categoria_id")
+    private CategoriaPuesto categoria;
 
-	    @ManyToOne
-	    private Area area;
-	    
-	    @OneToMany(mappedBy = "puesto")
-	    private List<PuestoCapacitacion> puestoCapacitaciones;
-	    
-	    @Transient
-	    public List<Capacitacion> getCapacitaciones() {
+    // 🔥 RELACIÓN CORRECTA
+    @OneToMany(mappedBy = "puesto", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PuestoCurso> puestoCursos = new ArrayList<>();
 
-	        if (puestoCapacitaciones == null) return List.of();
+    // 🔥 SOLO PARA USO EN VISTA (NO BD)
+    @Transient
+    public List<Curso> getCursos() {
+        return puestoCursos.stream()
+                .map(PuestoCurso::getCurso)
+                .toList();
+    }
 
-	        return puestoCapacitaciones.stream()
-	                .map(PuestoCapacitacion::getCapacitacion)
-	                .toList();
-	    }
-	    
-	    @ManyToOne
-	    @JoinColumn(name = "categoria_id")
-	    private CategoriaPuesto categoria;
-	    
-	    @ManyToMany
-	    @JoinTable(
-	        name = "puesto_curso",
-	        joinColumns = @JoinColumn(name = "puesto_id"),
-	        inverseJoinColumns = @JoinColumn(name = "curso_id")
-	    )
-	    @Transient
-	    private List<Long> cursosIds;
-	    
-	    @ManyToMany
-	    private List<Curso> cursos;
-	    
-	    @Override
-	    public String toString() {
-	        return nombrePuesto;
-	    }
-	    
+    // 🔥 CAPACITACIONES (lo dejas igual)
+    @OneToMany(mappedBy = "puesto")
+    private List<PuestoCapacitacion> puestoCapacitaciones;
+
+    @Transient
+    public List<Capacitacion> getCapacitaciones() {
+
+        if (puestoCapacitaciones == null) return List.of();
+
+        return puestoCapacitaciones.stream()
+                .map(PuestoCapacitacion::getCapacitacion)
+                .toList();
+    }
+
+    @Override
+    public String toString() {
+        return nombrePuesto;
+    }
+    
+    @Transient
+    private List<Capacitacion> capacitaciones;
 }
