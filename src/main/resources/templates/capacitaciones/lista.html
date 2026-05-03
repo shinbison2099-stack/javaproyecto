@@ -8,131 +8,275 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" th:href="@{/css/menu.css}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+	<!-- Iconos -->
+	    <link rel="stylesheet"
+	          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+	    <!-- CSS -->
+	    
+	    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+    <!-- 🔥 WINDOWS 11 STYLE -->
+    <style>
+
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            font-family: 'Segoe UI', sans-serif;
+            color: #e2e8f0;
+        }
+
+        /* 🔥 GLOW */
+        .bg-glow {
+            position: fixed;
+            width: 350px;
+            height: 350px;
+            background: #3b82f6;
+            filter: blur(140px);
+            top: 10%;
+            left: 10%;
+            z-index: -1;
+        }
+
+        /* 🔥 CARD */
+        .card {
+            background: rgba(30, 41, 59, 0.65) !important;
+            backdrop-filter: blur(18px);
+            border-radius: 20px !important;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+        }
+
+        .card-header {
+            background: transparent !important;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        h3 {
+            color: #f8fafc;
+            font-weight: 600;
+        }
+
+        /* 🔥 BOTONES */
+        .btn {
+            border-radius: 10px;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            filter: brightness(1.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            border: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #64748b, #94a3b8);
+            border: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e, #4ade80);
+            border: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            border: none;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            border: none;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #06b6d4, #22d3ee);
+            border: none;
+        }
+
+        /* 🔥 TABLA */
+        .table {
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            background: linear-gradient(135deg, #1e293b, #334155) !important;
+            color: #ffffff !important;
+            font-weight: 600;
+            border-bottom: 2px solid #3b82f6;
+        }
+
+        .table tbody td {
+            color: #e2e8f0;
+            border-color: rgba(255,255,255,0.05);
+        }
+
+        .table tbody tr:hover {
+            background: rgba(59,130,246,0.12);
+        }
+
+        /* 🔥 SCROLL */
+        .table-responsive {
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: 12px;
+        }
+
+        .table-responsive::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 10px;
+        }
+
+        /* INPUT FILE */
+        input[type="file"] {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .text-muted {
+            color: #94a3b8 !important;
+        }
+
+    </style>
 
 </head>
 
-<body class="bg-light">
+<body>
 
-    <div th:replace="~{fragments/menu :: menu}"></div>
+<div class="bg-glow"></div>
 
-    <div class="container mt-4">
+<div th:replace="~{fragments/menu :: menu}"></div>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-        <div class="card shadow">
 
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <h3 class="mb-0">
-                    <i class="bi bi-mortarboard"></i>
-                    Capacitaciones
-                </h3>
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">
+                <i class="bi bi-mortarboard"></i>
+                Capacitaciones
+            </h3>
+        </div>
+
+        <div class="card-body">
+
+            <div class="d-flex gap-2 mb-3 flex-wrap">
+
+                <a href="/capacitaciones/nuevo" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i>
+                    Nueva capacitación
+                </a>
+
+                <a href="/capacitaciones/eliminadas" class="btn btn-secondary">
+                    <i class="bi bi-trash"></i>
+                    Ver eliminadas
+                </a>
+
+                <a href="/capacitaciones/pdf" class="btn btn-danger">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                    PDF
+                </a>
+
+                <form action="/capacitaciones/importar"
+                      method="post"
+                      enctype="multipart/form-data"
+                      class="d-flex gap-2">
+
+                    <input type="file"
+                           name="archivo"
+                           class="form-control"
+                           style="max-width:250px"
+                           required>
+
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-upload"></i>
+                        Importar
+                    </button>
+
+                </form>
+
             </div>
 
-            <div class="card-body">
+            <div class="table-responsive">
 
-                <div class="d-flex gap-2 mb-3 flex-wrap">
+                <table class="table table-hover align-middle text-center">
 
-                    <a href="/capacitaciones/nuevo" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i>
-                        Nueva capacitación
-                    </a>
+                    <thead>
+                    <tr>
+                        <th>Clave</th>
+                        <th>Nombre</th>
+                        <th>Duración</th>
+                        <th>Instructor</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </thead>
 
-                    <a href="/capacitaciones/eliminadas" class="btn btn-secondary">
-                        <i class="bi bi-trash"></i>
-                        Ver eliminadas
-                    </a>
-					
-					<a href="/capacitaciones/pdf" class="btn btn-danger">
-					       Exportar PDF
-					   </a>
+                    <tbody>
 
-					   <form action="/capacitaciones/importar"
-					         method="post"
-					         enctype="multipart/form-data"
-					         class="d-flex gap-2">
+                    <tr th:each="cap : ${capacitaciones}">
 
-					       <input type="file"
-					              name="archivo"
-					              class="form-control"
-					              style="max-width:250px"
-					              required>
+                        <td th:text="${cap.claveCapacitacion}"></td>
 
-					       <button type="submit" class="btn btn-success">
-					           Importar Excel
-					       </button>
+                        <td class="text-start" th:text="${cap.nombreCapacitacion}"></td>
 
-					   </form>
+                        <td th:text="${cap.duracionHoras != null ? cap.duracionHoras + ' hrs' : 'Sin duración'}"></td>
 
-                </div>
+                        <td th:text="${cap.instructor != null ? cap.instructor.nombre : 'Sin instructor'}"></td>
 
-                <div class="table-responsive">
+                        <td>
+                            <div class="d-flex justify-content-center gap-2 flex-wrap">
 
-                    <table class="table table-bordered table-hover align-middle text-center">
+                                <a th:href="@{/capacitaciones/{id}(id=${cap.id})}"
+                                   class="btn btn-info btn-sm text-white">
+                                    <i class="bi bi-eye"></i>
+                                </a>
 
-                        <thead class="table-dark">
+                                <a th:href="@{/capacitaciones/editar/{id}(id=${cap.id})}"
+                                   class="btn btn-warning btn-sm">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
 
-                            <tr>
-                                <th style="width: 15%;">Clave</th>
-                                <th style="width: 30%;">Nombre</th>
-                                <th style="width: 15%;">Duración</th>
-                                <th style="width: 20%;">Instructor</th>
-                                <th style="width: 20%;">Acciones</th>
-                            </tr>
+                                <a th:href="@{/capacitaciones/eliminar/{id}(id=${cap.id})}"
+                                   class="btn btn-danger btn-sm"
+                                   onclick="return confirm('¿Eliminar capacitación?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
 
-                        </thead>
+                            </div>
+                        </td>
 
-                        <tbody>
+                    </tr>
 
-                            <tr th:each="cap : ${capacitaciones}">
+                    <tr th:if="${#lists.isEmpty(capacitaciones)}">
+                        <td colspan="5" class="text-center text-muted">
+                            No hay capacitaciones registradas
+                        </td>
+                    </tr>
 
-                                <td th:text="${cap.claveCapacitacion}"></td>
+                    </tbody>
 
-                                <td class="text-start" th:text="${cap.nombreCapacitacion}"></td>
-
-                                <td th:text="${cap.duracionHoras != null ? cap.duracionHoras + ' hrs' : 'Sin duración'}"></td>
-
-                                <td th:text="${cap.instructor != null ? cap.instructor.nombre : 'Sin instructor'}"></td>
-
-                                <td>
-                                    <div class="d-flex justify-content-center gap-2 flex-wrap">
-
-                                        <a th:href="@{/capacitaciones/{id}(id=${cap.id})}" class="btn btn-info btn-sm text-white">
-                                            <i class="bi bi-eye"></i>
-                                            Ver
-                                        </a>
-
-                                        <a th:href="@{/capacitaciones/editar/{id}(id=${cap.id})}" class="btn btn-warning btn-sm">
-                                            <i class="bi bi-pencil-square"></i>
-                                            Editar
-                                        </a>
-
-                                        <a th:href="@{/capacitaciones/eliminar/{id}(id=${cap.id})}"
-                                           class="btn btn-danger btn-sm"
-                                           onclick="return confirm('¿Eliminar capacitación?')">
-                                            <i class="bi bi-trash"></i>
-                                            Eliminar
-                                        </a>
-
-                                    </div>
-                                </td>
-
-                            </tr>
-
-                            <tr th:if="${#lists.isEmpty(capacitaciones)}">
-                                <td colspan="5" class="text-center text-muted">
-                                    No hay capacitaciones registradas
-                                </td>
-                            </tr>
-
-                        </tbody>
-
-                    </table>
-
-                </div>
+                </table>
 
             </div>
 
         </div>
 
     </div>
+
+</div>
 
 </body>
 

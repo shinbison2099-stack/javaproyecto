@@ -18,5 +18,6 @@ public interface PuestoService {
 	   Map<String, Integer> progresoPorPuesto();
 	   public Puesto buscarPorNombre(String nombre);	
 	   public List<Puesto> listarConCapacitaciones();
+	   void eliminarMasivoDefinitivo(List<Long> ids);
 
 }

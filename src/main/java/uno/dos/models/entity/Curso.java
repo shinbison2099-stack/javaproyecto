@@ -62,7 +62,7 @@ public class Curso {
     @OneToMany(mappedBy = "curso", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<PuestoCurso> puestoCursos = new ArrayList<>();
-
+    
     // 🔥 SOLO PARA USO EN VISTA
     @Transient
     public List<Puesto> getPuestos() {

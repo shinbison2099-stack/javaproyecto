@@ -18,6 +18,6 @@ public interface TrabajadorRepository extends JpaRepository<Trabajador, Long> {
 
     List<Trabajador> findByActivoFalse();
     
-   
+    void deleteById(Long id);
 
 }

@@ -82,4 +82,14 @@ public class TrabajadorServiceImpl implements TrabajadorService {
 	            .filter(t -> !idsInscritos.contains(t.getId()))
 	            .collect(Collectors.toList());
 	}
+	
+	@Override
+	public void eliminarDefinitivo(Long id) {
+
+	    if (!trabajadorRepository.existsById(id)) {
+	        throw new RuntimeException("Trabajador no encontrado");
+	    }
+
+	    trabajadorRepository.deleteById(id);
+	}
 }

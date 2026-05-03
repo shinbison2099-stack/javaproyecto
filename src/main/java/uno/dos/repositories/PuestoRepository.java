@@ -18,5 +18,9 @@ public interface PuestoRepository extends JpaRepository<Puesto, Long>{
     Optional<Puesto> findByNombrePuesto(String nombrePuesto);
     
     List<Puesto> findAllByOrderByNivelAsc();
+    
+    void deleteAllByIdInBatch(Iterable<Long> ids);
+
+    boolean existsById(Long id);
 
 }

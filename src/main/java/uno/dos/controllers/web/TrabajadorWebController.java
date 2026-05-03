@@ -20,8 +20,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddressList;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import uno.dos.models.entity.Capacitacion;
 import uno.dos.models.entity.CapacitacionTrabajador;
@@ -40,6 +42,8 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
 @RequestMapping("/trabajadores")
@@ -150,18 +154,12 @@ public class TrabajadorWebController {
         return "redirect:/trabajadores";
     }
 
-    /* ===============================
-       IMPORTAR EXCEL
-       =============================== */
-
     @PostMapping("/importar")
     public String importarExcel(@RequestParam("archivo") MultipartFile archivo) {
 
         int importados = 0;
         int duplicados = 0;
         int vacios = 0;
-        
-        
 
         try (Workbook workbook = WorkbookFactory.create(archivo.getInputStream())) {
 
@@ -170,66 +168,69 @@ public class TrabajadorWebController {
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
 
-                Row row = sheet.getRow(i);
+                try {
 
-                if (row == null) {
-                    vacios++;
-                    continue;
+                    Row row = sheet.getRow(i);
+                    if (row == null) {
+                        vacios++;
+                        continue;
+                    }
+
+                    // 🔥 SOLO LO NECESARIO (como tu tabla)
+                    String numeroPersonal = formatter.formatCellValue(row.getCell(0)).trim();
+                    String curp = formatter.formatCellValue(row.getCell(1)).trim();
+                    String nombreCompleto = formatter.formatCellValue(row.getCell(2)).trim();
+                    String areaEmpleado = formatter.formatCellValue(row.getCell(3)).trim();
+                    String puestoTexto = formatter.formatCellValue(row.getCell(4)).trim();
+                    String email = formatter.formatCellValue(row.getCell(5)).trim();
+
+                    // 🔥 VALIDACIÓN
+                    if (curp.isEmpty() || nombreCompleto.isEmpty()) {
+                        vacios++;
+                        continue;
+                    }
+
+                    if (trabajadorService.existeCurp(curp)) {
+                        duplicados++;
+                        continue;
+                    }
+
+                    // 🔥 SEPARAR NOMBRE (opcional)
+                    String nombre = "";
+                    String primerApellido = "";
+                    String segundoApellido = "";
+
+                    String[] partes = nombreCompleto.split(" ");
+
+                    if (partes.length > 0) nombre = partes[0];
+                    if (partes.length > 1) primerApellido = partes[1];
+                    if (partes.length > 2) segundoApellido = partes[2];
+
+                    // 🔥 CREAR OBJETO
+                    Trabajador trabajador = new Trabajador();
+
+                    trabajador.setNumeroPersonal(numeroPersonal);
+                    trabajador.setCurp(curp);
+                    trabajador.setNombre(nombre);
+                    trabajador.setPrimerApellido(primerApellido);
+                    trabajador.setSegundoApellido(segundoApellido);
+                    trabajador.setAreaEmpleado(areaEmpleado);
+                    trabajador.setEmail(email);
+                    trabajador.setActivo(true);
+
+                    // 🔥 BUSCAR PUESTO (si existe)
+                    if (!puestoTexto.isEmpty()) {
+                        Puesto puesto = puestoService.buscarPorNombre(puestoTexto);
+                        trabajador.setPuesto(puesto);
+                    }
+
+                    trabajadorService.guardar(trabajador);
+                    importados++;
+
+                } catch (Exception e) {
+                    System.out.println("Error en fila " + i + ": " + e.getMessage());
+                    continue; // 🔥 NO TRUENA TODO
                 }
-
-                String numeroPersonal = formatter.formatCellValue(row.getCell(0)).trim();
-                String curp = formatter.formatCellValue(row.getCell(1)).trim();
-                String nombre = formatter.formatCellValue(row.getCell(2)).trim();
-                String primerApellido = formatter.formatCellValue(row.getCell(3)).trim();
-                String segundoApellido = formatter.formatCellValue(row.getCell(4)).trim();
-                String areaEmpleado = formatter.formatCellValue(row.getCell(5)).trim();
-                String puesto = formatter.formatCellValue(row.getCell(6)).trim();
-                String claveEstado = formatter.formatCellValue(row.getCell(7)).trim();
-                String claveMunicipio = formatter.formatCellValue(row.getCell(8)).trim();
-                String claveOcupacion = formatter.formatCellValue(row.getCell(9)).trim();
-                String claveNivelEstudios = formatter.formatCellValue(row.getCell(10)).trim();
-                String claveDocProbatorio = formatter.formatCellValue(row.getCell(11)).trim();
-                String email = formatter.formatCellValue(row.getCell(12)).trim();
-
-                if (curp.isEmpty() || nombre.isEmpty()) {
-                    vacios++;
-                    continue;
-                }
-
-                if (curp.length() > 18) {
-                    curp = curp.substring(0, 18);
-                }
-
-                if (trabajadorService.existeCurp(curp)) {
-                    duplicados++;
-                    continue;
-                }
-
-                Trabajador trabajador = new Trabajador();
-                
-                
-
-                trabajador.setNumeroPersonal(numeroPersonal);
-                trabajador.setCurp(curp);
-                trabajador.setNombre(nombre);
-                trabajador.setPrimerApellido(primerApellido);
-                trabajador.setSegundoApellido(segundoApellido);
-                trabajador.setAreaEmpleado(areaEmpleado);
-
-                // buscar puesto
-                Puesto puestoObj = puestoService.buscarPorNombre(puesto);
-                trabajador.setPuesto(puestoObj);
-
-                trabajador.setClaveEstado(claveEstado);
-                trabajador.setClaveMunicipio(claveMunicipio);
-                trabajador.setClaveOcupacion(claveOcupacion);
-                trabajador.setClaveNivelEstudios(claveNivelEstudios);
-                trabajador.setClaveDocumentoProbatorio(claveDocProbatorio);
-                trabajador.setEmail(email);
-                trabajador.setActivo(true);
-                trabajadorService.guardar(trabajador);
-
-                importados++;
             }
 
         } catch (Exception e) {
@@ -498,6 +499,82 @@ public class TrabajadorWebController {
         }
     }
     
-  
+    @GetMapping("/plantilla")
+    public void descargarPlantilla(HttpServletResponse response) {
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+
+            Sheet sheet = workbook.createSheet("Trabajadores");
+
+            // 🔥 ENCABEZADOS (IGUAL A TU TABLA)
+            Row header = sheet.createRow(0);
+
+            header.createCell(0).setCellValue("numeroPersonal");
+            header.createCell(1).setCellValue("curp");
+            header.createCell(2).setCellValue("nombreCompleto");
+            header.createCell(3).setCellValue("areaEmpleado");
+            header.createCell(4).setCellValue("puesto");
+            header.createCell(5).setCellValue("email");
+
+            // 🔥 FILA EJEMPLO
+            Row ejemplo = sheet.createRow(1);
+
+            ejemplo.createCell(0).setCellValue("001");
+            ejemplo.createCell(1).setCellValue("CURP123456789012");
+            ejemplo.createCell(2).setCellValue("Juan Perez Lopez");
+            ejemplo.createCell(3).setCellValue("Sistemas");
+            ejemplo.createCell(4).setCellValue("Developer");
+            ejemplo.createCell(5).setCellValue("juan@mail.com");
+
+            // 🔥 VALIDACIÓN LISTA (OPCIONAL PARA PUESTO)
+            DataValidationHelper helper = sheet.getDataValidationHelper();
+
+            DataValidationConstraint constraint =
+                    helper.createExplicitListConstraint(new String[]{
+                            "Developer", "Analista", "Supervisor", "Gerente"
+                    });
+
+            CellRangeAddressList addressList =
+                    new CellRangeAddressList(1, 100, 4, 4);
+
+            DataValidation validation =
+                    helper.createValidation(constraint, addressList);
+
+            validation.setShowErrorBox(true);
+            sheet.addValidationData(validation);
+
+            // 🔥 AJUSTAR COLUMNAS
+            for (int i = 0; i < 6; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            // 🔥 RESPUESTA
+            response.setContentType(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+            response.setHeader(
+                    "Content-Disposition",
+                    "attachment; filename=plantilla_trabajadores.xlsx");
+
+            workbook.write(response.getOutputStream());
+            response.getOutputStream().flush();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    @GetMapping("/eliminar-definitivo/{id}")
+    public String eliminarDefinitivo(@PathVariable Long id, RedirectAttributes flash) {
+
+        try {
+            trabajadorService.eliminarDefinitivo(id);
+            flash.addFlashAttribute("success", "Trabajador eliminado definitivamente");
+        } catch (Exception e) {
+            flash.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/trabajadores";
+    }
 
 }

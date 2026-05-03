@@ -135,4 +135,22 @@ public class PuestoServiceImpl implements PuestoService{
 
         return progreso;
     }
+    
+    @Override
+    public void eliminarMasivoDefinitivo(List<Long> ids) {
+
+        if (ids == null || ids.isEmpty()) {
+            throw new RuntimeException("No se seleccionaron registros");
+        }
+
+        // validar existencia (opcional pero pro)
+        for (Long id : ids) {
+            if (!puestoRepository.existsById(id)) {
+                throw new RuntimeException("Puesto no encontrado: " + id);
+            }
+        }
+
+        // 🔥 eliminación masiva real
+        puestoRepository.deleteAllByIdInBatch(ids);
+    }
 }

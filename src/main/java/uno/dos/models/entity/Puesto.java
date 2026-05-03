@@ -28,12 +28,13 @@ public class Puesto {
     @ManyToOne
     private Area area;
 
-    @ManyToOne
-    @JoinColumn(name = "categoria_id")
-    private CategoriaPuesto categoria;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_trabajador")
+    private TipoTrabajador tipoTrabajador;
 
     // 🔥 RELACIÓN CORRECTA
     @OneToMany(mappedBy = "puesto", cascade = CascadeType.ALL, orphanRemoval = true)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<PuestoCurso> puestoCursos = new ArrayList<>();
 
     // 🔥 SOLO PARA USO EN VISTA (NO BD)

@@ -3,109 +3,201 @@
 
 <head>
 
-	<title>CV Trabajador</title>
+    <title>Trabajadores Eliminados</title>
 
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
-	<link rel="stylesheet" th:href="@{/css/menu.css}">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+    <link rel="stylesheet" th:href="@{/css/menu.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+
+    <!-- 🔥 WINDOWS 11 STYLE -->
+    <style>
+
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            font-family: 'Segoe UI', sans-serif;
+            color: #e2e8f0;
+        }
+
+        .bg-glow {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            background: #3b82f6;
+            filter: blur(150px);
+            top: 10%;
+            left: 10%;
+            z-index: -1;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.6) !important;
+            backdrop-filter: blur(20px);
+            border-radius: 20px !important;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+
+        .card-header {
+            background: transparent !important;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        h5 {
+            color: #f8fafc;
+            font-weight: 600;
+        }
+
+        .table {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+        }
+
+        thead th {
+            background: linear-gradient(135deg, #1e293b, #334155) !important;
+            color: #ffffff !important;
+        }
+
+        .table tbody td {
+            color: #e2e8f0;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(59,130,246,0.1);
+        }
+
+        .badge {
+            background: linear-gradient(135deg, #475569, #64748b);
+        }
+
+        .btn {
+            border-radius: 10px;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e, #4ade80);
+            border: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            border: none;
+        }
+
+        .text-muted {
+            color: #94a3b8 !important;
+        }
+
+    </style>
 
 </head>
 
 <body>
 
-	<div th:replace="~{fragments/menu :: menu}"></div>
+<div class="bg-glow"></div>
 
-	<div class="container mt-4">
-
+<div th:replace="~{fragments/menu :: menu}"></div>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
 <div class="container mt-4">
 
-	<div class="card shadow">
+    <div class="card shadow">
 
-		<div class="card-header bg-dark text-white">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-trash"></i>
+                Trabajadores Eliminados
+            </h5>
+        </div>
 
-			<h5 class="mb-0">
-				<i class="bi bi-trash"></i>
-				Trabajadores Eliminados
-			</h5>
+        <div class="card-body">
 
-		</div>
+            <div class="table-responsive" style="max-height:500px; overflow-y:auto;">
 
-		<div class="card-body">
+                <table class="table align-middle">
 
-			<table class="table table-hover table-striped align-middle">
+                    <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Puesto</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                    </thead>
 
-				<thead class="table-dark">
+                    <tbody>
 
-					<tr>
-						<th>Nombre</th>
-						<th>Email</th>
-						<th>Puesto</th>
-						<th class="text-center">Acciones</th>
-					</tr>
+                    <tr th:each="trabajador : ${trabajadores}">
 
-				</thead>
+                        <td>
+                            <i class="bi bi-person"></i>
+                            <span th:text="${trabajador.nombre}"></span>
+                        </td>
 
-				<tbody>
+                        <td>
+                            <i class="bi bi-envelope"></i>
+                            <span th:text="${trabajador.email}"></span>
+                        </td>
 
-					<tr th:each="trabajador : ${trabajadores}">
+                        <td>
+                            <span class="badge"
+                                  th:text="${trabajador.puesto != null ? trabajador.puesto.nombrePuesto : 'Sin puesto'}">
+                            </span>
+                        </td>
 
-						<td>
+                        <td class="text-center">
 
-							<i class="bi bi-person"></i>
-							<span th:text="${trabajador.nombre}"></span>
+                            <!-- RESTAURAR -->
+                            <a th:href="@{/trabajadores/restaurar/{id}(id=${trabajador.id})}"
+                               class="btn btn-success btn-sm">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </a>
 
-						</td>
+                            <!-- 🔥 ELIMINAR DEFINITIVO -->
+                            <a th:href="@{/trabajadores/eliminar-definitivo/{id}(id=${trabajador.id})}"
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirmarEliminacion()">
+                                <i class="bi bi-trash-fill"></i>
+                            </a>
 
-						<td>
+                        </td>
 
-							<i class="bi bi-envelope"></i>
-							<span th:text="${trabajador.email}"></span>
+                    </tr>
 
-						</td>
+                    <tr th:if="${#lists.isEmpty(trabajadores)}">
+                        <td colspan="4" class="text-center text-muted">
+                            <i class="bi bi-info-circle"></i>
+                            No hay trabajadores eliminados
+                        </td>
+                    </tr>
 
-						<td>
+                    </tbody>
 
-							<span class="badge bg-secondary" th:text="${trabajador.puesto}">
-							</span>
+                </table>
 
-						</td>
+            </div>
 
-						<td class="text-center">
+        </div>
 
-							<a th:href="@{/trabajadores/restaurar/{id}(id=${trabajador.id})}"
-								class="btn btn-success btn-sm">
-
-								<i class="bi bi-arrow-counterclockwise"></i>
-								Restaurar
-
-							</a>
-
-						</td>
-
-					</tr>
-
-					<tr th:if="${#lists.isEmpty(trabajadores)}">
-
-						<td colspan="4" class="text-center text-muted">
-
-							<i class="bi bi-info-circle"></i>
-							No hay trabajadores eliminados
-
-						</td>
-
-					</tr>
-
-				</tbody>
-
-			</table>
-
-		</div>
-
-	</div>
+    </div>
 
 </div>
 
-</body>
+<!-- 🔥 ALERTA -->
+<script>
+function confirmarEliminacion() {
+    return confirm("⚠️ Esta acción eliminará el trabajador PERMANENTEMENTE.\n\nNo se podrá deshacer.\n\n¿Deseas continuar?");
+}
+</script>
 
+</body>
 </html>

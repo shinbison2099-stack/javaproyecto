@@ -26,5 +26,6 @@ public interface CapacitacionService {
     List<Capacitacion> buscarPorCursoId(Long cursoId);
     
     List<Capacitacion> buscarPorCursoIds(List<Long> cursoIds);
-
+    
+    void eliminarDefinitivo(Long id);
 }

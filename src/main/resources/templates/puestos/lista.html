@@ -98,10 +98,6 @@
                 <i class="bi bi-plus-circle"></i> Nuevo
             </a>
 
-            <a href="/categorias/nuevo" class="btn btn-info">
-                <i class="bi bi-folder-plus"></i> Categorías
-            </a>
-
             <a href="/puestos/eliminados" class="btn btn-secondary">
                 <i class="bi bi-trash"></i> Eliminados
             </a>
@@ -137,9 +133,9 @@
                 <tr>
                     <th>#</th>
                     <th>Nombre</th>
-                    <th>Categoría</th>
+                    <th>Tipo</th> <!-- 🔥 CAMBIADO -->
                     <th>Nivel</th>
-                    <th>Cursos</th> <!-- 🔥 NUEVO -->
+                    <th>Cursos</th>
                     <th>Acciones</th>
                 </tr>
                 </thead>
@@ -154,9 +150,10 @@
                         th:text="${p.nombrePuesto}">
                     </td>
 
+                    <!-- 🔥 AQUÍ ESTABA EL ERROR -->
                     <td>
                         <span class="badge bg-secondary"
-                              th:text="${p.categoria != null ? p.categoria.nombre : 'Sin categoría'}">
+                              th:text="${p.tipoTrabajador != null ? #strings.capitalize(p.tipoTrabajador.name().toLowerCase()) : 'Sin tipo'}">
                         </span>
                     </td>
 
@@ -165,7 +162,7 @@
                               th:text="${p.nivel}"></span>
                     </td>
 
-                    <!-- 🔥 CURSOS -->
+                    <!-- CURSOS -->
                     <td>
                         <div th:if="${p.cursos != null and !p.cursos.isEmpty()}">
 

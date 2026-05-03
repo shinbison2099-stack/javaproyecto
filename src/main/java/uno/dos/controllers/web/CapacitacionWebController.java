@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.apache.poi.ss.usermodel.*;
 import lombok.RequiredArgsConstructor;
 import uno.dos.models.entity.Capacitacion;
@@ -448,6 +449,20 @@ public class CapacitacionWebController {
 
             // 🔥 REDIRECT CORRECTO
             return "redirect:/cursos/asignados";
+        }
+        
+        @GetMapping("/eliminar-definitivo/{id}")
+        public String eliminarDefinitivo(@PathVariable Long id,
+                                        RedirectAttributes flash) {
+
+            try {
+                capacitacionService.eliminarDefinitivo(id);
+                flash.addFlashAttribute("success", "Capacitación eliminada definitivamente");
+            } catch (Exception e) {
+                flash.addFlashAttribute("error", e.getMessage());
+            }
+
+            return "redirect:/capacitaciones/eliminadas";
         }
         
        

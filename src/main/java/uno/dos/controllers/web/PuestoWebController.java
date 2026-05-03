@@ -17,13 +17,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import lombok.RequiredArgsConstructor;
 import uno.dos.models.entity.Curso;
 import uno.dos.models.entity.Puesto;
 import uno.dos.models.entity.PuestoCurso;
-import uno.dos.services.CategoriaPuestoService;
+import uno.dos.models.entity.TipoTrabajador;
+
 import uno.dos.services.CursoService;
 import uno.dos.services.PuestoService;
 import java.io.ByteArrayOutputStream;
@@ -39,7 +41,7 @@ public class PuestoWebController {
 
     private final PuestoService puestoService;
     private final TemplateEngine templateEngine;
-    private final CategoriaPuestoService categoriaService;
+    
     private final CursoService cursoService;
 
     /* LISTAR */
@@ -59,7 +61,7 @@ public class PuestoWebController {
     public String nuevo(Model model){
 
         model.addAttribute("puesto", new Puesto());
-        model.addAttribute("categorias", categoriaService.listar());
+        model.addAttribute("tiposTrabajador", TipoTrabajador.values());
         model.addAttribute("cursos", cursoService.listarActivos());
 
         return "puestos/form";
@@ -114,7 +116,7 @@ public class PuestoWebController {
                 puestoService.buscarPorId(id).orElseThrow());
         
      // 🔥 AGREGAR ESTO
-        model.addAttribute("categorias", categoriaService.listar());
+        model.addAttribute("tiposTrabajador", TipoTrabajador.values());
         model.addAttribute("cursos", cursoService.listarActivos());
 
         return "puestos/form";
@@ -157,32 +159,55 @@ public class PuestoWebController {
         try(Workbook workbook = WorkbookFactory.create(archivo.getInputStream())){
 
             Sheet sheet = workbook.getSheetAt(0);
-
             DataFormatter formatter = new DataFormatter();
 
-            for(int i=1;i<=sheet.getLastRowNum();i++){
+            for(int i = 1; i <= sheet.getLastRowNum(); i++){
 
                 Row row = sheet.getRow(i);
 
                 if(row == null) continue;
 
-                String nombre = formatter.formatCellValue(row.getCell(0));
+                String nombre = formatter.formatCellValue(row.getCell(0)).trim();
+                String nivelTexto = formatter.formatCellValue(row.getCell(1)).trim();
+                String tipoTexto = formatter.formatCellValue(row.getCell(2)).trim();
 
-                String nivelTexto = formatter.formatCellValue(row.getCell(1));
+                // 🔥 VALIDACIÓN BÁSICA
+                if(nombre.isEmpty()){
+                    continue;
+                }
 
                 Integer nivel = 0;
 
-                if(!nivelTexto.isEmpty()){
-                    nivel = Integer.parseInt(nivelTexto);
+                try{
+                    if(!nivelTexto.isEmpty()){
+                        nivel = Integer.parseInt(nivelTexto);
+                    }
+                }catch(Exception e){
+                    nivel = 0;
                 }
 
-                if(puestoService.existeNombre(nombre))
+                // 🔥 ENUM (AQUÍ ESTÁ LO IMPORTANTE)
+                TipoTrabajador tipo = TipoTrabajador.AMBOS; // default
+
+                try{
+                    if(!tipoTexto.isEmpty()){
+                        tipo = TipoTrabajador.valueOf(tipoTexto.toUpperCase());
+                    }
+                }catch(Exception e){
+                    // si no coincide, usa default
+                    tipo = TipoTrabajador.AMBOS;
+                }
+
+                // 🔥 DUPLICADOS
+                if(puestoService.existeNombre(nombre)){
                     continue;
+                }
 
                 Puesto p = new Puesto();
 
                 p.setNombrePuesto(nombre);
                 p.setNivel(nivel);
+                p.setTipoTrabajador(tipo);
                 p.setActivo(true);
 
                 puestoService.guardar(p);
@@ -218,6 +243,20 @@ public class PuestoWebController {
                 .header("Content-Disposition",
                         "attachment; filename=puestos.pdf")
                 .body(os.toByteArray());
+    }
+    
+    @PostMapping("/eliminar-masivo")
+    public String eliminarMasivo(@RequestParam("ids") List<Long> ids,
+                                RedirectAttributes flash) {
+
+        try {
+            puestoService.eliminarMasivoDefinitivo(ids);
+            flash.addFlashAttribute("success", "Puestos eliminados definitivamente");
+        } catch (Exception e) {
+            flash.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/puestos/eliminados";
     }
     
 

@@ -24,5 +24,7 @@ public interface TrabajadorService {
 	List<Trabajador> buscarPorIds(List<Long> ids);
 	
 	public List<Trabajador> disponiblesParaCapacitacion(Long capId);
+	
+	public void eliminarDefinitivo(Long id);
     
 }

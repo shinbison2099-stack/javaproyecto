@@ -81,6 +81,16 @@ public class CapacitacionServiceImpl implements CapacitacionService {
                     .distinct()
                     .toList();
         }
+        
+        @Override
+        public void eliminarDefinitivo(Long id) {
+
+            if (!capacitacionRepository.existsById(id)) {
+                throw new RuntimeException("Capacitación no encontrada");
+            }
+
+            capacitacionRepository.deleteById(id);
+        }
 	
 
 }
