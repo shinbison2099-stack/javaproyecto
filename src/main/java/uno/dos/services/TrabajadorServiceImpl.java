@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import uno.dos.models.entity.CapacitacionTrabajador;
+import uno.dos.models.entity.Curso;
+import uno.dos.models.entity.TipoTrabajador;
 import uno.dos.models.entity.Trabajador;
 import uno.dos.repositories.CapacitacionTrabajadorRepository;
 import uno.dos.repositories.TrabajadorRepository;
@@ -91,5 +93,17 @@ public class TrabajadorServiceImpl implements TrabajadorService {
 	    }
 
 	    trabajadorRepository.deleteById(id);
+	}
+	
+	@Override
+	public List<Trabajador> filtrarPorTipo(TipoTrabajador tipo){
+
+	    return trabajadorRepository.findAll()
+	            .stream()
+	            .filter(t ->
+	                tipo == TipoTrabajador.AMBOS ||
+	                t.getTipoTrabajador() == tipo
+	            )
+	            .toList();
 	}
 }

@@ -78,11 +78,9 @@ public class InstructorServiceImpl implements InstructorService {
     }
 	
     public Instructores buscarPorNombre(String nombre){
-
         return instructorRepository
                 .findByNombre(nombre)
-                .orElseThrow();
-
+                .orElse(null); // ✅ ya no truena
     }
     
     @Override

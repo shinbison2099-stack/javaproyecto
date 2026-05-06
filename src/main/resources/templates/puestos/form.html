@@ -102,7 +102,7 @@
             <!-- TIPO -->
             <div class="mb-3">
                 <label>Tipo de trabajador</label>
-                <select th:field="*{tipoTrabajador}" class="form-select" required>
+                <select id="tipoSelect" th:field="*{tipoTrabajador}" class="form-select" required>
                     <option value="">-- Selecciona tipo --</option>
                     <option th:each="t : ${tiposTrabajador}"
                             th:value="${t}"
@@ -115,7 +115,7 @@
             <div class="mb-3">
                 <label class="fw-semibold">Cursos</label>
 
-                <div class="cursos-grid">
+                <div class="cursos-grid" id="contenedorCursos">
 
                     <div th:each="c : ${cursos}" class="curso-item">
 
@@ -151,6 +151,44 @@
     </div>
 
 </div>
+
+<!-- 🔥 SCRIPT DINÁMICO -->
+<script>
+
+    const selectTipo = document.getElementById('tipoSelect');
+    const contenedor = document.getElementById('contenedorCursos');
+
+    selectTipo.addEventListener('change', function(){
+
+        const tipo = this.value;
+
+        if(!tipo) return;
+
+        fetch(`/puestos/cursos-por-tipo/${tipo}`)
+            .then(res => res.json())
+            .then(data => {
+
+                contenedor.innerHTML = '';
+
+                data.forEach(curso => {
+
+                    contenedor.innerHTML += `
+                        <div class="curso-item">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   name="cursosIds"
+                                   value="${curso.id}">
+                            <label>${curso.nombreCurso}</label>
+                        </div>
+                    `;
+
+                });
+
+            });
+
+    });
+
+</script>
 
 </body>
 </html>

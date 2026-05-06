@@ -1,5 +1,7 @@
 package uno.dos.controllers;
 
+import java.util.List;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,20 +22,49 @@ public class InscripcionController {
     private final CapacitacionService capacitacionService;
     private final InscripcionService inscripcionService;
 
+    // =========================================
+    // 🔥 PANTALLA PRINCIPAL
+    // =========================================
+
     @GetMapping("/inscripcion")
     public String inscripcion(Model model){
 
         model.addAttribute("cursos", cursoService.listarActivos());
         model.addAttribute("capacitaciones", capacitacionService.listarActivas());
 
-        return "inscripcion"; // 🔥 coincide con el HTML
+        return "inscripcion";
     }
+
+    // =========================================
+    // 🔥 FORMULARIO POR CURSO
+    // =========================================
+
+    @GetMapping("/inscripcion/{cursoId}")
+    public String inscripcionCurso(@PathVariable Long cursoId,
+                                   Model model){
+
+        Curso curso = cursoService.buscarPorId(cursoId)
+                .orElseThrow();
+
+        List<Capacitacion> capacitaciones =
+                capacitacionService.sinCurso();
+
+        model.addAttribute("curso", curso);
+        model.addAttribute("capacitaciones", capacitaciones);
+
+        return "inscripcion";
+    }
+
+    // =========================================
+    // 🔥 ASIGNAR MÚLTIPLES
+    // =========================================
 
     @GetMapping("/inscripcion/asignar-multiple/{cursoId}/{capIds}")
     public String asignarMultiple(@PathVariable Long cursoId,
-                                 @PathVariable String capIds){
+                                  @PathVariable String capIds){
 
-        Curso curso = cursoService.buscarPorId(cursoId).orElseThrow();
+        Curso curso = cursoService.buscarPorId(cursoId)
+                .orElseThrow();
 
         String[] ids = capIds.split(",");
 
@@ -50,42 +81,65 @@ public class InscripcionController {
 
                 cap.setCurso(curso);
 
-                // 🔥 ESTA ES LA LÍNEA QUE TE FALTABA
-                curso.getCapacitaciones().add(cap);
+                if(curso.getCapacitaciones() != null){
+                    curso.getCapacitaciones().add(cap);
+                }
 
                 capacitacionService.guardar(cap);
             }
         }
 
-        return "redirect:/inscripcion";
+        return "redirect:/cursos/asignados";
     }
-    
+
+    // =========================================
+    // 🔥 ELIMINAR ASIGNACIÓN
+    // =========================================
+
     @GetMapping("/inscripcion/eliminar/{id}")
     public String eliminarCapacitacion(@PathVariable Long id){
 
-        Capacitacion cap = capacitacionService.buscarPorId(id).orElseThrow();
+        Capacitacion cap = capacitacionService
+                .buscarPorId(id)
+                .orElseThrow();
 
-        cap.setCurso(null); // 🔥 DESASIGNAR
+        cap.setCurso(null);
 
         capacitacionService.guardar(cap);
 
         return "redirect:/cursos/asignados";
     }
-    
-    @GetMapping("/flujo/{trabajadorId}")
-    public String flujo(@PathVariable Long trabajadorId, Model model){
 
-        CapacitacionTrabajador ct = inscripcionService.siguiente(trabajadorId);
+    // =========================================
+    // 🔥 FLUJO
+    // =========================================
+
+    @GetMapping("/flujo/{trabajadorId}")
+    public String flujo(@PathVariable Long trabajadorId,
+                        Model model){
+
+        CapacitacionTrabajador ct =
+                inscripcionService.siguiente(trabajadorId);
 
         model.addAttribute("actual", ct);
 
         return "inscripcion/flujo";
     }
-    
-    @PostMapping("/calificar")
-    public String calificar(Long trabajadorId, Long capId, double calificacion){
 
-        inscripcionService.calificar(trabajadorId, capId, calificacion);
+    // =========================================
+    // 🔥 CALIFICAR
+    // =========================================
+
+    @PostMapping("/calificar")
+    public String calificar(Long trabajadorId,
+                            Long capId,
+                            double calificacion){
+
+        inscripcionService.calificar(
+                trabajadorId,
+                capId,
+                calificacion
+        );
 
         return "redirect:/inscripcion/flujo/" + trabajadorId;
     }

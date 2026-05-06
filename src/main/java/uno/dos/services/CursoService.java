@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import uno.dos.models.entity.Curso;
+import uno.dos.models.entity.TipoTrabajador;
 
 public interface CursoService {
 
@@ -31,4 +32,5 @@ public interface CursoService {
     
     public void eliminarDefinitivo(Long id);
     
+    public List<Curso> filtrarPorTipo(TipoTrabajador tipo);
 }

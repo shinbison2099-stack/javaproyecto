@@ -71,7 +71,7 @@ public class Capacitacion {
     private Curso curso;
     
     @OneToMany(mappedBy = "capacitacion")
-    @JsonIgnore // 🔥 ESTA LÍNEA
-    private List<CapacitacionTrabajador> capacitacionTrabajadores = new ArrayList<>();
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private List<CapacitacionTrabajador> capacitacionTrabajadores;
     
 }

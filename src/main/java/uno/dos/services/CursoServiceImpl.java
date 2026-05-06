@@ -9,6 +9,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import uno.dos.models.entity.Capacitacion;
 import uno.dos.models.entity.Curso;
+import uno.dos.models.entity.PuestoCurso;
+import uno.dos.models.entity.TipoTrabajador;
 import uno.dos.repositories.CapacitacionRepository;
 import uno.dos.repositories.CursoRepository;
 
@@ -94,7 +96,10 @@ public class CursoServiceImpl implements CursoService {
 
         int usadas = horasUsadas(cursoId);
 
-        return curso.getDuracion() - usadas;
+        // 🔥 CORRECCIÓN
+        int horas = curso.getHoras() != null ? curso.getHoras() : 0;
+
+        return horas - usadas;
     }
 
     @Override
@@ -108,14 +113,32 @@ public class CursoServiceImpl implements CursoService {
         Curso curso = cursoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Curso no encontrado"));
 
-        // 🔥 romper relación
-        curso.getPuestos().forEach(p -> p.getCursos().remove(curso));
-        curso.getPuestos().clear();
+        // 🔥 1. romper relación con capacitaciones
+        curso.getCapacitaciones().forEach(cap -> cap.setCurso(null));
 
-        cursoRepository.save(curso);
+        // 🔥 guardar cambios
+        capacitacionRepository.saveAll(curso.getCapacitaciones());
 
-        // 🔥 eliminar
+        // 🔥 2. romper relación con puestos
+        curso.getPuestoCursos().forEach(pc -> {
+            pc.setCurso(null);
+            pc.setPuesto(null);
+        });
+
+        curso.getPuestoCursos().clear();
+
+        // 🔥 3. eliminar curso
         cursoRepository.delete(curso);
+    }
+    
+    public List<Curso> filtrarPorTipo(TipoTrabajador tipo){
+
+        return cursoRepository.findAll().stream()
+                .filter(c -> 
+                    c.getTipoTrabajador() == TipoTrabajador.AMBOS ||
+                    c.getTipoTrabajador() == tipo
+                )
+                .toList();
     }
     
 }

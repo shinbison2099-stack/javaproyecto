@@ -19,59 +19,154 @@
 
         body {
             background: linear-gradient(135deg, #0f172a, #1e293b);
-            font-family: Arial;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-y: auto;
+            min-height: 100vh;
         }
 
         .content {
             margin-left: 120px;
-            padding: 40px;
+            padding: 35px;
+            min-height: 100vh;
         }
 
         /* 🔥 CARD */
         .card-box {
-            background: white;
-            border-radius: 20px;
+            background: rgba(255,255,255,0.96);
+            border-radius: 24px;
             padding: 30px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-            animation: fadeIn 0.5s ease;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.25);
+            animation: fadeIn 0.4s ease;
         }
 
         @keyframes fadeIn {
-            from {opacity:0; transform: translateY(20px);}
-            to {opacity:1; transform: translateY(0);}
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
+        /* 🔥 TITULO */
         h2 {
-            font-weight: bold;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2 i {
+            color: #2563eb;
+        }
+
+        /* 🔥 CURSO */
+        .curso-box {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+            padding: 14px 18px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            box-shadow: 0 8px 20px rgba(37,99,235,0.3);
+        }
+
+        /* 🔥 TABLA */
+        .table-responsive {
+            border-radius: 16px;
+            border: 1px solid #dee2e6;
+            overflow-x: auto; /* 🔥 SCROLL HORIZONTAL */
+        }
+
+        table {
+            margin-bottom: 0;
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #1e293b !important;
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 14px;
+        }
+
+        tbody td {
+            vertical-align: middle;
+            padding: 12px;
+        }
+
+        tbody tr:hover {
+            background: rgba(37,99,235,0.05);
+        }
+
+        /* 🔥 CHECKBOX */
+        .form-check-input {
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+
+        /* 🔥 TEXTO */
+        .cap-name {
+            font-weight: 600;
+            color: #2563eb;
+            font-size: 14px;
+        }
+
+        /* 🔥 BOTONES */
+        .btn-success,
+        .btn-outline-primary {
+
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-weight: 600;
+            transition: 0.25s;
+        }
+
+        .btn-success:hover,
+        .btn-outline-primary:hover {
+
+            transform: translateY(-2px);
+        }
+
+        /* 🔥 ALERT */
+        .alert-custom {
+            display: none;
+            border-radius: 12px;
             margin-bottom: 20px;
         }
 
-        /* SELECT */
-        .form-select {
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        /* 🔥 PAGINACIÓN */
+        .pagination-box {
+            margin-top: 20px;
         }
 
-        /* TABLA */
-        table {
-            border-radius: 10px;
-            overflow: hidden;
+        /* 🔥 SCROLL MODERNO */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
         }
 
-        /* BOTÓN */
-        .btn-accion {
-            border-radius: 10px;
-            transition: 0.3s;
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.08);
+            border-radius: 20px;
         }
 
-        .btn-accion:hover {
-            transform: scale(1.05);
+        ::-webkit-scrollbar-thumb {
+            background: rgba(59,130,246,0.7);
+            border-radius: 20px;
         }
 
-        /* ALERT BONITO */
-        .alert-custom {
-            display: none;
-            border-radius: 10px;
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(59,130,246,1);
         }
 
     </style>
@@ -86,118 +181,256 @@
 
     <div class="card-box">
 
-        <h2><i class="bi bi-person-plus-fill"></i> Inscribir Capacitación</h2>
+        <!-- TITULO -->
+        <h2>
+            <i class="bi bi-person-plus-fill"></i>
+            Inscribir Capacitación
+        </h2>
 
         <!-- ALERT -->
-        <div id="alerta" class="alert alert-danger alert-custom">
-            Selecciona un curso primero
+        <div id="alerta"
+             class="alert alert-danger alert-custom">
         </div>
 
-        <!-- SELECT -->
-        <div class="mb-4">
-            <label class="fw-semibold">Selecciona curso:</label>
+        <!-- CURSO -->
+        <div class="curso-box">
 
-            <select id="cursoSelect" class="form-select mt-2">
-                <option value="">-- Selecciona --</option>
+            <i class="bi bi-book"></i>
 
-                <option th:each="curso : ${cursos}"
-                        th:value="${curso.id}"
-                        th:text="${curso.nombreCurso}">
-                </option>
-            </select>
+            Curso:
+            <span th:text="${curso.nombreCurso}"></span>
+
         </div>
 
-        <!-- TABLA -->
-		<form id="formAsignar">
+        <!-- FORM -->
+        <form id="formAsignar">
 
-		<div class="table-responsive">
+            <!-- TABLA -->
+            <div class="table-responsive">
 
-		    <table class="table table-hover table-bordered align-middle text-center">
+                <table class="table table-hover align-middle text-center">
 
-		        <thead class="table-dark">
-		        <tr>
-		            <th>
-		                <!-- SELECT ALL -->
-		                <input type="checkbox" onclick="seleccionarTodos(this)">
-		            </th>
-		            <th>#</th>
-		            <th>Capacitación</th>
-		        </tr>
-		        </thead>
+                    <thead>
+                    <tr>
 
-		        <tbody>
+                        <th width="60">
+                            <input type="checkbox"
+                                   onclick="seleccionarTodos(this)">
+                        </th>
 
-		        <tr th:each="cap, iterStat : ${capacitaciones}"
-		            th:if="${cap.curso == null}">
+                        <th width="80">#</th>
 
-		            <td>
-		                <input type="checkbox" name="capIds"
-		                       th:value="${cap.id}"
-		                       class="form-check-input">
-		            </td>
+                        <th>Capacitación</th>
 
-		            <td th:text="${iterStat.count}"></td>
+                    </tr>
+                    </thead>
 
-		            <td class="fw-semibold text-primary"
-		                th:text="${cap.nombreCapacitacion}">
-		            </td>
+                    <tbody id="tablaBody">
 
-		        </tr>
+                    <tr th:each="cap, iterStat : ${capacitaciones}">
 
-		        </tbody>
+                        <!-- CHECK -->
+                        <td>
+                            <input type="checkbox"
+                                   name="capIds"
+                                   th:value="${cap.id}"
+                                   class="form-check-input">
+                        </td>
 
-		    </table>
+                        <!-- NUM -->
+                        <td th:text="${iterStat.count}"></td>
 
-		</div>
+                        <!-- NOMBRE -->
+                        <td class="cap-name"
+                            th:text="${cap.nombreCapacitacion}">
+                        </td>
 
-		<div class="text-end mt-3">
-		    <button type="button" class="btn btn-success"
-		            onclick="asignarMultiple()">
-		        <i class="bi bi-check2-square"></i> Asignar seleccionadas
-		    </button>
-		</div>
+                    </tr>
 
-		</form>
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <!-- 🔥 PAGINACIÓN -->
+            <div class="pagination-box d-flex justify-content-between align-items-center">
+
+                <!-- ANTERIOR -->
+                <button type="button"
+                        class="btn btn-outline-primary"
+                        onclick="anteriorPagina()">
+
+                    <i class="bi bi-arrow-left"></i>
+                    Anterior
+
+                </button>
+
+                <!-- INFO -->
+                <span id="paginaInfo"
+                      class="fw-bold text-dark">
+                </span>
+
+                <!-- SIGUIENTE -->
+                <button type="button"
+                        class="btn btn-outline-primary"
+                        onclick="siguientePagina()">
+
+                    Siguiente
+                    <i class="bi bi-arrow-right"></i>
+
+                </button>
+
+            </div>
+
+            <!-- BOTÓN -->
+            <div class="text-end mt-4">
+
+                <button type="button"
+                        class="btn btn-success"
+                        onclick="asignarMultiple()">
+
+                    <i class="bi bi-check2-square"></i>
+                    Asignar seleccionadas
+
+                </button>
+
+            </div>
+
+        </form>
+
     </div>
 
 </div>
 
 <!-- SCRIPT -->
-<script>
+<script th:inline="javascript">
+
+// ======================================
+// 🔥 SELECT ALL
+// ======================================
 
 function seleccionarTodos(source){
-    document.querySelectorAll('input[name="capIds"]').forEach(cb => {
+
+    document.querySelectorAll(
+        'input[name="capIds"]'
+    ).forEach(cb => {
+
         cb.checked = source.checked;
     });
 }
 
+// ======================================
+// 🔥 ASIGNAR
+// ======================================
+
 function asignarMultiple(){
 
-    let cursoId = document.getElementById("cursoSelect").value;
-    let checks = document.querySelectorAll('input[name="capIds"]:checked');
+    let cursoId = /*[[${curso.id}]]*/ 0;
+
+    let checks = document.querySelectorAll(
+        'input[name="capIds"]:checked'
+    );
+
     let alerta = document.getElementById("alerta");
 
-    if(!cursoId){
-        alerta.innerText = "Selecciona un curso";
-        alerta.style.display = "block";
-        return;
-    }
+    alerta.style.display = "none";
 
+    // 🔥 VALIDACIÓN
     if(checks.length === 0){
-        alerta.innerText = "Selecciona al menos una capacitación";
+
+        alerta.innerText =
+            "Selecciona al menos una capacitación";
+
         alerta.style.display = "block";
+
         return;
     }
 
-    // 🔥 OBTENER IDS
+    // 🔥 IDS
     let ids = [];
 
     checks.forEach(c => ids.push(c.value));
 
-    // 🔥 REDIRECCIÓN CON VARIOS IDS
-    window.location.href = "/inscripcion/asignar-multiple/" 
-                            + cursoId + "/" + ids.join(",");
+    // 🔥 REDIRECT
+    window.location.href =
+        "/inscripcion/asignar-multiple/"
+        + cursoId + "/"
+        + ids.join(",");
 }
+
+// ======================================
+// 🔥 PAGINACIÓN
+// ======================================
+
+let paginaActual = 1;
+
+let filasPorPagina = 10;
+
+const filas =
+    document.querySelectorAll("#tablaBody tr");
+
+// ======================================
+
+function mostrarPagina(){
+
+    let inicio =
+        (paginaActual - 1) * filasPorPagina;
+
+    let fin =
+        inicio + filasPorPagina;
+
+    filas.forEach((fila, index) => {
+
+        fila.style.display =
+            (index >= inicio && index < fin)
+            ? ""
+            : "none";
+    });
+
+    let totalPaginas =
+        Math.ceil(filas.length / filasPorPagina);
+
+    document.getElementById("paginaInfo")
+        .innerText =
+        "Página "
+        + paginaActual
+        + " de "
+        + totalPaginas;
+}
+
+// ======================================
+
+function siguientePagina(){
+
+    let totalPaginas =
+        Math.ceil(filas.length / filasPorPagina);
+
+    if(paginaActual < totalPaginas){
+
+        paginaActual++;
+
+        mostrarPagina();
+    }
+}
+
+// ======================================
+
+function anteriorPagina(){
+
+    if(paginaActual > 1){
+
+        paginaActual--;
+
+        mostrarPagina();
+    }
+}
+
+// ======================================
+// 🔥 INICIAR
+// ======================================
+
+mostrarPagina();
 
 </script>
 

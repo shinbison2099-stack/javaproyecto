@@ -28,9 +28,13 @@ public class TemaServiceImpl implements TemaService {
         // 🔥 validar que no exceda
         double usadas = horasUsadas(tema.getCurso().getId());
 
-        Curso curso = cursoRepository.findById(tema.getCurso().getId()).orElseThrow();
+        Curso curso = cursoRepository.findById(tema.getCurso().getId())
+                .orElseThrow();
 
-        if(usadas + tema.getHoras() > curso.getDuracion()){
+        // 🔥 CORRECCIÓN
+        int horasCurso = curso.getHoras() != null ? curso.getHoras() : 0;
+
+        if(usadas + tema.getHoras() > horasCurso){
             throw new RuntimeException("Excede las horas del curso");
         }
 
@@ -53,9 +57,12 @@ public class TemaServiceImpl implements TemaService {
     @Override
     public double horasRestantes(Long cursoId) {
 
-        Curso curso = cursoRepository.findById(cursoId).orElseThrow();
+        Curso curso = cursoRepository.findById(cursoId)
+                .orElseThrow();
 
-        return curso.getDuracion() - horasUsadas(cursoId);
+        int horasCurso = curso.getHoras() != null ? curso.getHoras() : 0;
+
+        return horasCurso - horasUsadas(cursoId);
     }
 
 	

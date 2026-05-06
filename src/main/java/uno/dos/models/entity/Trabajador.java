@@ -31,7 +31,7 @@ public class Trabajador {
 	    private String areaEmpleado;
 
 	    @ManyToOne
-	    @JoinColumn(name="puesto_id")
+	    @com.fasterxml.jackson.annotation.JsonIgnore
 	    private Puesto puesto;
 
 	    private String claveEstado;
@@ -51,5 +51,9 @@ public class Trabajador {
 	    private String foto;
 
 	    private Boolean activo = true;
+	    
+	    @Enumerated(EnumType.STRING)
+	    private TipoTrabajador tipoTrabajador;
+
 
 }

@@ -105,9 +105,10 @@
                 </button>
             </form>
 
-            <a href="/cursos/plantilla" class="btn btn-info">
-                <i class="bi bi-download"></i>
-            </a>
+			<a href="/cursos/plantilla" class="btn btn-outline-info">
+			    <i class="bi bi-file-earmark-arrow-down"></i>
+			    Plantilla Excel
+			</a>
 
         </div>
 
@@ -140,28 +141,33 @@
                     <td th:text="${curso.claveCurso}"></td>
                     <td th:text="${curso.nombreCurso}"></td>
                     <td th:text="${curso.claveAreaTematica}"></td>
-                    <td th:text="${curso.duracion + ' hrs'}"></td>
 
-                    <!-- ✅ TIPO CURSO -->
-					<td>
-					    <span class="badge"
-					          th:classappend="
-					            ${curso.tipoCurso != null and curso.tipoCurso == 'INTERNO'} 
-					            ? ' badge-interno' 
-					            : ' badge-externo'"
-					          th:text="${curso.tipoCurso != null ? curso.tipoCurso : 'SIN TIPO'}">
-					    </span>
-					</td>
+                    <!-- 🔥 CORREGIDO -->
+                    <td>
+                        <div>⏱️ <span th:text="${curso.horas}"></span> hrs</div>
+                        <div>📅 <span th:text="${curso.vigenciaMeses}"></span> meses</div>
+                    </td>
 
-                    <!-- ✅ TIPO TRABAJADOR -->
-					<td>
-					    <span class="badge"
-					          th:classappend="
-					            ${curso.tipoTrabajador != null and curso.tipoTrabajador == 'HOURLY'} ? ' badge-hourly' :
-					            (${curso.tipoTrabajador != null and curso.tipoTrabajador == 'SALARY'} ? ' badge-salary' : ' badge-ambos')"
-					          th:text="${curso.tipoTrabajador != null ? curso.tipoTrabajador : 'SIN TIPO'}">
-					    </span>
-					</td>
+                    <!-- TIPO CURSO -->
+                    <td>
+                        <span class="badge"
+                              th:classappend="
+                                ${curso.tipoCurso != null and curso.tipoCurso == 'INTERNO'} 
+                                ? ' badge-interno' 
+                                : ' badge-externo'"
+                              th:text="${curso.tipoCurso != null ? curso.tipoCurso : 'SIN TIPO'}">
+                        </span>
+                    </td>
+
+                    <!-- TIPO TRABAJADOR -->
+                    <td>
+                        <span class="badge"
+                              th:classappend="
+                                ${curso.tipoTrabajador != null and curso.tipoTrabajador == 'HOURLY'} ? ' badge-hourly' :
+                                (${curso.tipoTrabajador != null and curso.tipoTrabajador == 'SALARY'} ? ' badge-salary' : ' badge-ambos')"
+                              th:text="${curso.tipoTrabajador != null ? curso.tipoTrabajador : 'SIN TIPO'}">
+                        </span>
+                    </td>
 
                     <td th:text="${curso.instructor != null ? curso.instructor.nombre : 'Sin instructor'}"></td>
 

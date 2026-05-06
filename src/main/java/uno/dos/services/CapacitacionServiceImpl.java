@@ -91,6 +91,11 @@ public class CapacitacionServiceImpl implements CapacitacionService {
 
             capacitacionRepository.deleteById(id);
         }
+        
+        @Override
+        public List<Capacitacion> sinCurso() {
+            return capacitacionRepository.findByCursoIsNull();
+        }
 	
 
 }

@@ -15,118 +15,239 @@
 
     <!-- CSS -->
     <link rel="stylesheet" th:href="@{/css/menu.css}">
-	<link rel="stylesheet" th:href="@{/css/sidebar.css}">
-    <style>
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
 
-        body {
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            color: white;
-            font-family: Arial;
-        }
+	<style>
 
-        .content {
-            padding: 40px;
-        }
+	    body {
+	        background: linear-gradient(135deg, #0f172a, #1e293b);
+	        color: white;
+	        font-family: 'Segoe UI', sans-serif;
 
-        /* 🔥 GRID WINDOWS */
-		.tiles {
-		    display: grid;
-		    grid-template-columns: repeat(4, 1fr);
-		    gap: 25px;
+	        /* 🔥 SCROLL */
+	        margin: 0;
+	        padding: 0;
+	        overflow-y: auto;
+	        min-height: 100vh;
+	    }
+
+	    .content {
+	        padding: 30px;
+	        min-height: 100vh;
+	        overflow-y: auto;
+	    }
+
+	    /* 🔥 SCROLL WINDOWS 11 */
+	    ::-webkit-scrollbar {
+	        width: 10px;
+	    }
+
+	    ::-webkit-scrollbar-track {
+	        background: rgba(255,255,255,0.05);
+	    }
+
+	    ::-webkit-scrollbar-thumb {
+	        background: rgba(96,165,250,0.6);
+	        border-radius: 20px;
+	    }
+
+	    ::-webkit-scrollbar-thumb:hover {
+	        background: rgba(96,165,250,0.9);
+	    }
+
+	    /* 🔥 GRID */
+	    .tiles {
+	        display: grid;
+	        grid-template-columns: repeat(4, 1fr);
+	        gap: 18px;
+	        padding-bottom: 30px;
+	    }
+
+	    @media (max-width: 1200px) {
+	        .tiles {
+	            grid-template-columns: repeat(3, 1fr);
+	        }
+	    }
+
+	    @media (max-width: 768px) {
+	        .tiles {
+	            grid-template-columns: repeat(2, 1fr);
+	        }
+	    }
+
+	    @media (max-width: 576px) {
+	        .tiles {
+	            grid-template-columns: 1fr;
+	        }
+	    }
+
+	    /* 🔥 TILE */
+	    .tile {
+	        background: rgba(255,255,255,0.07);
+	        backdrop-filter: blur(12px);
+	        border-radius: 18px;
+	        padding: 16px;
+	        transition: 0.25s;
+	        box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+	        border: 1px solid rgba(255,255,255,0.05);
+	    }
+
+	    .tile:hover {
+	        transform: translateY(-4px);
+	        box-shadow: 0 15px 30px rgba(0,0,0,0.35);
+	    }
+
+	    /* 🔥 HEADER */
+	    .tile-header {
+	        margin-bottom: 12px;
+	    }
+
+	    .curso-title {
+	        font-size: 15px;
+	        font-weight: 600;
+	        display: flex;
+	        align-items: center;
+	        gap: 8px;
+	        margin-bottom: 10px;
+	    }
+
+	    .curso-title i {
+	        font-size: 14px;
+	        color: #60a5fa;
+	    }
+
+	    /* 🔥 BADGES */
+	    .badges {
+	        display: flex;
+	        flex-wrap: wrap;
+	        gap: 6px;
+	    }
+
+	    .contador {
+	        font-size: 10px;
+	        padding: 4px 8px;
+	        border-radius: 8px;
+	        font-weight: 500;
+	        margin: 0;
+	    }
+
+	    /* 🔥 LISTA */
+	    .cap-list {
+	        margin-top: 12px;
+	    }
+
+	    .cap-item {
+	        display: flex;
+	        justify-content: space-between;
+	        align-items: center;
+	        background: rgba(255,255,255,0.06);
+	        border-radius: 10px;
+	        padding: 7px 10px;
+	        margin-bottom: 6px;
+	        transition: 0.2s;
+	    }
+
+	    .cap-item:hover {
+	        background: rgba(255,255,255,0.1);
+	    }
+
+	    .cap-name {
+	        font-size: 12px;
+	        flex: 1;
+	        margin-right: 10px;
+	    }
+
+	    /* 🔥 BOTONES */
+	    .actions {
+	        display: flex;
+	        gap: 5px;
+	    }
+
+	    .actions .btn,
+	    .btn-delete {
+	        width: 28px;
+	        height: 28px;
+	        padding: 0;
+	        border-radius: 8px;
+	        display: flex;
+	        align-items: center;
+	        justify-content: center;
+	    }
+
+	    .actions i,
+	    .btn-delete i {
+	        font-size: 12px;
+	    }
+
+	    /* 🔥 DELETE */
+	    .btn-delete {
+	        border: none;
+	        background: #ef4444;
+	        color: white;
+	        transition: 0.2s;
+	    }
+
+	    .btn-delete:hover {
+	        background: #dc2626;
+	        transform: scale(1.05);
+	    }
+
+	    /* 🔥 BOTÓN ASIGNAR */
+	    .btn-assign {
+	        margin-top: 12px;
+	        width: 100%;
+	        border-radius: 10px;
+	        font-size: 12px;
+	        padding: 6px;
+	        font-weight: 500;
+	    }
+
+	    /* 🔥 TITULO */
+	    h2 {
+	        font-size: 24px;
+	        font-weight: 600;
+	        margin-bottom: 25px;
+	    }
+
+	    h2 i {
+	        font-size: 20px;
+	        margin-right: 8px;
+	        color: #60a5fa;
+	    }
+		
+		.tipo-badge{
+		    font-size: 10px;
+		    padding: 4px 8px;
+		    border-radius: 8px;
+		    font-weight: 600;
+		    color: white;
 		}
 
-		@media (max-width: 1200px) {
-		    .tiles {
-		        grid-template-columns: repeat(3, 1fr);
-		    }
+		.salary{
+		    background: #2563eb;
 		}
 
-		@media (max-width: 768px) {
-		    .tiles {
-		        grid-template-columns: repeat(2, 1fr);
-		    }
+		.hourly{
+		    background: #16a34a;
 		}
 
-        /* 🔥 TILE */
-        .tile {
-            background: rgba(255,255,255,0.08);
-            backdrop-filter: blur(12px);
-            border-radius: 20px;
-            padding: 20px;
-            transition: 0.3s;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
+		.ambos{
+		    background: #9333ea;
+		}
 
-        .tile:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        }
-
-        /* HEADER */
-        .tile-header {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .tile-header i {
-            margin-right: 8px;
-        }
-
-        /* CONTADOR */
-        .contador {
-            font-size: 12px;
-            background: #00b894;
-            padding: 5px 10px;
-            border-radius: 10px;
-            margin-left: 10px;
-        }
-
-        /* CAPACITACIONES */
-        .cap-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 8px 10px;
-            margin-bottom: 8px;
-        }
-
-        /* BOTÓN ELIMINAR */
-        .btn-delete {
-            border: none;
-            background: #e74c3c;
-            color: white;
-            border-radius: 8px;
-            padding: 3px 8px;
-            transition: 0.2s;
-        }
-
-        .btn-delete:hover {
-            background: #c0392b;
-            transform: scale(1.1);
-        }
-
-        /* BOTÓN ASIGNAR */
-        .btn-assign {
-            margin-top: 10px;
-            width: 100%;
-            border-radius: 10px;
-        }
-
-    </style>
-
+	</style>
 </head>
 
 <body>
 
 <div th:replace="~{fragments/menu :: menu}"></div>
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
 <div class="content">
 
-    <h2 class="mb-4">
-        <i class="bi bi-windows"></i> Cursos con Capacitaciones
+    <h2>
+        <i class="bi bi-windows"></i>
+        Cursos con Capacitaciones
     </h2>
 
     <div class="tiles">
@@ -134,85 +255,118 @@
         <div class="tile" th:each="curso : ${cursos}">
 
             <!-- HEADER -->
-			<div class="tile-header d-flex flex-wrap align-items-center gap-2">
+            <div class="tile-header">
 
-			    <div class="d-flex align-items-center gap-2">
-			        <i class="bi bi-book"></i>
-			        <span th:text="${curso.nombreCurso}"></span>
-			    </div>
+                <div class="curso-title">
+                    <i class="bi bi-book"></i>
+                    <span th:text="${curso.nombreCurso}"></span>
+                </div>
 
-			    <!-- CAPACITACIONES -->
-				<span class="contador"
-				      th:text="${#lists.size(curso.capacitaciones)} + ' cap.'">
-				</span>
+                <div class="badges">
+					
+					<!-- 🔥 TIPO TRABAJADOR -->
 
-				<span class="contador bg-primary"
-				      th:text="${curso.totalInscritos} + ' alumnos'">
-				</span>
+					<span th:if="${curso.tipoTrabajador.name() == 'SALARY'}"
+					      class="tipo-badge salary">
 
-				<span class="contador bg-info"
-				      th:text="${horasUsadas[curso.id]} + ' hrs usadas'">
-				</span>
+					    <i class="bi bi-briefcase-fill"></i>
+					    SALARY
 
-				<span class="contador bg-warning text-dark"
-				      th:text="${horasRestantes[curso.id]} + ' hrs restantes'">
-				</span>
+					</span>
 
-			</div>
+					<span th:if="${curso.tipoTrabajador.name() == 'HOURLY'}"
+					      class="tipo-badge hourly">
+
+					    <i class="bi bi-clock-fill"></i>
+					    HOURLY
+
+					</span>
+
+					<span th:if="${curso.tipoTrabajador.name() == 'AMBOS'}"
+					      class="tipo-badge ambos">
+
+					    <i class="bi bi-people-fill"></i>
+					    AMBOS
+
+					</span>
+
+                    <span class="contador bg-success"
+                          th:text="${#lists.size(curso.capacitaciones)} + ' cap.'">
+                    </span>
+
+                    <span class="contador bg-primary"
+                          th:text="${curso.totalInscritos} + ' alumnos'">
+                    </span>
+
+                    <span class="contador bg-info"
+                          th:text="${horasUsadas[curso.id]} + ' hrs usadas'">
+                    </span>
+
+                    <span class="contador bg-warning text-dark"
+                          th:text="${horasRestantes[curso.id]} + ' hrs restantes'">
+                    </span>
+
+                </div>
+
+            </div>
 
             <!-- LISTA -->
-            <div>
+            <div class="cap-list">
 
                 <!-- SI TIENE -->
                 <div th:if="${!#lists.isEmpty(curso.capacitaciones)}">
 
-					<div class="cap-item"
-					     th:each="cap : ${curso.capacitaciones}">
+                    <div class="cap-item"
+                         th:each="cap : ${curso.capacitaciones}">
 
-					    <!-- NOMBRE -->
-					    <span th:text="${cap.nombreCapacitacion}"></span>
-						
-						
+                        <!-- NOMBRE -->
+                        <span class="cap-name"
+                              th:text="${cap.nombreCapacitacion}">
+                        </span>
 
-					    <!-- BOTONES -->
-					    <div class="d-flex gap-2">
+                        <!-- BOTONES -->
+                        <div class="actions">
 
-					        <!-- ➕ INSCRIBIR TRABAJADOR -->
-					        <a th:href="@{/capacitaciones/{id}/trabajadores(id=${cap.id})}"
-					           class="btn btn-success btn-sm"
-					           title="Inscribir trabajadores">
+                            <!-- ➕ INSCRIBIR -->
+                            <a th:href="@{/capacitaciones/{id}/trabajadores(id=${cap.id})}"
+                               class="btn btn-success btn-sm"
+                               title="Inscribir trabajadores">
 
-					            <i class="bi bi-person-plus-fill"></i>
+                                <i class="bi bi-person-plus-fill"></i>
 
-					        </a>
+                            </a>
 
-					        <!-- ❌ ELIMINAR -->
-					        <a th:href="@{/inscripcion/eliminar/{id}(id=${cap.id})}"
-					           class="btn-delete"
-					           onclick="return confirm('¿Eliminar capacitación?')">
+                            <!-- ❌ ELIMINAR -->
+                            <a th:href="@{/inscripcion/eliminar/{id}(id=${cap.id})}"
+                               class="btn-delete"
+                               onclick="return confirm('¿Eliminar capacitación?')">
 
-					            <i class="bi bi-x"></i>
+                                <i class="bi bi-x"></i>
 
-					        </a>
+                            </a>
 
-					    </div>
+                        </div>
 
-					</div>
+                    </div>
 
                 </div>
 
                 <!-- SI NO TIENE -->
                 <div th:if="${#lists.isEmpty(curso.capacitaciones)}"
-                     class="text-muted">
+                     class="text-muted small">
+
                     Sin capacitaciones
+
                 </div>
 
             </div>
 
             <!-- BOTÓN -->
-            <a th:href="@{/inscripcion}"
-               class="btn btn-light btn-sm btn-assign">
-                <i class="bi bi-plus-circle"></i> Asignar
+			<a th:href="@{/inscripcion/{id}(id=${curso.id})}"
+			   class="btn btn-light btn-sm btn-assign">
+                <i class="bi bi-plus-circle"></i>
+                Asignar
+
             </a>
 
         </div>

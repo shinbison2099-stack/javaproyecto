@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class MatrizWebController {
     /* =========================
        CREAR MATRIZ
     ========================== */
-    @GetMapping("/crear")
+    @GetMapping("/crear-salary")
     public String crear(Model model){
 
         model.addAttribute("trabajadores", trabajadorService.listarActivos());
@@ -251,67 +252,145 @@ public class MatrizWebController {
     
     @GetMapping("/matriz-data")
     @ResponseBody
-    public Map<String, Object> matrizData(@RequestParam(required = false) List<Long> cursoIds){
+    public Map<String, Object> matrizData(@RequestParam List<Long> cursoIds){
 
         Map<String, Object> data = new HashMap<>();
 
-        // 🔥 VALIDACIÓN
+        // 🔴 VALIDACIÓN
         if(cursoIds == null || cursoIds.isEmpty()){
-            data.put("capacitaciones", List.of());
-            data.put("trabajadores", List.of());
-            data.put("evaluaciones", List.of());
-            data.put("porcentajes", Map.of());
+
+            data.put("capacitaciones", new ArrayList<>());
+            data.put("trabajadores", new ArrayList<>());
+            data.put("evaluaciones", new ArrayList<>());
+
             return data;
         }
 
-        // 🔥 CAPACITACIONES POR CURSO
+        // 🔥 CAPACITACIONES
         List<Capacitacion> caps = capacitacionService.buscarPorCursoIds(cursoIds);
 
-        // 🔥 SOLO TRABAJADORES INSCRITOS
+        // =========================================
+        // 🔥 CAPACITACIONES DTO
+        // =========================================
+
+        List<Map<String, Object>> capsDTO = caps.stream().map(c -> {
+
+            Map<String, Object> map = new HashMap<>();
+
+            map.put("id", c.getId());
+            map.put("nombreCapacitacion", c.getNombreCapacitacion());
+
+            if(c.getCurso() != null){
+
+                Map<String, Object> curso = new HashMap<>();
+                curso.put("id", c.getCurso().getId());
+                curso.put("nombreCurso", c.getCurso().getNombreCurso());
+
+                map.put("curso", curso);
+
+            } else {
+
+                map.put("curso", null);
+            }
+
+            return map;
+
+        }).collect(Collectors.toList());
+
+        // =========================================
+        // 🔥 TRABAJADORES
+        // =========================================
+
         Set<Trabajador> trabajadoresSet = new LinkedHashSet<>();
 
         for(Capacitacion c : caps){
+
             if(c.getCapacitacionTrabajadores() != null){
+
                 for(CapacitacionTrabajador ct : c.getCapacitacionTrabajadores()){
-                    trabajadoresSet.add(ct.getTrabajador());
+
+                    if(ct.getTrabajador() != null){
+                        trabajadoresSet.add(ct.getTrabajador());
+                    }
                 }
             }
         }
 
-        List<Trabajador> trabajadores = new ArrayList<>(trabajadoresSet);
+        // =========================================
+        // 🔥 TRABAJADORES DTO
+        // =========================================
 
-        // 🔥 EVALUACIONES
-        List<EvaluacionCapacitacion> evaluaciones =
-                evaluacionService.buscarPorCapacitaciones(
-                        caps.stream().map(Capacitacion::getId).toList()
-                );
+        List<Map<String, Object>> trabajadoresDTO = trabajadoresSet.stream().map(t -> {
 
-        // 🔥🔥🔥 DNC POR CURSO
-        Map<String, Integer> porcentajes = new HashMap<>();
+            Map<String, Object> map = new HashMap<>();
 
-        for(Trabajador t : trabajadores){
-            for(Capacitacion c : caps){
+            map.put("id", t.getId());
+            map.put("nombre", t.getNombre());
+            map.put("primerApellido", t.getPrimerApellido());
+            map.put("segundoApellido", t.getSegundoApellido());
+            map.put("numeroPersonal", t.getNumeroPersonal());
 
-                if(c.getCurso() == null) continue;
+            if(t.getPuesto() != null){
 
-                int p = matrizService.calcularPorcentajeCurso(
-                        t.getId(),
-                        c.getCurso()
-                );
+                Map<String, Object> puesto = new HashMap<>();
+                puesto.put("nombrePuesto", t.getPuesto().getNombrePuesto());
 
-                porcentajes.put(t.getId() + "-" + c.getCurso().getId(), p);
+                map.put("puesto", puesto);
+
+            } else {
+
+                map.put("puesto", null);
             }
-        }
 
+            return map;
+
+        }).collect(Collectors.toList());
+
+        // =========================================
+        // 🔥 EVALUACIONES
+        // =========================================
+
+        List<EvaluacionCapacitacion> evals =
+                evaluacionService.buscarPorCapacitaciones(
+                        caps.stream()
+                                .map(Capacitacion::getId)
+                                .collect(Collectors.toList())
+                );
+
+        List<Map<String, Object>> evalDTO = evals.stream()
+
+                .filter(e ->
+                        e.getTrabajador() != null &&
+                        e.getCapacitacion() != null
+                )
+
+                .map(e -> {
+
+                    Map<String, Object> trabajador = new HashMap<>();
+                    trabajador.put("id", e.getTrabajador().getId());
+
+                    Map<String, Object> capacitacion = new HashMap<>();
+                    capacitacion.put("id", e.getCapacitacion().getId());
+
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("trabajador", trabajador);
+                    map.put("capacitacion", capacitacion);
+                    map.put("aprobada", e.getAprobada());
+
+                    return map;
+
+                }).collect(Collectors.toList());
+
+        // =========================================
         // 🔥 RESPUESTA
-        data.put("capacitaciones", caps);
-        data.put("trabajadores", trabajadores);
-        data.put("evaluaciones", evaluaciones);
-        data.put("porcentajes", porcentajes); // 🔥 NUEVO
+        // =========================================
+
+        data.put("capacitaciones", capsDTO);
+        data.put("trabajadores", trabajadoresDTO);
+        data.put("evaluaciones", evalDTO);
 
         return data;
     }
-
     /* =========================
        ELIMINAR
     ========================== */
@@ -321,5 +400,19 @@ public class MatrizWebController {
         matrizService.eliminar(id);
 
         return "redirect:/matriz/lista";
+    }
+    
+    @GetMapping("/nueva")
+    public String nuevaMatriz(
+            @RequestParam(defaultValue = "AMBOS") TipoTrabajador tipo,
+            Model model){
+
+        List<Curso> cursos = cursoService.filtrarPorTipo(tipo);
+        List<Trabajador> trabajadores = trabajadorService.filtrarPorTipo(tipo);
+
+        model.addAttribute("cursos", cursos);
+        model.addAttribute("trabajadores", trabajadores);
+
+        return "matriz/seleccionar-tipo";
     }
 }

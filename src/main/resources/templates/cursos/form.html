@@ -20,15 +20,12 @@
             max-width: 900px;
             margin: auto;
             margin-top: 30px;
-
             background: rgba(30, 41, 59, 0.6);
             backdrop-filter: blur(20px);
-
             padding: 25px;
             border-radius: 20px;
         }
 
-        /* 🔥 SCROLL CORREGIDO */
         .form-scroll {
             max-height: 80vh;
             overflow-y: auto;
@@ -48,7 +45,6 @@
         textarea {
             resize: none;
         }
-
     </style>
 </head>
 
@@ -62,7 +58,6 @@
 
     <h2 th:text="${curso.id == null} ? 'Nuevo Curso' : 'Editar Curso'"></h2>
 
-    <!-- 🔥 SCROLL -->
     <div class="form-scroll">
 
     <form th:action="${curso.id == null} ? @{/cursos/guardar} : @{/cursos/actualizar}"
@@ -96,32 +91,40 @@
             <input type="text" th:field="*{areaResponsable}" class="form-control">
         </div>
 
-        <!-- DURACION -->
-        <div class="mb-3">
-            <label>Duración (horas)</label>
-            <input type="number" th:field="*{duracion}" class="form-control">
-        </div>
-
-        <!-- 🔥 TIPOS EN 2 COLUMNAS -->
+        <!-- 🔥 HORAS + VIGENCIA -->
         <div class="row">
 
-            <!-- TIPO CURSO -->
+            <div class="col-md-6 mb-3">
+                <label>Horas del curso</label>
+                <input type="number" th:field="*{horas}" class="form-control" min="0" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Vigencia (meses)</label>
+                <input type="number" th:field="*{vigenciaMeses}" class="form-control" min="0" required
+                       placeholder="Ej: 36 = 3 años">
+            </div>
+
+        </div>
+
+        <!-- TIPOS -->
+        <div class="row">
+
             <div class="col-md-6 mb-3">
                 <label>Tipo de Curso</label>
-                <select th:field="*{tipoCurso}" class="form-control">
+                <select th:field="*{tipoCurso}" class="form-control" required>
                     <option value="">-- Selecciona --</option>
                     <option value="INTERNO">Interno</option>
                     <option value="EXTERNO">Externo</option>
                 </select>
             </div>
 
-            <!-- TIPO TRABAJADOR -->
             <div class="col-md-6 mb-3">
                 <label>Tipo de Trabajador</label>
-                <select th:field="*{tipoTrabajador}" class="form-control">
+                <select th:field="*{tipoTrabajador}" class="form-control" required>
                     <option value="">-- Selecciona --</option>
-                    <option value="HOURLY">Hourly</option>
-                    <option value="SALARY">Salary</option>
+                    <option value="HOURLY">Por hora</option>
+                    <option value="SALARY">Sueldo</option>
                     <option value="AMBOS">Ambos</option>
                 </select>
             </div>
@@ -131,7 +134,6 @@
         <!-- INSTRUCTOR -->
         <div class="mb-3">
             <label>Instructor</label>
-
             <select th:field="*{instructor.id}" class="form-control">
                 <option value="">Seleccione instructor</option>
 
@@ -155,7 +157,7 @@
             </div>
         </div>
 
-        <!-- 🔥 NUEVO: COMENTARIOS -->
+        <!-- COMENTARIOS -->
         <div class="mb-3">
             <label>Comentarios</label>
             <textarea th:field="*{comentarios}"
@@ -168,11 +170,11 @@
         <!-- BOTONES -->
         <div class="mt-3">
             <button type="submit" class="btn btn-success">
-                Guardar
+                <i class="bi bi-check-circle"></i> Guardar
             </button>
 
             <a href="/cursos" class="btn btn-secondary">
-                Cancelar
+                <i class="bi bi-arrow-left"></i> Cancelar
             </a>
         </div>
 

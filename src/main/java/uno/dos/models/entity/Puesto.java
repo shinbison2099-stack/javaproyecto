@@ -32,7 +32,7 @@ public class Puesto {
     @Column(name = "tipo_trabajador")
     private TipoTrabajador tipoTrabajador;
 
-    // 🔥 RELACIÓN CORRECTA
+ // 🔥 RELACIÓN CURSOS
     @OneToMany(mappedBy = "puesto", cascade = CascadeType.ALL, orphanRemoval = true)
     @com.fasterxml.jackson.annotation.JsonIgnore
     private List<PuestoCurso> puestoCursos = new ArrayList<>();
@@ -45,8 +45,9 @@ public class Puesto {
                 .toList();
     }
 
-    // 🔥 CAPACITACIONES (lo dejas igual)
+ // 🔥 RELACIÓN CAPACITACIONES (FALTABA IGNORE)
     @OneToMany(mappedBy = "puesto")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<PuestoCapacitacion> puestoCapacitaciones;
 
     @Transient
@@ -66,4 +67,6 @@ public class Puesto {
     
     @Transient
     private List<Capacitacion> capacitaciones;
+    
+    
 }

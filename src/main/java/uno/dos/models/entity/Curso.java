@@ -34,7 +34,13 @@ public class Curso {
     @Column(name = "clave_area_tematica")
     private String claveAreaTematica;
 
-    private Integer duracion;
+    // 🔥 NUEVO: HORAS DEL CURSO
+    @Column(name = "horas")
+    private Integer horas;
+
+    // 🔥 NUEVO: VIGENCIA DEL CURSO (MESES)
+    @Column(name = "vigencia_meses")
+    private Integer vigenciaMeses;
 
     @Enumerated(EnumType.STRING)
     private TipoCurso tipoCurso;
@@ -58,12 +64,12 @@ public class Curso {
 
     private boolean activo;
 
-    // 🔥 RELACIÓN CORRECTA CON PUESTO_CURSO
-    @OneToMany(mappedBy = "curso", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private List<PuestoCurso> puestoCursos = new ArrayList<>();
-    
-    // 🔥 SOLO PARA USO EN VISTA
+    // 🔥 RELACIÓN CON PUESTO_CURSO
+    @OneToMany(mappedBy = "curso")
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private List<PuestoCurso> puestoCursos;
+
+    // 🔥 SOLO PARA VISTA
     @Transient
     public List<Puesto> getPuestos() {
         return puestoCursos.stream()
@@ -72,7 +78,7 @@ public class Curso {
     }
 
     // ===============================
-    // LO QUE YA TENÍAS (BIEN)
+    // CAPACITACIONES
     // ===============================
 
     @OneToMany(mappedBy = "curso")
@@ -84,6 +90,7 @@ public class Curso {
         return nombreCurso;
     }
 
+    // 🔥 HORAS USADAS
     @Transient
     public int getHorasUsadas(){
         return capacitaciones.stream()
@@ -91,11 +98,13 @@ public class Curso {
             .sum();
     }
 
+    // 🔥 HORAS RESTANTES (YA CORRECTO)
     @Transient
     public int getHorasRestantes(){
-        return duracion != null ? duracion - getHorasUsadas() : 0;
+        return horas != null ? horas - getHorasUsadas() : 0;
     }
 
+    // 🔥 TOTAL INSCRITOS
     @Transient
     public int getTotalInscritos(){
         return capacitaciones.stream()
@@ -104,6 +113,17 @@ public class Curso {
             .sum();
     }
 
+    // 🔥 NUEVO: CALCULAR VENCIMIENTO
+    @Transient
+    public LocalDate calcularVencimiento(LocalDate fechaFinCapacitacion){
+        if(fechaFinCapacitacion == null || vigenciaMeses == null){
+            return null;
+        }
+        return fechaFinCapacitacion.plusMonths(vigenciaMeses);
+    }
+
     @Column(length = 1000)
     private String comentarios;
+    
+    
 }

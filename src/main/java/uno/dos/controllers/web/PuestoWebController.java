@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.thymeleaf.TemplateEngine;
@@ -62,6 +63,8 @@ public class PuestoWebController {
 
         model.addAttribute("puesto", new Puesto());
         model.addAttribute("tiposTrabajador", TipoTrabajador.values());
+
+        // 🔥 inicialmente todos (o vacíos si prefieres)
         model.addAttribute("cursos", cursoService.listarActivos());
 
         return "puestos/form";
@@ -257,6 +260,12 @@ public class PuestoWebController {
         }
 
         return "redirect:/puestos/eliminados";
+    }
+    
+    @GetMapping("/cursos-por-tipo/{tipo}")
+    @ResponseBody
+    public List<Curso> cursosPorTipo(@PathVariable TipoTrabajador tipo){
+        return cursoService.filtrarPorTipo(tipo);
     }
     
 

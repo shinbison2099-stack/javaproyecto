@@ -15,11 +15,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddressList;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import lombok.RequiredArgsConstructor;
 import uno.dos.models.entity.Capacitacion;
 import uno.dos.models.entity.CapacitacionTrabajador;
 import uno.dos.models.entity.EvaluacionCapacitacion;
 import uno.dos.models.entity.Instructores;
+import uno.dos.models.entity.TipoInstructor;
 import uno.dos.models.entity.Trabajador;
 import uno.dos.repositories.CapacitacionTrabajadorRepository;
 import uno.dos.repositories.EvaluacionCapacitacionRepository;
@@ -29,6 +33,9 @@ import uno.dos.services.InstructorService;
 import uno.dos.services.TrabajadorService;
 import org.thymeleaf.context.Context;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.ByteArrayOutputStream;
 import org.springframework.http.ResponseEntity;
 import org.thymeleaf.TemplateEngine;
@@ -240,12 +247,11 @@ public class CapacitacionWebController {
                 try {
 
                     Row row = sheet.getRow(i);
-
                     if (row == null) continue;
 
                     String clave = formatter.formatCellValue(row.getCell(0)).trim();
 
-                    // 🔴 FILA VACÍA
+                    // 🔴 VACÍO
                     if (clave.isBlank()) continue;
 
                     // 🔴 DUPLICADO
@@ -257,77 +263,66 @@ public class CapacitacionWebController {
                     Capacitacion cap = new Capacitacion();
 
                     cap.setClaveCapacitacion(clave);
-
-                    cap.setNombreCapacitacion(
-                            formatter.formatCellValue(row.getCell(1)).trim());
-
-                    cap.setDescripcion(
-                            formatter.formatCellValue(row.getCell(2)).trim());
-
-                    cap.setTipoCapacitacion(
-                            formatter.formatCellValue(row.getCell(3)).trim().toUpperCase());
-
-                    cap.setModalidad(
-                            formatter.formatCellValue(row.getCell(4)).trim().toUpperCase());
+                    cap.setNombreCapacitacion(formatter.formatCellValue(row.getCell(1)).trim());
+                    cap.setDescripcion(formatter.formatCellValue(row.getCell(2)).trim());
+                    cap.setTipoCapacitacion(formatter.formatCellValue(row.getCell(3)).trim().toUpperCase());
+                    cap.setModalidad(formatter.formatCellValue(row.getCell(4)).trim().toUpperCase());
 
                     // 🔢 DURACIÓN
-                    String duracion = formatter.formatCellValue(row.getCell(5)).trim();
-                    if (!duracion.isBlank()) {
-                        cap.setDuracionHoras(Integer.parseInt(duracion));
-                    }
+                    cap.setDuracionHoras(parseEntero(row.getCell(5), formatter));
 
-                    // 📅 FECHA INICIO (EXCEL NUMÉRICO)
-                    if (row.getCell(6) != null &&
-                            row.getCell(6).getCellType() == CellType.NUMERIC &&
-                            DateUtil.isCellDateFormatted(row.getCell(6))) {
-
-                        cap.setFechaInicio(
-                                row.getCell(6).getLocalDateTimeCellValue().toLocalDate());
-                    }
-
-                    // 📅 FECHA FIN
-                    if (row.getCell(7) != null &&
-                            row.getCell(7).getCellType() == CellType.NUMERIC &&
-                            DateUtil.isCellDateFormatted(row.getCell(7))) {
-
-                        cap.setFechaFin(
-                                row.getCell(7).getLocalDateTimeCellValue().toLocalDate());
-                    }
+                    // 📅 FECHAS
+                    cap.setFechaInicio(parseFecha(row.getCell(6), formatter));
+                    cap.setFechaFin(parseFecha(row.getCell(7), formatter));
 
                     // 📆 VIGENCIA
-                    String vigencia = formatter.formatCellValue(row.getCell(8)).trim();
-                    if (!vigencia.isBlank()) {
-                        cap.setVigenciaMeses(Integer.parseInt(vigencia));
-                    }
+                    cap.setVigenciaMeses(parseEntero(row.getCell(8), formatter));
 
-                    // 👨‍🏫 INSTRUCTOR
-                    String nombreInstructor =
-                            formatter.formatCellValue(row.getCell(9)).trim();
+                    // 👨‍🏫 INSTRUCTOR (SOLUCIÓN REAL 🔥)
+                    String nombreInstructor = formatter.formatCellValue(row.getCell(9)).trim();
 
                     if (!nombreInstructor.isBlank()) {
 
-                        Instructores inst =
-                                instructorService.buscarPorNombre(nombreInstructor);
+                        Instructores inst = instructorService.buscarPorNombre(nombreInstructor);
 
-                        if (inst != null) {
-                            cap.setInstructor(inst);
-                        } else {
-                            System.out.println("Instructor no encontrado: " + nombreInstructor);
+                        if (inst == null) {
+
+                            // 🔥 CREAR CON DATOS COMPLETOS (EVITA ERROR NOT NULL)
+                            inst = new Instructores();
+
+                            inst.setNombre(nombreInstructor);
+
+                            // 🔥 EMAIL AUTOMÁTICO
+                            String email = nombreInstructor
+                                    .toLowerCase()
+                                    .replace(" ", ".") + "@empresa.com";
+
+                            inst.setEmail(email);
+
+                            // 🔥 PASSWORD DEFAULT
+                            inst.setPassword("123456");
+
+                            // 🔥 TIPO DEFAULT (ajusta si usas enum)
+                            inst.setTipo(TipoInstructor.INTERNO);
+
+                            inst.setActivo(true);
+
+                            inst = instructorService.guardar(inst);
+
+                            System.out.println("🆕 Instructor creado: " + nombreInstructor);
                         }
+
+                        cap.setInstructor(inst);
                     }
 
                     cap.setActivo(true);
 
                     capacitacionService.guardar(cap);
-
                     importados++;
 
                 } catch (Exception e) {
-
                     errores++;
-
-                    System.out.println("❌ Error en fila: " + i);
-                    e.printStackTrace();
+                    System.out.println("❌ Error en fila " + i + ": " + e.getMessage());
                 }
             }
 
@@ -340,6 +335,90 @@ public class CapacitacionWebController {
         System.out.println("❌ Errores: " + errores);
 
         return "redirect:/capacitaciones";
+    }
+    
+    @GetMapping("/plantilla")
+    public void descargarPlantilla(HttpServletResponse response) {
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+
+            Sheet sheet = workbook.createSheet("Capacitaciones");
+
+            // 🔥 ENCABEZADOS (ORDEN EXACTO DE TU IMPORT)
+            Row header = sheet.createRow(0);
+
+            header.createCell(0).setCellValue("claveCapacitacion");
+            header.createCell(1).setCellValue("nombreCapacitacion");
+            header.createCell(2).setCellValue("descripcion");
+            header.createCell(3).setCellValue("tipoCapacitacion");
+            header.createCell(4).setCellValue("modalidad");
+            header.createCell(5).setCellValue("duracionHoras");
+            header.createCell(6).setCellValue("fechaInicio");
+            header.createCell(7).setCellValue("fechaFin");
+            header.createCell(8).setCellValue("vigenciaMeses");
+            header.createCell(9).setCellValue("instructor");
+
+            // 🔥 EJEMPLO
+            Row ejemplo = sheet.createRow(1);
+
+            ejemplo.createCell(0).setCellValue("CAP001");
+            ejemplo.createCell(1).setCellValue("Seguridad Industrial");
+            ejemplo.createCell(2).setCellValue("Uso de equipo de seguridad");
+            ejemplo.createCell(3).setCellValue("TECNICA");
+            ejemplo.createCell(4).setCellValue("PRESENCIAL");
+            ejemplo.createCell(5).setCellValue(8);
+            ejemplo.createCell(6).setCellValue("2026-01-10");
+            ejemplo.createCell(7).setCellValue("2026-01-12");
+            ejemplo.createCell(8).setCellValue(12);
+            ejemplo.createCell(9).setCellValue("Juan Perez");
+
+            // =========================================
+            // 🔥 VALIDACIONES (DROP DOWN)
+            // =========================================
+
+            DataValidationHelper helper = sheet.getDataValidationHelper();
+
+            // Tipo Capacitación
+            DataValidationConstraint tipoConstraint =
+                    helper.createExplicitListConstraint(
+                            new String[]{"TECNICA", "ADMINISTRATIVA", "SEGURIDAD"});
+
+            CellRangeAddressList tipoRange =
+                    new CellRangeAddressList(1, 100, 3, 3);
+
+            sheet.addValidationData(helper.createValidation(tipoConstraint, tipoRange));
+
+            // Modalidad
+            DataValidationConstraint modalidadConstraint =
+                    helper.createExplicitListConstraint(
+                            new String[]{"PRESENCIAL", "ONLINE", "MIXTA"});
+
+            CellRangeAddressList modalidadRange =
+                    new CellRangeAddressList(1, 100, 4, 4);
+
+            sheet.addValidationData(helper.createValidation(modalidadConstraint, modalidadRange));
+
+            // =========================================
+
+            // 🔥 AUTO SIZE
+            for (int i = 0; i <= 9; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            // 🔥 RESPUESTA
+            response.setContentType(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+            response.setHeader(
+                    "Content-Disposition",
+                    "attachment; filename=plantilla_capacitaciones.xlsx");
+
+            workbook.write(response.getOutputStream());
+            response.getOutputStream().flush();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
     @GetMapping("/pdf")
@@ -465,6 +544,42 @@ public class CapacitacionWebController {
             return "redirect:/capacitaciones/eliminadas";
         }
         
+        
+        
+        private Integer parseEntero(Cell cell, DataFormatter formatter){
+            try {
+                String texto = formatter.formatCellValue(cell).trim();
+                texto = texto.replaceAll("[^0-9]", ""); // limpia "12 meses"
+                return texto.isBlank() ? 0 : Integer.parseInt(texto);
+            } catch (Exception e){
+                return 0;
+            }
+        }
+        
+        private LocalDate parseFecha(Cell cell, DataFormatter formatter){
+
+            try {
+
+                if (cell == null) return null;
+
+                if (cell.getCellType() == CellType.NUMERIC &&
+                    DateUtil.isCellDateFormatted(cell)) {
+
+                    return cell.getLocalDateTimeCellValue().toLocalDate();
+                }
+
+                String texto = formatter.formatCellValue(cell).trim();
+
+                if (!texto.isBlank()) {
+                    return LocalDate.parse(texto);
+                }
+
+            } catch (Exception e){
+                return null;
+            }
+
+            return null;
+        }
        
 
 }
