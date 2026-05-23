@@ -2,11 +2,19 @@ package uno.dos.controllers.web;
 
 import java.util.List;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.DataValidation;
+import org.apache.poi.ss.usermodel.DataValidationConstraint;
+import org.apache.poi.ss.usermodel.DataValidationHelper;
+import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.util.CellRangeAddressList;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -32,6 +40,8 @@ import uno.dos.services.PuestoService;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 
 
@@ -157,66 +167,266 @@ public class PuestoWebController {
     }
     
     @PostMapping("/importar")
-    public String importarExcel(@RequestParam MultipartFile archivo){
+    public String importarExcel(
+            @RequestParam MultipartFile archivo){
 
-        try(Workbook workbook = WorkbookFactory.create(archivo.getInputStream())){
+        try(Workbook workbook =
+                    WorkbookFactory.create(
+                            archivo.getInputStream())){
 
             Sheet sheet = workbook.getSheetAt(0);
-            DataFormatter formatter = new DataFormatter();
 
-            for(int i = 1; i <= sheet.getLastRowNum(); i++){
+            DataFormatter formatter =
+                    new DataFormatter();
 
-                Row row = sheet.getRow(i);
-
-                if(row == null) continue;
-
-                String nombre = formatter.formatCellValue(row.getCell(0)).trim();
-                String nivelTexto = formatter.formatCellValue(row.getCell(1)).trim();
-                String tipoTexto = formatter.formatCellValue(row.getCell(2)).trim();
-
-                // 🔥 VALIDACIÓN BÁSICA
-                if(nombre.isEmpty()){
-                    continue;
-                }
-
-                Integer nivel = 0;
+            for(int i = 1;
+                i <= sheet.getLastRowNum();
+                i++){
 
                 try{
-                    if(!nivelTexto.isEmpty()){
-                        nivel = Integer.parseInt(nivelTexto);
+
+                    Row row = sheet.getRow(i);
+
+                    if(row == null) continue;
+
+                    // =====================================
+                    // 🔥 DATOS
+                    // =====================================
+
+                    String nombre =
+                            formatter.formatCellValue(
+                                    row.getCell(0)
+                            ).trim();
+
+                    String nivelTexto =
+                            formatter.formatCellValue(
+                                    row.getCell(1)
+                            ).trim();
+
+                    String tipoTexto =
+                            formatter.formatCellValue(
+                                    row.getCell(2)
+                            ).trim();
+
+                    // 🔥 CURSOS
+                    String cursosTexto =
+                            formatter.formatCellValue(
+                                    row.getCell(3)
+                            ).trim();
+
+                    // =====================================
+                    // 🔥 VALIDACIÓN
+                    // =====================================
+
+                    if(nombre.isBlank()){
+
+                        continue;
                     }
-                }catch(Exception e){
-                    nivel = 0;
-                }
 
-                // 🔥 ENUM (AQUÍ ESTÁ LO IMPORTANTE)
-                TipoTrabajador tipo = TipoTrabajador.AMBOS; // default
+                    // =====================================
+                    // 🔥 NIVEL
+                    // =====================================
 
-                try{
-                    if(!tipoTexto.isEmpty()){
-                        tipo = TipoTrabajador.valueOf(tipoTexto.toUpperCase());
+                    Integer nivel = 0;
+
+                    try{
+
+                        if(!nivelTexto.isBlank()){
+
+                            nivel =
+                                    Integer.parseInt(
+                                            nivelTexto
+                                    );
+                        }
+
+                    }catch(Exception e){
+
+                        nivel = 0;
                     }
+
+                    // =====================================
+                    // 🔥 TIPO
+                    // =====================================
+
+                    TipoTrabajador tipo =
+                            TipoTrabajador.AMBOS;
+
+                    try{
+
+                        if(!tipoTexto.isBlank()){
+
+                            tipo =
+                                    TipoTrabajador.valueOf(
+                                            tipoTexto
+                                                    .trim()
+                                                    .toUpperCase()
+                                    );
+                        }
+
+                    }catch(Exception e){
+
+                        tipo =
+                                TipoTrabajador.AMBOS;
+                    }
+
+                    // =====================================
+                    // 🔥 DUPLICADO
+                    // =====================================
+
+                    if(puestoService.existeNombre(
+                            nombre)){
+
+                        continue;
+                    }
+
+                    // =====================================
+                    // 🔥 CREAR PUESTO
+                    // =====================================
+
+                    Puesto p = new Puesto();
+
+                    p.setNombrePuesto(nombre);
+
+                    p.setNivel(nivel);
+
+                    p.setTipoTrabajador(tipo);
+
+                    p.setActivo(true);
+
+                    // 🔥 GUARDAR
+                    Puesto guardado =
+                            puestoService.guardar(p);
+
+                    // =====================================
+                    // 🔥 CURSOS
+                    // =====================================
+
+                    if(!cursosTexto.isBlank()){
+
+                        String[] claves =
+                                cursosTexto.split(",");
+
+                        for(String clave : claves){
+
+                            try{
+
+                                // 🔥 LIMPIAR
+                                clave =
+                                        clave
+                                                .trim()
+                                                .toUpperCase();
+
+                                System.out.println(
+                                        "🔍 Buscando curso: ["
+                                                + clave
+                                                + "]"
+                                );
+
+                                // =====================================
+                                // 🔥 BUSCAR CURSO
+                                // =====================================
+
+                                Curso curso =
+                                        cursoService
+                                                .buscarPorNombreNormalizado(
+                                                        clave
+                                                );
+
+                                System.out.println(
+                                        "✅ Curso encontrado: "
+                                                + curso
+                                );
+
+                                // 🔥 NO EXISTE
+                                if(curso == null){
+
+                                    System.out.println(
+                                            "❌ No existe curso: "
+                                                    + clave
+                                    );
+
+                                    continue;
+                                }
+
+                                // =====================================
+                                // 🔥 VALIDAR TIPO
+                                // =====================================
+
+                                boolean valido = false;
+
+                                // 🔵 PUESTO AMBOS
+                                if(tipo ==
+                                        TipoTrabajador.AMBOS){
+
+                                    valido = true;
+                                }
+
+                                // 🔵 CURSO AMBOS
+                                else if(curso.getTipoTrabajador()
+                                        ==
+                                        TipoTrabajador.AMBOS){
+
+                                    valido = true;
+                                }
+
+                                // 🔵 MISMO TIPO
+                                else if(curso.getTipoTrabajador()
+                                        ==
+                                        tipo){
+
+                                    valido = true;
+                                }
+
+                                // =====================================
+                                // 🔥 ASIGNAR
+                                // =====================================
+
+                                if(valido){
+
+                                    System.out.println(
+                                            "🔥 Asignando curso: "
+                                                    + curso.getNombreCurso()
+                                    );
+
+                                    puestoService
+                                            .asignarCurso(
+                                                    guardado.getId(),
+                                                    curso.getId()
+                                            );
+
+                                }else{
+
+                                    System.out.println(
+                                            "⚠️ Curso incompatible: "
+                                                    + curso.getNombreCurso()
+                                    );
+                                }
+
+                            }catch(Exception e){
+
+                                System.out.println(
+                                        "❌ Error curso fila "
+                                                + i
+                                                + ": "
+                                                + e.getMessage()
+                                );
+                            }
+                        }
+                    }
+
                 }catch(Exception e){
-                    // si no coincide, usa default
-                    tipo = TipoTrabajador.AMBOS;
+
+                    System.out.println(
+                            "❌ Error fila "
+                                    + i
+                                    + ": "
+                                    + e.getMessage()
+                    );
                 }
-
-                // 🔥 DUPLICADOS
-                if(puestoService.existeNombre(nombre)){
-                    continue;
-                }
-
-                Puesto p = new Puesto();
-
-                p.setNombrePuesto(nombre);
-                p.setNivel(nivel);
-                p.setTipoTrabajador(tipo);
-                p.setActivo(true);
-
-                puestoService.guardar(p);
             }
 
         }catch(Exception e){
+
             e.printStackTrace();
         }
 
@@ -246,6 +456,197 @@ public class PuestoWebController {
                 .header("Content-Disposition",
                         "attachment; filename=puestos.pdf")
                 .body(os.toByteArray());
+    }
+    
+    @GetMapping("/plantilla")
+    public void descargarPlantilla(
+            HttpServletResponse response){
+
+        try(Workbook workbook =
+                    new XSSFWorkbook()){
+
+            Sheet sheet =
+                    workbook.createSheet(
+                            "Plantilla Puestos"
+                    );
+
+            // =====================================
+            // 🔥 ESTILO HEADER
+            // =====================================
+
+            CellStyle headerStyle =
+                    workbook.createCellStyle();
+
+            Font headerFont =
+                    workbook.createFont();
+
+            headerFont.setBold(true);
+
+            headerStyle.setFont(headerFont);
+
+            // =====================================
+            // 🔥 ENCABEZADOS
+            // =====================================
+
+            Row header = sheet.createRow(0);
+
+            String[] columnas = {
+                    "nombrePuesto",
+                    "nivel",
+                    "tipoTrabajador",
+                    "cursos"
+            };
+
+            for(int i = 0;
+                i < columnas.length;
+                i++){
+
+                Cell cell =
+                        header.createCell(i);
+
+                cell.setCellValue(
+                        columnas[i]
+                );
+
+                cell.setCellStyle(
+                        headerStyle
+                );
+            }
+
+            // =====================================
+            // 🔥 EJEMPLOS
+            // =====================================
+
+            Row ejemplo1 = sheet.createRow(1);
+
+            ejemplo1.createCell(0)
+                    .setCellValue(
+                            "Tecnico Mantenimiento"
+                    );
+
+            ejemplo1.createCell(1)
+                    .setCellValue(1);
+
+            ejemplo1.createCell(2)
+                    .setCellValue("HOURLY");
+
+            ejemplo1.createCell(3)
+                    .setCellValue(
+                            "CUR001,CUR002,CUR003"
+                    );
+
+            // =====================================
+
+            Row ejemplo2 = sheet.createRow(2);
+
+            ejemplo2.createCell(0)
+                    .setCellValue(
+                            "Supervisor Produccion"
+                    );
+
+            ejemplo2.createCell(1)
+                    .setCellValue(2);
+
+            ejemplo2.createCell(2)
+                    .setCellValue("SALARY");
+
+            ejemplo2.createCell(3)
+                    .setCellValue(
+                            "CUR010,CUR011"
+                    );
+
+            // =====================================
+
+            Row ejemplo3 = sheet.createRow(3);
+
+            ejemplo3.createCell(0)
+                    .setCellValue(
+                            "Gerente Planta"
+                    );
+
+            ejemplo3.createCell(1)
+                    .setCellValue(3);
+
+            ejemplo3.createCell(2)
+                    .setCellValue("AMBOS");
+
+            ejemplo3.createCell(3)
+                    .setCellValue(
+                            "CUR001,CUR020"
+                    );
+
+            // =====================================
+            // 🔥 VALIDACIÓN
+            // =====================================
+
+            DataValidationHelper helper =
+                    sheet.getDataValidationHelper();
+
+            DataValidationConstraint tipoConstraint =
+                    helper.createExplicitListConstraint(
+                            new String[]{
+                                    "HOURLY",
+                                    "SALARY",
+                                    "AMBOS"
+                            }
+                    );
+
+            CellRangeAddressList tipoRange =
+                    new CellRangeAddressList(
+                            1,
+                            1000,
+                            2,
+                            2
+                    );
+
+            DataValidation validation =
+                    helper.createValidation(
+                            tipoConstraint,
+                            tipoRange
+                    );
+
+            validation.setShowErrorBox(true);
+
+            validation.setSuppressDropDownArrow(
+                    false
+            );
+
+            sheet.addValidationData(validation);
+
+            // =====================================
+            // 🔥 AUTO SIZE
+            // =====================================
+
+            for(int i = 0;
+                i < columnas.length;
+                i++){
+
+                sheet.autoSizeColumn(i);
+            }
+
+            // =====================================
+            // 🔥 RESPUESTA
+            // =====================================
+
+            response.setContentType(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            );
+
+            response.setHeader(
+                    "Content-Disposition",
+                    "attachment; filename=plantilla_puestos.xlsx"
+            );
+
+            workbook.write(
+                    response.getOutputStream()
+            );
+
+            response.getOutputStream().flush();
+
+        }catch(Exception e){
+
+            e.printStackTrace();
+        }
     }
     
     @PostMapping("/eliminar-masivo")

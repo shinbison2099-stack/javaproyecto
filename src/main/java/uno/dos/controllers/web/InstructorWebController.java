@@ -91,6 +91,10 @@ public class InstructorWebController {
     @PostMapping("/importar")
     public String importarExcel(@RequestParam("archivo") MultipartFile archivo) {
 
+        int importados = 0;
+        int duplicados = 0;
+        int errores = 0;
+
         try (Workbook workbook = WorkbookFactory.create(archivo.getInputStream())) {
 
             Sheet sheet = workbook.getSheetAt(0);
@@ -99,58 +103,138 @@ public class InstructorWebController {
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
 
                 try {
+
                     Row row = sheet.getRow(i);
-                    if (row == null) continue;
 
-                    String nombre = formatter.formatCellValue(row.getCell(0)).trim();
-                    String email = formatter.formatCellValue(row.getCell(1)).trim().toLowerCase();
-                    String password = formatter.formatCellValue(row.getCell(2)).trim();
-                    String tipoTexto = formatter.formatCellValue(row.getCell(3)).trim();
-
-                    // 🔥 VALIDACIONES
-                    if (nombre.isEmpty() || email.isEmpty()) {
-                        System.out.println("Fila " + i + " inválida");
+                    if (row == null) {
                         continue;
                     }
+
+                    // =====================================
+                    // 🔥 LEER CAMPOS
+                    // =====================================
+
+                    String nombre =
+                            formatter.formatCellValue(row.getCell(0)).trim();
+
+                    String email =
+                            formatter.formatCellValue(row.getCell(1))
+                                    .trim()
+                                    .toLowerCase();
+
+                    String password =
+                            formatter.formatCellValue(row.getCell(2)).trim();
+
+                    String tipoTexto =
+                            formatter.formatCellValue(row.getCell(3)).trim();
+
+                    // =====================================
+                    // 🔥 VALIDACIONES
+                    // =====================================
+
+                    if (nombre.isBlank() || email.isBlank()) {
+
+                        System.out.println("⚠️ Fila vacía o inválida: " + i);
+
+                        errores++;
+
+                        continue;
+                    }
+
+                    // =====================================
+                    // 🔥 DUPLICADOS
+                    // =====================================
 
                     if (instructorService.existeEmail(email)) {
-                        System.out.println("Email duplicado: " + email);
+
+                        System.out.println("⚠️ Email duplicado: " + email);
+
+                        duplicados++;
+
                         continue;
                     }
 
-                    // 🔥 TIPO FLEXIBLE
+                    // =====================================
+                    // 🔥 TIPO
+                    // =====================================
+
                     TipoInstructor tipo;
 
-                    if (tipoTexto.equalsIgnoreCase("interno") || tipoTexto.equalsIgnoreCase("i")) {
+                    if (tipoTexto.equalsIgnoreCase("interno")
+                            || tipoTexto.equalsIgnoreCase("i")) {
+
                         tipo = TipoInstructor.INTERNO;
-                    } else if (tipoTexto.equalsIgnoreCase("externo") || tipoTexto.equalsIgnoreCase("e")) {
+
+                    } else if (tipoTexto.equalsIgnoreCase("externo")
+                            || tipoTexto.equalsIgnoreCase("e")) {
+
                         tipo = TipoInstructor.EXTERNO;
+
                     } else {
-                        System.out.println("Tipo inválido en fila " + i + ": " + tipoTexto);
-                        continue;
+
+                        // 🔥 DEFAULT
+                        tipo = TipoInstructor.INTERNO;
                     }
 
-                    // 🔥 CREAR
+                    // =====================================
+                    // 🔥 PASSWORD DEFAULT
+                    // =====================================
+
+                    if (password.isBlank()) {
+
+                        password = "12345";
+                    }
+
+                    // =====================================
+                    // 🔥 CREAR INSTRUCTOR
+                    // =====================================
+
                     Instructores instructor = new Instructores();
+
                     instructor.setNombre(nombre);
                     instructor.setEmail(email);
                     instructor.setPassword(password);
 
                     instructor.setRol(Rol.INSTRUCTOR);
+
                     instructor.setActivo(true);
+
+                    // 🔥 INTERNO / EXTERNO
                     instructor.setTipo(tipo);
+
+                    // =====================================
+                    // 🔥 GUARDAR
+                    // =====================================
 
                     instructorService.guardar(instructor);
 
+                    importados++;
+
                 } catch (Exception e) {
-                    System.out.println("Error en fila " + i + ": " + e.getMessage());
-                    continue;
+
+                    errores++;
+
+                    System.out.println(
+                            "❌ Error en fila "
+                                    + i
+                                    + ": "
+                                    + e.getMessage()
+                    );
                 }
             }
 
         } catch (Exception e) {
+
             e.printStackTrace();
         }
+
+        // =====================================
+        // 🔥 RESUMEN
+        // =====================================
+
+        System.out.println("✅ Importados: " + importados);
+        System.out.println("⚠️ Duplicados: " + duplicados);
+        System.out.println("❌ Errores: " + errores);
 
         return "redirect:/instructores";
     }
@@ -263,53 +347,122 @@ public class InstructorWebController {
 
             Sheet sheet = workbook.createSheet("Plantilla");
 
+            // =====================================
+            // 🔥 ESTILO HEADER
+            // =====================================
+
+            CellStyle headerStyle = workbook.createCellStyle();
+
+            Font headerFont = workbook.createFont();
+
+            headerFont.setBold(true);
+
+            headerStyle.setFont(headerFont);
+
+            // =====================================
             // 🔥 ENCABEZADOS
+            // =====================================
+
             Row header = sheet.createRow(0);
-            header.createCell(0).setCellValue("nombre");
-            header.createCell(1).setCellValue("email");
-            header.createCell(2).setCellValue("password");
-            header.createCell(3).setCellValue("tipo"); // 🔥 CAMBIO
 
+            String[] columnas = {
+                    "nombre",
+                    "email",
+                    "password",
+                    "tipo"
+            };
+
+            for (int i = 0; i < columnas.length; i++) {
+
+                Cell cell = header.createCell(i);
+
+                cell.setCellValue(columnas[i]);
+
+                cell.setCellStyle(headerStyle);
+            }
+
+            // =====================================
             // 🔥 FILA EJEMPLO
+            // =====================================
+
             Row ejemplo = sheet.createRow(1);
-            ejemplo.createCell(0).setCellValue("Juan Perez");
-            ejemplo.createCell(1).setCellValue("juan@mail.com");
-            ejemplo.createCell(2).setCellValue("1234");
-            ejemplo.createCell(3).setCellValue("INTERNO"); // 🔥 CAMBIO
+
+            ejemplo.createCell(0)
+                    .setCellValue("Juan Perez");
+
+            ejemplo.createCell(1)
+                    .setCellValue("juan@mail.com");
+
+            ejemplo.createCell(2)
+                    .setCellValue("1234");
+
+            ejemplo.createCell(3)
+                    .setCellValue("INTERNO");
 
             // =====================================
-            // 🔥 VALIDACIÓN (TIPO)
+            // 🔥 VALIDACIÓN TIPO
             // =====================================
 
-            DataValidationHelper helper = sheet.getDataValidationHelper();
+            DataValidationHelper helper =
+                    sheet.getDataValidationHelper();
 
             DataValidationConstraint constraint =
-                    helper.createExplicitListConstraint(new String[]{"INTERNO", "EXTERNO"});
+                    helper.createExplicitListConstraint(
+                            new String[]{
+                                    "INTERNO",
+                                    "EXTERNO"
+                            }
+                    );
 
-            // columna 3 = tipo
-            CellRangeAddressList addressList = new CellRangeAddressList(1, 1000, 3, 3);
+            // 🔥 COLUMNA 3
+            CellRangeAddressList addressList =
+                    new CellRangeAddressList(
+                            1,
+                            1000,
+                            3,
+                            3
+                    );
 
-            DataValidation validation = helper.createValidation(constraint, addressList);
+            DataValidation validation =
+                    helper.createValidation(
+                            constraint,
+                            addressList
+                    );
+
             validation.setShowErrorBox(true);
+
             validation.setSuppressDropDownArrow(false);
 
             sheet.addValidationData(validation);
 
             // =====================================
-
             // 🔥 AUTO SIZE
-            for (int i = 0; i < 4; i++) {
+            // =====================================
+
+            for (int i = 0; i < columnas.length; i++) {
+
                 sheet.autoSizeColumn(i);
             }
 
+            // =====================================
             // 🔥 RESPUESTA
-            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.setHeader("Content-Disposition", "attachment; filename=plantilla_instructores.xlsx");
+            // =====================================
+
+            response.setContentType(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            );
+
+            response.setHeader(
+                    "Content-Disposition",
+                    "attachment; filename=plantilla_instructores.xlsx"
+            );
 
             workbook.write(response.getOutputStream());
+
             response.getOutputStream().flush();
 
         } catch (Exception e) {
+
             e.printStackTrace();
         }
     }

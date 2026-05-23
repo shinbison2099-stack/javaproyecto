@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,13 +25,17 @@ import uno.dos.models.entity.Capacitacion;
 import uno.dos.models.entity.CapacitacionTrabajador;
 import uno.dos.models.entity.EvaluacionCapacitacion;
 import uno.dos.models.entity.Instructores;
+import uno.dos.models.entity.NivelSkill;
+import uno.dos.models.entity.SkillMatrix;
 import uno.dos.models.entity.TipoInstructor;
+import uno.dos.models.entity.TipoTrabajador;
 import uno.dos.models.entity.Trabajador;
 import uno.dos.repositories.CapacitacionTrabajadorRepository;
 import uno.dos.repositories.EvaluacionCapacitacionRepository;
 import uno.dos.services.CapacitacionService;
 import uno.dos.services.InscripcionService;
 import uno.dos.services.InstructorService;
+import uno.dos.services.SkillMatrixService;
 import uno.dos.services.TrabajadorService;
 import org.thymeleaf.context.Context;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
@@ -52,6 +58,7 @@ public class CapacitacionWebController {
     private final TemplateEngine templateEngine;
     private final EvaluacionCapacitacionRepository evaluacionRepository;
     private final InscripcionService inscripcionService;
+    private final SkillMatrixService skillMatrixService;
     /* ===============================
        LISTAR
        =============================== */
@@ -84,13 +91,7 @@ public class CapacitacionWebController {
        =============================== */
 
     @PostMapping("/guardar")
-    public String guardar(@ModelAttribute Capacitacion capacitacion,
-                          @RequestParam Long instructor){
-
-        Instructores inst =
-                instructorService.buscarPorId(instructor).orElseThrow();
-
-        capacitacion.setInstructor(inst);
+    public String guardar(@ModelAttribute Capacitacion capacitacion){
 
         capacitacion.setActivo(true);
 
@@ -122,19 +123,12 @@ public class CapacitacionWebController {
        =============================== */
 
     @PostMapping("/actualizar")
-    public String actualizar(@ModelAttribute Capacitacion capacitacion,
-                             @RequestParam Long instructor){
-
-        Instructores inst =
-                instructorService.buscarPorId(instructor).orElseThrow();
-
-        capacitacion.setInstructor(inst);
+    public String actualizar(@ModelAttribute Capacitacion capacitacion){
 
         capacitacionService.guardar(capacitacion);
 
         return "redirect:/capacitaciones";
     }
-
     /* ===============================
        ELIMINAR
        =============================== */
@@ -152,36 +146,77 @@ public class CapacitacionWebController {
        =============================== */
 
     @GetMapping("/{id:[0-9]+}")
-    public String verCapacitacion(@PathVariable Long id, Model model){
+    public String verCapacitacion(@PathVariable Long id,
+                                  Model model){
 
         Capacitacion capacitacion = capacitacionService
                 .buscarPorId(id)
                 .orElseThrow();
 
-        List<CapacitacionTrabajador> inscripciones = capacitacionTrabajadorRepository.findByCapacitacionIdAndActivoTrue(id);
+        // =====================================
+        // 🔥 SOLO SALARY Y AMBOS
+        // =====================================
 
-        Map<Long, EvaluacionCapacitacion> evaluaciones = new HashMap<>();
+        if(capacitacion.getTipoTrabajador()
+                == TipoTrabajador.HOURLY){
+
+            return "redirect:/skillmatrix";
+        }
+
+        // =====================================
+        // 🔥 INSCRIPCIONES
+        // =====================================
+
+        List<CapacitacionTrabajador> inscripciones =
+                capacitacionTrabajadorRepository
+                .findByCapacitacionIdAndActivoTrue(id);
+
+        Map<Long, EvaluacionCapacitacion> evaluaciones =
+                new HashMap<>();
 
         for(CapacitacionTrabajador ins : inscripciones){
 
-            List<EvaluacionCapacitacion> lista = evaluacionRepository
+            List<EvaluacionCapacitacion> lista =
+                    evaluacionRepository
                     .findByTrabajador_IdAndCapacitacion_Id(
+
                             ins.getTrabajador().getId(),
                             capacitacion.getId()
                     );
 
-            EvaluacionCapacitacion ev = lista.isEmpty() ? null : lista.get(0);
+            EvaluacionCapacitacion ev =
+                    lista.isEmpty() ? null : lista.get(0);
 
-            evaluaciones.put(ins.getTrabajador().getId(), ev);
+            evaluaciones.put(
+                    ins.getTrabajador().getId(),
+                    ev
+            );
         }
 
-        // 🔥 ESTA LÍNEA TE FALTABA
-        model.addAttribute("trabajadores",
-                trabajadorService.listarActivos());
+        // =====================================
+        // 🔥 SOLO TRABAJADORES SALARY
+        // =====================================
 
-        model.addAttribute("capacitacion", capacitacion);
-        model.addAttribute("inscripciones", inscripciones);
-        model.addAttribute("evaluaciones", evaluaciones);
+        model.addAttribute(
+                "trabajadores",
+
+                trabajadorService.buscarSalaryYAmbos()
+        );
+
+        model.addAttribute(
+                "capacitacion",
+                capacitacion
+        );
+
+        model.addAttribute(
+                "inscripciones",
+                inscripciones
+        );
+
+        model.addAttribute(
+                "evaluaciones",
+                evaluaciones
+        );
 
         return "capacitaciones/detalle";
     }
@@ -277,6 +312,23 @@ public class CapacitacionWebController {
 
                     // 📆 VIGENCIA
                     cap.setVigenciaMeses(parseEntero(row.getCell(8), formatter));
+                    
+                 // 🔥 TIPO TRABAJADOR
+                    try {
+
+                        String tipoTexto =
+                                formatter.formatCellValue(row.getCell(10))
+                                        .trim()
+                                        .toUpperCase();
+
+                        cap.setTipoTrabajador(
+                                TipoTrabajador.valueOf(tipoTexto)
+                        );
+
+                    } catch (Exception e){
+
+                        cap.setTipoTrabajador(TipoTrabajador.AMBOS);
+                    }
 
                     // 👨‍🏫 INSTRUCTOR (SOLUCIÓN REAL 🔥)
                     String nombreInstructor = formatter.formatCellValue(row.getCell(9)).trim();
@@ -357,6 +409,7 @@ public class CapacitacionWebController {
             header.createCell(7).setCellValue("fechaFin");
             header.createCell(8).setCellValue("vigenciaMeses");
             header.createCell(9).setCellValue("instructor");
+            header.createCell(10).setCellValue("tipoTrabajador");
 
             // 🔥 EJEMPLO
             Row ejemplo = sheet.createRow(1);
@@ -371,6 +424,7 @@ public class CapacitacionWebController {
             ejemplo.createCell(7).setCellValue("2026-01-12");
             ejemplo.createCell(8).setCellValue(12);
             ejemplo.createCell(9).setCellValue("Juan Perez");
+            ejemplo.createCell(10).setCellValue("AMBOS");
 
             // =========================================
             // 🔥 VALIDACIONES (DROP DOWN)
@@ -397,11 +451,26 @@ public class CapacitacionWebController {
                     new CellRangeAddressList(1, 100, 4, 4);
 
             sheet.addValidationData(helper.createValidation(modalidadConstraint, modalidadRange));
+            
+         // 🔥 Tipo Trabajador
+            DataValidationConstraint tipoTrabajadorConstraint =
+                    helper.createExplicitListConstraint(
+                            new String[]{"SALARY", "HOURLY", "AMBOS"});
+
+            CellRangeAddressList tipoTrabajadorRange =
+                    new CellRangeAddressList(1, 100, 10, 10);
+
+            sheet.addValidationData(
+                    helper.createValidation(
+                            tipoTrabajadorConstraint,
+                            tipoTrabajadorRange
+                    )
+            );
 
             // =========================================
 
             // 🔥 AUTO SIZE
-            for (int i = 0; i <= 9; i++) {
+            for (int i = 0; i <= 10; i++) {
                 sheet.autoSizeColumn(i);
             }
 
@@ -503,32 +572,203 @@ public class CapacitacionWebController {
     
     
     @GetMapping("/{id}/trabajadores")
-    public String verTrabajadores(@PathVariable Long id, Model model){
+    public String verTrabajadores(
+            @PathVariable Long id,
+            Model model){
 
-        Capacitacion cap = capacitacionService.buscarPorId(id).orElseThrow();
+        // =====================================
+        // 🔥 CAPACITACIÓN
+        // =====================================
+
+        Capacitacion cap =
+                capacitacionService
+                        .buscarPorId(id)
+                        .orElseThrow();
+
+        // =====================================
+        // 🔥 DISPONIBLES
+        // =====================================
 
         List<Trabajador> disponibles =
-                trabajadorService.disponiblesParaCapacitacion(id);
+                trabajadorService
+                        .disponiblesParaCapacitacion(id);
 
-        model.addAttribute("capacitacion", cap);
+        // =====================================
+        // 🔥 HOURLY
+        // =====================================
 
-        // 🔥 SOLO ESTA LÍNEA
-        model.addAttribute("trabajadores", disponibles);
+        if(cap.getTipoTrabajador()
+                == TipoTrabajador.HOURLY){
+
+            disponibles =
+                    disponibles.stream()
+
+                            .filter(t ->
+
+                                    t.getTipoTrabajador()
+                                            == TipoTrabajador.HOURLY
+
+                                    ||
+
+                                    t.getTipoTrabajador()
+                                            == TipoTrabajador.AMBOS
+                            )
+
+                            .toList();
+        }
+
+        // =====================================
+        // 🔥 SALARY
+        // =====================================
+
+        else if(cap.getTipoTrabajador()
+                == TipoTrabajador.SALARY){
+
+            disponibles =
+                    disponibles.stream()
+
+                            .filter(t ->
+
+                                    t.getTipoTrabajador()
+                                            == TipoTrabajador.SALARY
+
+                                    ||
+
+                                    t.getTipoTrabajador()
+                                            == TipoTrabajador.AMBOS
+                            )
+
+                            .toList();
+        }
+
+        // =====================================
+        // 🔥 AMBOS
+        // =====================================
+
+        else if(cap.getTipoTrabajador()
+                == TipoTrabajador.AMBOS){
+
+            disponibles =
+                    disponibles.stream()
+
+                            .filter(t ->
+
+                                    t.getTipoTrabajador()
+                                            == TipoTrabajador.HOURLY
+
+                                    ||
+
+                                    t.getTipoTrabajador()
+                                            == TipoTrabajador.SALARY
+
+                                    ||
+
+                                    t.getTipoTrabajador()
+                                            == TipoTrabajador.AMBOS
+                            )
+
+                            .toList();
+        }
+
+        // =====================================
+
+        model.addAttribute(
+                "capacitacion",
+                cap
+        );
+
+        model.addAttribute(
+                "trabajadores",
+                disponibles
+        );
 
         return "capacitaciones/asignar-trabajadores";
     }
     
-        @PostMapping("/asignar")
-        public String asignarTrabajadores(@RequestParam Long capId,
-                                         @RequestParam List<Long> trabajadoresIds){
+    @PostMapping("/asignar")
+    public String asignarTrabajadores(
 
-            for(Long trabId : trabajadoresIds){
-                inscripcionService.asignarCapacitacion(trabId, capId);
+            @RequestParam Long capId,
+
+            @RequestParam List<Long> trabajadoresIds){
+
+        // =====================================
+        // 🔥 BUSCAR CAPACITACIÓN
+        // =====================================
+
+        Capacitacion capacitacion =
+                capacitacionService
+                .buscarPorId(capId)
+                .orElseThrow();
+
+        for(Long trabId : trabajadoresIds){
+
+            // =====================================
+            // 🔥 INSCRIPCIÓN NORMAL
+            // =====================================
+
+            inscripcionService
+                    .asignarCapacitacion(
+                            trabId,
+                            capId
+                    );
+
+            // =====================================
+            // 🔥 BUSCAR TRABAJADOR
+            // =====================================
+
+            Trabajador trabajador =
+                    trabajadorService
+                    .buscarPorId(trabId)
+                    .orElseThrow();
+
+            // =====================================
+            // 🔥 SI ES HOURLY
+            // =====================================
+
+            if(capacitacion.getTipoTrabajador()
+                    == TipoTrabajador.HOURLY){
+
+                Optional<SkillMatrix> existente =
+
+                        skillMatrixService
+                        .buscarPorTrabajadorYCapacitacion(
+
+                                trabajador.getId(),
+                                capacitacion.getId()
+                        );
+
+                // =====================================
+                // 🔥 EVITAR DUPLICADOS
+                // =====================================
+
+                if(existente.isEmpty()){
+
+                    SkillMatrix skill =
+                            new SkillMatrix();
+
+                    skill.setTrabajador(trabajador);
+
+                    skill.setCapacitacion(capacitacion);
+
+                    // 🔥 INICIA VACIO
+                    skill.setNivel(
+                            NivelSkill.VACIO
+                    );
+
+                    skill.setActivo(true);
+
+                    skillMatrixService.guardar(skill);
+                }
             }
-
-            // 🔥 REDIRECT CORRECTO
-            return "redirect:/cursos/asignados";
         }
+
+        // =====================================
+        // 🔥 REDIRECT
+        // =====================================
+
+        return "redirect:/cursos/asignados";
+    }
         
         @GetMapping("/eliminar-definitivo/{id}")
         public String eliminarDefinitivo(@PathVariable Long id,

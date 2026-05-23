@@ -9,6 +9,7 @@ import uno.dos.models.entity.Curso;
 import uno.dos.models.entity.EvaluacionCapacitacion;
 import uno.dos.models.entity.Matriz;
 import uno.dos.models.entity.Puesto;
+import uno.dos.models.entity.SkillMatrix;
 
 public interface MatrizService {
 
@@ -29,5 +30,6 @@ public interface MatrizService {
     void eliminar(Long id);
     public int calcularPorcentajeCurso(Long trabajadorId, Curso curso);
     public Map<String, Integer> matrizCursosPorcentaje();
+    List<SkillMatrix> listarSkills();
     
 }

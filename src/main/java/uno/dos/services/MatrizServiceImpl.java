@@ -20,6 +20,7 @@ public class MatrizServiceImpl implements MatrizService {
     private final CursoRepository cursoRepository;
     private final CapacitacionTrabajadorRepository capacitacionTrabajadorRepository;
     private final MatrizRepository matrizRepository;
+    private final SkillMatrixRepository skillMatrixRepository;
 
     // 🔥 MATRIZ PLAN DE CARRERA
     @Override
@@ -333,5 +334,13 @@ public class MatrizServiceImpl implements MatrizService {
 
         return matriz;
     }
+
+	@Override
+	public List<SkillMatrix> listarSkills() {
+		// TODO Auto-generated method stub
+		return skillMatrixRepository.findAll();
+	}
+    
+    
     
 }

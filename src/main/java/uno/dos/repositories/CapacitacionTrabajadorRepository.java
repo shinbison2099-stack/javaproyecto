@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import uno.dos.models.entity.CapacitacionTrabajador;
+import uno.dos.models.entity.TipoTrabajador;
 import uno.dos.models.entity.Trabajador;
 
 public interface CapacitacionTrabajadorRepository extends JpaRepository<CapacitacionTrabajador, Long> {
@@ -40,5 +41,9 @@ List<CapacitacionTrabajador> findByTrabajadorId(Long trabajadorId);
 List<CapacitacionTrabajador> findByCapacitacion_Id(Long capId);
 
 List<CapacitacionTrabajador> findByTrabajador_IdAndActivoTrue(Long trabajadorId);
+
+
+
+
 
 }

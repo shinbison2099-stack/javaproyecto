@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
+
     <title>Seleccionar Curso</title>
 
     <!-- Bootstrap -->
@@ -18,10 +19,12 @@
             background: linear-gradient(135deg, #0f172a, #1e293b);
             font-family: Arial;
             color: white;
+            min-height: 100vh;
         }
 
         .container {
             margin-top: 40px;
+            padding-bottom: 40px;
         }
 
         h2 {
@@ -29,14 +32,93 @@
             margin-bottom: 25px;
         }
 
-        /* 🔥 GRID WINDOWS */
+        /* ===================================== */
+        /* 🔥 FILTROS */
+        /* ===================================== */
+
+        .filters-box{
+            display:flex;
+            gap:15px;
+            margin-bottom:30px;
+            flex-wrap:wrap;
+        }
+
+        .search-box{
+            flex:1;
+            min-width:250px;
+            position:relative;
+        }
+
+        .search-box i{
+            position:absolute;
+            left:14px;
+            top:50%;
+            transform:translateY(-50%);
+            color:#94a3b8;
+        }
+
+        .search-box input{
+            background:rgba(255,255,255,0.08);
+            border:1px solid rgba(255,255,255,0.08);
+            color:white;
+            padding-left:40px;
+            height:48px;
+            border-radius:14px;
+            backdrop-filter:blur(10px);
+        }
+
+        .search-box input:focus{
+            background:rgba(255,255,255,0.12);
+            border-color:#60a5fa;
+            box-shadow:none;
+            color:white;
+        }
+
+        .search-box input::placeholder{
+            color:#cbd5e1;
+        }
+
+        .filtro-select{
+            width:220px;
+            background:rgba(255,255,255,0.08);
+            border:1px solid rgba(255,255,255,0.08);
+            color:white;
+            border-radius:14px;
+            height:48px;
+            backdrop-filter:blur(10px);
+        }
+
+        .filtro-select:focus{
+            border-color:#60a5fa;
+            box-shadow:none;
+            color:white;
+            background:rgba(255,255,255,0.12);
+        }
+
+        .filtro-select option{
+            color:black;
+        }
+
+        .hidden-course{
+            display:none !important;
+        }
+
+        /* ===================================== */
+        /* 🔥 GRID */
+        /* ===================================== */
+
         .tiles {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            grid-template-columns:
+                repeat(auto-fill, minmax(240px, 1fr));
+
             gap: 25px;
         }
 
+        /* ===================================== */
         /* 🔥 TILE */
+        /* ===================================== */
+
         .tile {
             background: rgba(255,255,255,0.08);
             backdrop-filter: blur(12px);
@@ -51,12 +133,6 @@
             animation: aparecer 0.5s ease forwards;
         }
 
-        /* Animación escalonada */
-        .tile:nth-child(1) { animation-delay: 0.1s; }
-        .tile:nth-child(2) { animation-delay: 0.2s; }
-        .tile:nth-child(3) { animation-delay: 0.3s; }
-        .tile:nth-child(4) { animation-delay: 0.4s; }
-
         @keyframes aparecer {
             to {
                 opacity: 1;
@@ -64,28 +140,67 @@
             }
         }
 
-        /* Hover */
         .tile:hover {
             transform: translateY(-8px) scale(1.03);
             box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
 
-        /* Icono */
-        .tile i {
+        /* ===================================== */
+        /* 🔥 ICONO */
+        /* ===================================== */
+
+        .tile i.main-icon {
             font-size: 50px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            color: #60a5fa;
         }
 
-        /* Nombre */
+        /* ===================================== */
+        /* 🔥 TITULO */
+        /* ===================================== */
+
         .tile-title {
             font-size: 18px;
             font-weight: 600;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
+            min-height: 50px;
         }
 
-        /* Botón */
+        /* ===================================== */
+        /* 🔥 BADGES */
+        /* ===================================== */
+
+        .tipo-badge{
+            display:inline-block;
+            margin-bottom:15px;
+            padding:6px 12px;
+            border-radius:10px;
+            font-size:12px;
+            font-weight:bold;
+            color:white;
+        }
+
+        .salary{
+            background:#2563eb;
+        }
+
+        .hourly{
+            background:#16a34a;
+        }
+
+        .ambos{
+            background:#9333ea;
+        }
+
+        /* ===================================== */
+        /* 🔥 BOTÓN */
+        /* ===================================== */
+
         .btn-tile {
-            border-radius: 10px;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-weight: 600;
+            width: 100%;
         }
 
     </style>
@@ -101,20 +216,106 @@
         Selecciona un Curso
     </h2>
 
+    <!-- ===================================== -->
+    <!-- 🔥 FILTROS -->
+    <!-- ===================================== -->
+
+    <div class="filters-box">
+
+        <!-- 🔍 BUSCADOR -->
+        <div class="search-box">
+
+            <i class="bi bi-search"></i>
+
+            <input type="text"
+                   id="buscadorCursos"
+                   class="form-control"
+                   placeholder="Buscar curso...">
+
+        </div>
+
+        <!-- 🔥 FILTRO -->
+        <select id="filtroTipo"
+                class="form-select filtro-select">
+
+            <option value="TODOS">
+                Todos
+            </option>
+
+            <option value="SALARY">
+                Salary
+            </option>
+
+            <option value="HOURLY">
+                Hourly
+            </option>
+
+            <option value="AMBOS">
+                Ambos
+            </option>
+
+        </select>
+
+    </div>
+
+    <!-- ===================================== -->
+    <!-- 🔥 GRID -->
+    <!-- ===================================== -->
+
     <div class="tiles">
 
-        <div class="tile" th:each="curso : ${cursos}">
+        <div class="tile"
 
-            <i class="bi bi-book"></i>
+             th:each="curso : ${cursos}"
 
+             th:attr="
+                data-nombre=${curso.nombreCurso},
+                data-tipo=${curso.tipoTrabajador}">
+
+            <!-- ICONO -->
+            <i class="bi bi-book main-icon"></i>
+
+            <!-- TITULO -->
             <div class="tile-title"
                  th:text="${curso.nombreCurso}">
             </div>
 
+            <!-- 🔥 TIPO -->
+            <div>
+
+                <span th:if="${curso.tipoTrabajador.name() == 'SALARY'}"
+                      class="tipo-badge salary">
+
+                    <i class="bi bi-briefcase-fill"></i>
+                    SALARY
+
+                </span>
+
+                <span th:if="${curso.tipoTrabajador.name() == 'HOURLY'}"
+                      class="tipo-badge hourly">
+
+                    <i class="bi bi-clock-fill"></i>
+                    HOURLY
+
+                </span>
+
+                <span th:if="${curso.tipoTrabajador.name() == 'AMBOS'}"
+                      class="tipo-badge ambos">
+
+                    <i class="bi bi-people-fill"></i>
+                    AMBOS
+
+                </span>
+
+            </div>
+
+            <!-- BOTÓN -->
             <a th:href="@{/evaluaciones/curso/{id}(id=${curso.id})}"
                class="btn btn-primary btn-sm btn-tile">
+
                 <i class="bi bi-arrow-right-circle"></i>
                 Ver Capacitaciones
+
             </a>
 
         </div>
@@ -122,6 +323,78 @@
     </div>
 
 </div>
+
+<!-- ===================================== -->
+<!-- 🔥 SCRIPT FILTROS -->
+<!-- ===================================== -->
+
+<script>
+
+const buscador =
+    document.getElementById(
+        "buscadorCursos"
+    );
+
+const filtro =
+    document.getElementById(
+        "filtroTipo"
+    );
+
+function filtrarCursos(){
+
+    const texto =
+        buscador.value.toLowerCase();
+
+    const tipo =
+        filtro.value;
+
+    const cursos =
+        document.querySelectorAll(
+            ".tile"
+        );
+
+    cursos.forEach(curso => {
+
+        const nombre =
+            curso.dataset.nombre
+                .toLowerCase();
+
+        const tipoCurso =
+            curso.dataset.tipo;
+
+        const coincideTexto =
+            nombre.includes(texto);
+
+        const coincideTipo =
+            tipo === "TODOS"
+            || tipoCurso === tipo;
+
+        if(coincideTexto && coincideTipo){
+
+            curso.classList.remove(
+                "hidden-course"
+            );
+
+        }else{
+
+            curso.classList.add(
+                "hidden-course"
+            );
+        }
+    });
+}
+
+buscador.addEventListener(
+    "keyup",
+    filtrarCursos
+);
+
+filtro.addEventListener(
+    "change",
+    filtrarCursos
+);
+
+</script>
 
 </body>
 </html>

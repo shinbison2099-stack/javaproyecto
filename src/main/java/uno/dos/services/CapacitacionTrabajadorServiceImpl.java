@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import uno.dos.models.entity.CapacitacionTrabajador;
+import uno.dos.models.entity.TipoTrabajador;
+import uno.dos.models.entity.Trabajador;
 import uno.dos.repositories.CapacitacionTrabajadorRepository;
 
 @Service
@@ -69,4 +71,6 @@ public class CapacitacionTrabajadorServiceImpl implements CapacitacionTrabajador
 
         return mapa;
     }
+    
+    
 }

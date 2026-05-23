@@ -53,9 +53,9 @@
 
         /* INPUTS */
         .form-control, select, textarea {
-            background: rgba(255,255,255,0.05) !important;
+            background: rgb(255, 255, 255) !important;
             border: 1px solid rgba(255,255,255,0.1) !important;
-            color: white !important;
+            color: rgb(0, 0, 0) !important;
             border-radius: 10px !important;
         }
 
@@ -161,10 +161,32 @@
 
                 <div class="row">
 
-                    <div class="col-md-6 mb-3">
-                        <label>Tipo de Capacitación</label>
-                        <input type="text" th:field="*{tipoCapacitacion}" class="form-control">
-                    </div>
+					<div class="col-md-6 mb-3">
+
+					    <label>Tipo de Trabajador</label>
+
+					    <select th:field="*{tipoTrabajador}"
+					            class="form-control">
+
+					        <option value="">
+					            Seleccione tipo
+					        </option>
+
+					        <option value="SALARY">
+					            🔵 SALARY
+					        </option>
+
+					        <option value="HOURLY">
+					            🟢 HOURLY
+					        </option>
+
+					        <option value="AMBOS">
+					            🟣 AMBOS
+					        </option>
+
+					    </select>
+
+					</div>
 
                     <div class="col-md-6 mb-3">
                         <label>Modalidad</label>
@@ -204,17 +226,25 @@
                         <input type="number" th:field="*{vigenciaMeses}" class="form-control">
                     </div>
 
-                    <div class="col-md-6 mb-3">
-                        <label>Instructor</label>
-                        <select name="instructor" class="form-control">
-                            <option value="">Seleccione instructor</option>
-                            <option th:each="inst : ${instructores}"
-                                    th:value="${inst.id}"
-                                    th:text="${inst.nombre}"
-                                    th:selected="${capacitacion.instructor != null and inst.id == capacitacion.instructor.id}">
-                            </option>
-                        </select>
-                    </div>
+					<div class="col-md-6 mb-3">
+
+					    <label>Instructor</label>
+
+					    <select th:field="*{instructor.id}"
+					            class="form-control">
+
+					        <option value="">
+					            Seleccione instructor
+					        </option>
+
+					        <option th:each="inst : ${instructores}"
+					                th:value="${inst.id}"
+					                th:text="${inst.nombre}">
+					        </option>
+
+					    </select>
+
+					</div>
 
                 </div>
 

@@ -144,11 +144,37 @@
                  th:text="${cap.nombreCapacitacion}">
             </div>
 
-            <a th:href="@{/evaluaciones/capacitacion/{id}(id=${cap.id})}"
-               class="btn btn-success btn-sm btn-tile">
-                <i class="bi bi-people"></i>
-                Ver Trabajadores
-            </a>
+            <!-- ===================================== -->
+<!-- 🔥 HOURLY -->
+<!-- ===================================== -->
+
+<a th:if="${cap.tipoTrabajador.name() == 'HOURLY'}"
+
+   th:href="@{/evaluaciones/hourly/{id}(id=${cap.id})}"
+
+   class="btn btn-warning btn-sm btn-tile">
+
+    <i class="bi bi-grid-3x3-gap-fill"></i>
+
+    Skill Matrix
+
+</a>
+
+<!-- ===================================== -->
+<!-- 🔥 SALARY Y AMBOS -->
+<!-- ===================================== -->
+
+<a th:if="${cap.tipoTrabajador.name() != 'HOURLY'}"
+
+   th:href="@{/evaluaciones/capacitacion/{id}(id=${cap.id})}"
+
+   class="btn btn-success btn-sm btn-tile">
+
+    <i class="bi bi-people"></i>
+
+    Ver Trabajadores
+
+</a>
 
         </div>
 

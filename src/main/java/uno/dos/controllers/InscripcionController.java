@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import uno.dos.models.entity.Capacitacion;
 import uno.dos.models.entity.CapacitacionTrabajador;
 import uno.dos.models.entity.Curso;
+import uno.dos.models.entity.TipoTrabajador;
 import uno.dos.services.CapacitacionService;
 import uno.dos.services.CursoService;
 import uno.dos.services.InscripcionService;
@@ -29,8 +30,15 @@ public class InscripcionController {
     @GetMapping("/inscripcion")
     public String inscripcion(Model model){
 
-        model.addAttribute("cursos", cursoService.listarActivos());
-        model.addAttribute("capacitaciones", capacitacionService.listarActivas());
+        model.addAttribute(
+                "cursos",
+                cursoService.listarActivos()
+        );
+
+        model.addAttribute(
+                "capacitaciones",
+                capacitacionService.listarActivas()
+        );
 
         return "inscripcion";
     }
@@ -40,17 +48,30 @@ public class InscripcionController {
     // =========================================
 
     @GetMapping("/inscripcion/{cursoId}")
-    public String inscripcionCurso(@PathVariable Long cursoId,
-                                   Model model){
+    public String inscripcionCurso(
+            @PathVariable Long cursoId,
+            Model model){
 
-        Curso curso = cursoService.buscarPorId(cursoId)
-                .orElseThrow();
+        Curso curso =
+                cursoService.buscarPorId(cursoId)
+                        .orElseThrow();
 
+        // 🔥 SOLO CAPACITACIONES DEL MISMO TIPO
         List<Capacitacion> capacitaciones =
-                capacitacionService.sinCurso();
+                capacitacionService
+                        .disponiblesPorTipo(
+                                curso.getTipoTrabajador()
+                        );
 
-        model.addAttribute("curso", curso);
-        model.addAttribute("capacitaciones", capacitaciones);
+        model.addAttribute(
+                "curso",
+                curso
+        );
+
+        model.addAttribute(
+                "capacitaciones",
+                capacitaciones
+        );
 
         return "inscripcion";
     }
@@ -59,33 +80,65 @@ public class InscripcionController {
     // 🔥 ASIGNAR MÚLTIPLES
     // =========================================
 
-    @GetMapping("/inscripcion/asignar-multiple/{cursoId}/{capIds}")
-    public String asignarMultiple(@PathVariable Long cursoId,
-                                  @PathVariable String capIds){
+    @GetMapping(
+            "/inscripcion/asignar-multiple/{cursoId}/{capIds}"
+    )
+    public String asignarMultiple(
+            @PathVariable Long cursoId,
+            @PathVariable String capIds){
 
-        Curso curso = cursoService.buscarPorId(cursoId)
-                .orElseThrow();
+        Curso curso =
+                cursoService.buscarPorId(cursoId)
+                        .orElseThrow();
 
         String[] ids = capIds.split(",");
 
         for(String idStr : ids){
 
-            Long capId = Long.parseLong(idStr);
+            Long capId =
+                    Long.parseLong(idStr);
 
-            Capacitacion cap = capacitacionService
-                    .buscarPorId(capId)
-                    .orElseThrow();
+            Capacitacion cap =
+                    capacitacionService
+                            .buscarPorId(capId)
+                            .orElseThrow();
 
+            // =====================================
+            // 🔥 VALIDAR TIPO
+            // =====================================
+
+            if(curso.getTipoTrabajador()
+                    != cap.getTipoTrabajador()){
+
+                System.out.println(
+                        "❌ Tipo incompatible: "
+                        + cap.getNombreCapacitacion()
+                );
+
+                continue;
+            }
+
+            // =====================================
             // 🔥 EVITAR DUPLICADOS
+            // =====================================
+
             if(cap.getCurso() == null){
 
                 cap.setCurso(curso);
 
-                if(curso.getCapacitaciones() != null){
-                    curso.getCapacitaciones().add(cap);
+                if(curso.getCapacitaciones()
+                        != null){
+
+                    curso.getCapacitaciones()
+                            .add(cap);
                 }
 
                 capacitacionService.guardar(cap);
+
+                System.out.println(
+                        "✅ Asignada: "
+                        + cap.getNombreCapacitacion()
+                );
             }
         }
 
@@ -97,11 +150,13 @@ public class InscripcionController {
     // =========================================
 
     @GetMapping("/inscripcion/eliminar/{id}")
-    public String eliminarCapacitacion(@PathVariable Long id){
+    public String eliminarCapacitacion(
+            @PathVariable Long id){
 
-        Capacitacion cap = capacitacionService
-                .buscarPorId(id)
-                .orElseThrow();
+        Capacitacion cap =
+                capacitacionService
+                        .buscarPorId(id)
+                        .orElseThrow();
 
         cap.setCurso(null);
 
@@ -115,13 +170,18 @@ public class InscripcionController {
     // =========================================
 
     @GetMapping("/flujo/{trabajadorId}")
-    public String flujo(@PathVariable Long trabajadorId,
-                        Model model){
+    public String flujo(
+            @PathVariable Long trabajadorId,
+            Model model){
 
         CapacitacionTrabajador ct =
-                inscripcionService.siguiente(trabajadorId);
+                inscripcionService
+                        .siguiente(trabajadorId);
 
-        model.addAttribute("actual", ct);
+        model.addAttribute(
+                "actual",
+                ct
+        );
 
         return "inscripcion/flujo";
     }
@@ -131,9 +191,10 @@ public class InscripcionController {
     // =========================================
 
     @PostMapping("/calificar")
-    public String calificar(Long trabajadorId,
-                            Long capId,
-                            double calificacion){
+    public String calificar(
+            Long trabajadorId,
+            Long capId,
+            double calificacion){
 
         inscripcionService.calificar(
                 trabajadorId,
@@ -141,6 +202,7 @@ public class InscripcionController {
                 calificacion
         );
 
-        return "redirect:/inscripcion/flujo/" + trabajadorId;
+        return "redirect:/inscripcion/flujo/"
+                + trabajadorId;
     }
 }

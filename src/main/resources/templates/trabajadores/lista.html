@@ -114,9 +114,13 @@
         }
 		
 		/* 🔥 FORZAR TEXTO EN TODA LA TABLA */
-		.table,
-		.table * {
-		    color: #ffffff !important;
+		.table td,
+		.table th {
+		    color: rgb(255, 255, 255) !important;
+		}
+
+		thead th {
+		    color: white !important;
 		}
 
 		/* 🔥 EXCEPCIÓN: BOTONES (para no romper colores) */
@@ -187,66 +191,86 @@
 
             <table class="table table-bordered">
 
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>No. Personal</th>
-                    <th>CURP</th>
-                    <th>Nombre</th>
-                    <th>Área</th>
-                    <th>Puesto</th>
-                    <th>Email</th>
-                    <th>Acciones</th>
-                    <th>Opciones</th>
-                </tr>
-                </thead>
+				<thead>
+				<tr>
+				    <th>ID</th>
+				    <th>No. Personal</th>
+				    <th>CURP</th>
+				    <th>Nombre</th>
+				    <th>Área</th>
+				    <th>Puesto</th>
+				    <th>Tipo</th>
+				    <th>Email</th>
+				    <th>Acciones</th>
+				    <th>Opciones</th>
+				</tr>
+				</thead>
 
-                <tbody>
+				<tbody>
 
-                <tr th:each="trabajador : ${trabajadores}">
+				<tr th:each="trabajador : ${trabajadores}">
 
-                    <td th:text="${trabajador.id}"></td>
+				    <td th:text="${trabajador.id}"></td>
 
-                    <td th:text="${trabajador.numeroPersonal}"></td>
+				    <td th:text="${trabajador.numeroPersonal}"></td>
 
-                    <td th:text="${trabajador.curp}"></td>
+				    <td th:text="${trabajador.curp}"></td>
 
-                    <td th:text="${trabajador.nombre + ' ' + trabajador.primerApellido + ' ' + trabajador.segundoApellido}"></td>
+				    <td th:text="${trabajador.nombre + ' ' + trabajador.primerApellido + ' ' + trabajador.segundoApellido}"></td>
 
-                    <td th:text="${trabajador.areaEmpleado}"></td>
+				    <td th:text="${trabajador.areaEmpleado}"></td>
 
-                    <td th:text="${trabajador.puesto != null ? trabajador.puesto.nombrePuesto : 'Sin puesto'}"></td>
+				    <td th:text="${trabajador.puesto != null ? trabajador.puesto.nombrePuesto : 'Sin puesto'}"></td>
 
-                    <td th:text="${trabajador.email}"></td>
+				    <!-- 🔥 TIPO TRABAJADOR -->
+				    <td>
 
-                    <td>
-                        <a th:href="@{/trabajadores/{id}(id=${trabajador.id})}"
-                           class="btn btn-info btn-sm">
-                            Ver CV
-                        </a>
-                    </td>
+				        <span class="badge rounded-pill"
 
-                    <td>
-                        <a th:href="@{/trabajadores/editar/{id}(id=${trabajador.id})}"
-                           class="btn btn-warning btn-sm">
-                            Editar
-                        </a>
+				              th:classappend="
+				                  ${trabajador.tipoTrabajador.name() == 'HOURLY'}
+				                  ? 'bg-success'
+				                  : (${trabajador.tipoTrabajador.name() == 'SALARY'}
+				                  ? 'bg-primary'
+				                  : 'bg-secondary')"
 
-                        <a th:href="@{/trabajadores/eliminar/{id}(id=${trabajador.id})}"
-                           class="btn btn-danger btn-sm"
-                           onclick="return confirm('¿Eliminar trabajador?')">
-                            Eliminar
-                        </a>
+				              th:text="${trabajador.tipoTrabajador}">
+				        </span>
 
-                        <a th:href="@{/matriz/plan-carrera/{id}(id=${trabajador.id})}"
-                           class="btn btn-primary btn-sm">
-                           Plan carrera
-                        </a>
-                    </td>
+				    </td>
 
-                </tr>
+				    <td th:text="${trabajador.email}"></td>
 
-                </tbody>
+				    <td>
+				        <a th:href="@{/trabajadores/{id}(id=${trabajador.id})}"
+				           class="btn btn-info btn-sm">
+				            Ver CV
+				        </a>
+				    </td>
+
+				    <td>
+
+				        <a th:href="@{/trabajadores/editar/{id}(id=${trabajador.id})}"
+				           class="btn btn-warning btn-sm">
+				            Editar
+				        </a>
+
+				        <a th:href="@{/trabajadores/eliminar/{id}(id=${trabajador.id})}"
+				           class="btn btn-danger btn-sm"
+				           onclick="return confirm('¿Eliminar trabajador?')">
+				            Eliminar
+				        </a>
+
+				        <a th:href="@{/matriz/plan-carrera/{id}(id=${trabajador.id})}"
+				           class="btn btn-primary btn-sm">
+				           Plan carrera
+				        </a>
+
+				    </td>
+
+				</tr>
+
+				</tbody>
 
             </table>
 

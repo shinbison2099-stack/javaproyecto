@@ -1,6 +1,8 @@
 package uno.dos.services;
 
 import uno.dos.models.entity.CapacitacionTrabajador;
+import uno.dos.models.entity.TipoTrabajador;
+import uno.dos.models.entity.Trabajador;
 
 import java.util.List;
 import java.util.Map;
@@ -24,5 +26,7 @@ public interface CapacitacionTrabajadorService {
     List<CapacitacionTrabajador> buscarPorCapacitacion(Long capacitacionId);
     
     public Map<String, CapacitacionTrabajador> mapaEvaluaciones();
+    
+    
 
 }

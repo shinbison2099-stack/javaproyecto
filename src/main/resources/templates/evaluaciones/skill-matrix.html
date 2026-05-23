@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <title>Skill Matrix Hourly</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <style>
+
+        body{
+            background:
+            linear-gradient(
+                135deg,
+                #0f172a,
+                #1e293b
+            );
+
+            color:white;
+            font-family:'Segoe UI', sans-serif;
+        }
+
+        .container{
+            margin-top:40px;
+        }
+
+        .card-box{
+
+            background:
+            rgba(255,255,255,0.08);
+
+            border-radius:20px;
+
+            padding:25px;
+
+            backdrop-filter:blur(10px);
+
+            box-shadow:
+            0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        table{
+
+            background:white;
+            color:black;
+
+            border-radius:15px;
+            overflow:hidden;
+        }
+
+        th{
+            vertical-align:middle;
+            white-space:nowrap;
+        }
+
+        td{
+            vertical-align:middle;
+        }
+
+        .estado-check{
+
+            font-size:24px;
+        }
+
+        .check-on{
+            color:#22c55e;
+        }
+
+        .check-off{
+            color:#cbd5e1;
+        }
+
+        .btn-update{
+
+            border-radius:12px;
+            font-weight:bold;
+        }
+
+        .badge-hourly{
+
+            background:#16a34a;
+            color:white;
+
+            padding:8px 14px;
+
+            border-radius:12px;
+
+            font-size:14px;
+        }
+
+        .table-responsive{
+
+            border-radius:15px;
+            overflow:hidden;
+        }
+
+        .titulo-cap{
+
+            color:#93c5fd;
+            font-weight:bold;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card-box">
+
+        <!-- ===================================== -->
+        <!-- 🔥 HEADER -->
+        <!-- ===================================== -->
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+            <div>
+
+                <h2>
+
+                    <i class="bi bi-grid-3x3-gap-fill"></i>
+
+                    Skill Matrix
+
+                </h2>
+
+                <div class="titulo-cap"
+                     th:text="${capacitacion.nombreCapacitacion}">
+                </div>
+
+            </div>
+
+            <div>
+
+                <span class="badge-hourly">
+
+                    <i class="bi bi-clock-history"></i>
+
+                    HOURLY
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <!-- ===================================== -->
+        <!-- 🔥 TABLA -->
+        <!-- ===================================== -->
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover text-center align-middle">
+
+                <!-- ===================================== -->
+                <!-- 🔥 HEAD -->
+                <!-- ===================================== -->
+
+                <thead class="table-dark">
+
+                <tr>
+
+                    <th>#</th>
+
+                    <th>Trabajador</th>
+
+                    <th>Puesto</th>
+
+                    <th>Vacío</th>
+
+                    <th>Programado</th>
+
+                    <th>Capacitado</th>
+
+                    <th>40H</th>
+
+                    <th>Acreditado</th>
+
+                    <th>Evidencia</th>
+
+                    <th>Acciones</th>
+
+                </tr>
+
+                </thead>
+
+                <!-- ===================================== -->
+                <!-- 🔥 BODY -->
+                <!-- ===================================== -->
+
+                <tbody>
+
+                <tr th:each="s,iter : ${skills}">
+
+                    <!-- # -->
+                    <td th:text="${iter.count}"></td>
+
+                    <!-- Trabajador -->
+                    <td>
+
+                        <strong>
+
+                            <span th:text="
+                            ${s.trabajador.nombre}
+                            +
+                            ' '
+                            +
+                            ${s.trabajador.primerApellido}">
+                            </span>
+
+                        </strong>
+
+                    </td>
+
+                    <!-- Puesto -->
+                    <td th:text="${s.trabajador.puesto.nombrePuesto}">
+                    </td>
+
+<!-- ===================================== -->
+<!-- 🔥 VACIO -->
+<!-- ===================================== -->
+
+<td>
+
+    <i th:if="${s.nivel.name() == 'VACIO'}"
+
+       class="
+       bi bi-circle
+       estado-check
+       check-off">
+    </i>
+
+    <i th:unless="${s.nivel.name() == 'VACIO'}"
+
+       class="
+       bi bi-check-circle-fill
+       estado-check
+       check-on">
+    </i>
+
+</td>
+
+<!-- ===================================== -->
+<!-- 🔥 PROGRAMADO -->
+<!-- ===================================== -->
+
+<td>
+
+    <i th:if="
+    ${s.nivel.name() == 'PROGRAMADO'
+    ||
+    s.nivel.name() == 'CAPACITADO'
+    ||
+    s.nivel.name() == 'EXPERIENCIA_40H'
+    ||
+    s.nivel.name() == 'ACREDITADO'}"
+
+       class="
+       bi bi-check-square-fill
+       estado-check
+       text-primary">
+    </i>
+
+    <i th:unless="
+    ${s.nivel.name() == 'PROGRAMADO'
+    ||
+    s.nivel.name() == 'CAPACITADO'
+    ||
+    s.nivel.name() == 'EXPERIENCIA_40H'
+    ||
+    s.nivel.name() == 'ACREDITADO'}"
+
+       class="
+       bi bi-square
+       estado-check
+       check-off">
+    </i>
+
+</td>
+
+<!-- ===================================== -->
+<!-- 🔥 CAPACITADO -->
+<!-- ===================================== -->
+
+<td>
+
+    <i th:if="
+    ${s.nivel.name() == 'CAPACITADO'
+    ||
+    s.nivel.name() == 'EXPERIENCIA_40H'
+    ||
+    s.nivel.name() == 'ACREDITADO'}"
+
+       class="
+       bi bi-check-square-fill
+       estado-check
+       text-warning">
+    </i>
+
+    <i th:unless="
+    ${s.nivel.name() == 'CAPACITADO'
+    ||
+    s.nivel.name() == 'EXPERIENCIA_40H'
+    ||
+    s.nivel.name() == 'ACREDITADO'}"
+
+       class="
+       bi bi-square
+       estado-check
+       check-off">
+    </i>
+
+</td>
+
+<!-- ===================================== -->
+<!-- 🔥 EXPERIENCIA -->
+<!-- ===================================== -->
+
+<td>
+
+    <i th:if="
+    ${s.nivel.name() == 'EXPERIENCIA_40H'
+    ||
+    s.nivel.name() == 'ACREDITADO'}"
+
+       class="
+       bi bi-check-square-fill
+       estado-check
+       text-info">
+    </i>
+
+    <i th:unless="
+    ${s.nivel.name() == 'EXPERIENCIA_40H'
+    ||
+    s.nivel.name() == 'ACREDITADO'}"
+
+       class="
+       bi bi-square
+       estado-check
+       check-off">
+    </i>
+
+</td>
+
+<!-- ===================================== -->
+<!-- 🔥 ACREDITADO -->
+<!-- ===================================== -->
+
+<td>
+
+    <i th:if="
+    ${s.nivel.name() == 'ACREDITADO'}"
+
+       class="
+       bi bi-check-square-fill
+       estado-check
+       text-success">
+    </i>
+
+    <i th:unless="
+    ${s.nivel.name() == 'ACREDITADO'}"
+
+       class="
+       bi bi-square
+       estado-check
+       check-off">
+    </i>
+
+</td>
+
+                    <!-- ===================================== -->
+                    <!-- 🔥 EVIDENCIA -->
+                    <!-- ===================================== -->
+
+                    <td>
+
+                        <a th:if="${s.evidencia != null}"
+                           th:href="@{'/uploads/' + ${s.evidencia}}"
+                           target="_blank"
+                           class="btn btn-secondary btn-sm">
+
+                            <i class="bi bi-file-earmark-pdf"></i>
+
+                        </a>
+
+                        <span th:if="${s.evidencia == null}">
+                            —
+                        </span>
+
+                    </td>
+
+                    <!-- ===================================== -->
+                    <!-- 🔥 BOTÓN -->
+                    <!-- ===================================== -->
+
+                    <td>
+
+                    <a th:href="@{/evaluaciones/skill/edit/{id}(id=${s.id})}"
+
+   class="
+   btn btn-warning
+   btn-sm
+   btn-update">
+
+    <i class="bi bi-pencil-square"></i>
+
+    Actualizar
+
+</a>
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

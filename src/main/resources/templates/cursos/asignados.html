@@ -17,225 +17,322 @@
     <link rel="stylesheet" th:href="@{/css/menu.css}">
     <link rel="stylesheet" th:href="@{/css/sidebar.css}">
 
-	<style>
+    <style>
 
-	    body {
-	        background: linear-gradient(135deg, #0f172a, #1e293b);
-	        color: white;
-	        font-family: 'Segoe UI', sans-serif;
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-y: auto;
+            min-height: 100vh;
+        }
 
-	        /* 🔥 SCROLL */
-	        margin: 0;
-	        padding: 0;
-	        overflow-y: auto;
-	        min-height: 100vh;
-	    }
+        .content {
+            padding: 30px;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
 
-	    .content {
-	        padding: 30px;
-	        min-height: 100vh;
-	        overflow-y: auto;
-	    }
+        /* ===================================== */
+        /* 🔥 SCROLL WINDOWS 11 */
+        /* ===================================== */
 
-	    /* 🔥 SCROLL WINDOWS 11 */
-	    ::-webkit-scrollbar {
-	        width: 10px;
-	    }
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
 
-	    ::-webkit-scrollbar-track {
-	        background: rgba(255,255,255,0.05);
-	    }
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
 
-	    ::-webkit-scrollbar-thumb {
-	        background: rgba(96,165,250,0.6);
-	        border-radius: 20px;
-	    }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(96,165,250,0.6);
+            border-radius: 20px;
+        }
 
-	    ::-webkit-scrollbar-thumb:hover {
-	        background: rgba(96,165,250,0.9);
-	    }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(96,165,250,0.9);
+        }
 
-	    /* 🔥 GRID */
-	    .tiles {
-	        display: grid;
-	        grid-template-columns: repeat(4, 1fr);
-	        gap: 18px;
-	        padding-bottom: 30px;
-	    }
+        /* ===================================== */
+        /* 🔥 TITULO */
+        /* ===================================== */
 
-	    @media (max-width: 1200px) {
-	        .tiles {
-	            grid-template-columns: repeat(3, 1fr);
-	        }
-	    }
+        h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 25px;
+        }
 
-	    @media (max-width: 768px) {
-	        .tiles {
-	            grid-template-columns: repeat(2, 1fr);
-	        }
-	    }
+        h2 i {
+            font-size: 20px;
+            margin-right: 8px;
+            color: #60a5fa;
+        }
 
-	    @media (max-width: 576px) {
-	        .tiles {
-	            grid-template-columns: 1fr;
-	        }
-	    }
+        /* ===================================== */
+        /* 🔥 FILTROS */
+        /* ===================================== */
 
-	    /* 🔥 TILE */
-	    .tile {
-	        background: rgba(255,255,255,0.07);
-	        backdrop-filter: blur(12px);
-	        border-radius: 18px;
-	        padding: 16px;
-	        transition: 0.25s;
-	        box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-	        border: 1px solid rgba(255,255,255,0.05);
-	    }
+        .filters-box{
+            display:flex;
+            gap:15px;
+            margin-bottom:25px;
+            flex-wrap:wrap;
+        }
 
-	    .tile:hover {
-	        transform: translateY(-4px);
-	        box-shadow: 0 15px 30px rgba(0,0,0,0.35);
-	    }
+        .search-box{
+            flex:1;
+            min-width:250px;
+            position:relative;
+        }
 
-	    /* 🔥 HEADER */
-	    .tile-header {
-	        margin-bottom: 12px;
-	    }
+        .search-box i{
+            position:absolute;
+            left:14px;
+            top:50%;
+            transform:translateY(-50%);
+            color:#94a3b8;
+            font-size:14px;
+        }
 
-	    .curso-title {
-	        font-size: 15px;
-	        font-weight: 600;
-	        display: flex;
-	        align-items: center;
-	        gap: 8px;
-	        margin-bottom: 10px;
-	    }
+        .search-box input{
+            background:rgba(255,255,255,0.08);
+            border:1px solid rgba(255,255,255,0.08);
+            color:white;
+            padding-left:40px;
+            height:45px;
+            border-radius:14px;
+            backdrop-filter:blur(10px);
+        }
 
-	    .curso-title i {
-	        font-size: 14px;
-	        color: #60a5fa;
-	    }
+        .search-box input:focus{
+            background:rgba(255,255,255,0.12);
+            border-color:#60a5fa;
+            box-shadow:none;
+            color:white;
+        }
 
-	    /* 🔥 BADGES */
-	    .badges {
-	        display: flex;
-	        flex-wrap: wrap;
-	        gap: 6px;
-	    }
+        .search-box input::placeholder{
+            color:#cbd5e1;
+        }
 
-	    .contador {
-	        font-size: 10px;
-	        padding: 4px 8px;
-	        border-radius: 8px;
-	        font-weight: 500;
-	        margin: 0;
-	    }
+        .filtro-select{
+            width:220px;
+            background:rgba(255,255,255,0.08);
+            border:1px solid rgba(255,255,255,0.08);
+            color:white;
+            border-radius:14px;
+            height:45px;
+            backdrop-filter:blur(10px);
+        }
 
-	    /* 🔥 LISTA */
-	    .cap-list {
-	        margin-top: 12px;
-	    }
+        .filtro-select:focus{
+            border-color:#60a5fa;
+            box-shadow:none;
+            color:white;
+            background:rgba(255,255,255,0.12);
+        }
 
-	    .cap-item {
-	        display: flex;
-	        justify-content: space-between;
-	        align-items: center;
-	        background: rgba(255,255,255,0.06);
-	        border-radius: 10px;
-	        padding: 7px 10px;
-	        margin-bottom: 6px;
-	        transition: 0.2s;
-	    }
+        .filtro-select option{
+            color:black;
+        }
 
-	    .cap-item:hover {
-	        background: rgba(255,255,255,0.1);
-	    }
+        .hidden-course{
+            display:none !important;
+        }
 
-	    .cap-name {
-	        font-size: 12px;
-	        flex: 1;
-	        margin-right: 10px;
-	    }
+        /* ===================================== */
+        /* 🔥 GRID */
+        /* ===================================== */
 
-	    /* 🔥 BOTONES */
-	    .actions {
-	        display: flex;
-	        gap: 5px;
-	    }
+        .tiles {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            padding-bottom: 30px;
+        }
 
-	    .actions .btn,
-	    .btn-delete {
-	        width: 28px;
-	        height: 28px;
-	        padding: 0;
-	        border-radius: 8px;
-	        display: flex;
-	        align-items: center;
-	        justify-content: center;
-	    }
+        @media (max-width: 1200px) {
+            .tiles {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
 
-	    .actions i,
-	    .btn-delete i {
-	        font-size: 12px;
-	    }
+        @media (max-width: 768px) {
+            .tiles {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
 
-	    /* 🔥 DELETE */
-	    .btn-delete {
-	        border: none;
-	        background: #ef4444;
-	        color: white;
-	        transition: 0.2s;
-	    }
+        @media (max-width: 576px) {
+            .tiles {
+                grid-template-columns: 1fr;
+            }
+        }
 
-	    .btn-delete:hover {
-	        background: #dc2626;
-	        transform: scale(1.05);
-	    }
+        /* ===================================== */
+        /* 🔥 TILE */
+        /* ===================================== */
 
-	    /* 🔥 BOTÓN ASIGNAR */
-	    .btn-assign {
-	        margin-top: 12px;
-	        width: 100%;
-	        border-radius: 10px;
-	        font-size: 12px;
-	        padding: 6px;
-	        font-weight: 500;
-	    }
+        .tile {
+            background: rgba(255,255,255,0.07);
+            backdrop-filter: blur(12px);
+            border-radius: 18px;
+            padding: 16px;
+            transition: 0.25s;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
 
-	    /* 🔥 TITULO */
-	    h2 {
-	        font-size: 24px;
-	        font-weight: 600;
-	        margin-bottom: 25px;
-	    }
+        .tile:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.35);
+        }
 
-	    h2 i {
-	        font-size: 20px;
-	        margin-right: 8px;
-	        color: #60a5fa;
-	    }
-		
-		.tipo-badge{
-		    font-size: 10px;
-		    padding: 4px 8px;
-		    border-radius: 8px;
-		    font-weight: 600;
-		    color: white;
-		}
+        /* ===================================== */
+        /* 🔥 HEADER */
+        /* ===================================== */
 
-		.salary{
-		    background: #2563eb;
-		}
+        .tile-header {
+            margin-bottom: 12px;
+        }
 
-		.hourly{
-		    background: #16a34a;
-		}
+        .curso-title {
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
 
-		.ambos{
-		    background: #9333ea;
-		}
+        .curso-title i {
+            font-size: 14px;
+            color: #60a5fa;
+        }
 
-	</style>
+        /* ===================================== */
+        /* 🔥 BADGES */
+        /* ===================================== */
+
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .contador {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .tipo-badge{
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .salary{
+            background: #2563eb;
+        }
+
+        .hourly{
+            background: #16a34a;
+        }
+
+        .ambos{
+            background: #9333ea;
+        }
+
+        /* ===================================== */
+        /* 🔥 LISTA */
+        /* ===================================== */
+
+        .cap-list {
+            margin-top: 12px;
+        }
+
+        .cap-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 7px 10px;
+            margin-bottom: 6px;
+            transition: 0.2s;
+        }
+
+        .cap-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .cap-name {
+            font-size: 12px;
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        /* ===================================== */
+        /* 🔥 BOTONES */
+        /* ===================================== */
+
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .actions .btn,
+        .btn-delete {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .actions i,
+        .btn-delete i {
+            font-size: 12px;
+        }
+
+        .btn-delete {
+            border: none;
+            background: #ef4444;
+            color: white;
+            transition: 0.2s;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        /* ===================================== */
+        /* 🔥 BOTÓN */
+        /* ===================================== */
+
+        .btn-assign {
+            margin-top: 12px;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 12px;
+            padding: 6px;
+            font-weight: 500;
+        }
+
+    </style>
+
 </head>
 
 <body>
@@ -250,45 +347,102 @@
         Cursos con Capacitaciones
     </h2>
 
+    <!-- ===================================== -->
+    <!-- 🔥 FILTROS -->
+    <!-- ===================================== -->
+
+    <div class="filters-box">
+
+        <!-- 🔍 BUSCADOR -->
+        <div class="search-box">
+
+            <i class="bi bi-search"></i>
+
+            <input type="text"
+                   id="buscadorCursos"
+                   class="form-control"
+                   placeholder="Buscar curso...">
+
+        </div>
+
+        <!-- 🔥 FILTRO -->
+        <select id="filtroTipo"
+                class="form-select filtro-select">
+
+            <option value="TODOS">
+                Todos
+            </option>
+
+            <option value="SALARY">
+                Salary
+            </option>
+
+            <option value="HOURLY">
+                Hourly
+            </option>
+
+            <option value="AMBOS">
+                Ambos
+            </option>
+
+        </select>
+
+    </div>
+
+    <!-- ===================================== -->
+    <!-- 🔥 GRID -->
+    <!-- ===================================== -->
+
     <div class="tiles">
 
-        <div class="tile" th:each="curso : ${cursos}">
+        <div class="tile"
+
+             th:each="curso : ${cursos}"
+
+             th:attr="
+                data-nombre=${curso.nombreCurso},
+                data-tipo=${curso.tipoTrabajador}">
 
             <!-- HEADER -->
             <div class="tile-header">
 
                 <div class="curso-title">
+
                     <i class="bi bi-book"></i>
+
                     <span th:text="${curso.nombreCurso}"></span>
+
                 </div>
 
                 <div class="badges">
-					
-					<!-- 🔥 TIPO TRABAJADOR -->
 
-					<span th:if="${curso.tipoTrabajador.name() == 'SALARY'}"
-					      class="tipo-badge salary">
+                    <!-- 🔥 TIPO -->
 
-					    <i class="bi bi-briefcase-fill"></i>
-					    SALARY
+                    <span th:if="${curso.tipoTrabajador.name() == 'SALARY'}"
+                          class="tipo-badge salary">
 
-					</span>
+                        <i class="bi bi-briefcase-fill"></i>
+                        SALARY
 
-					<span th:if="${curso.tipoTrabajador.name() == 'HOURLY'}"
-					      class="tipo-badge hourly">
+                    </span>
 
-					    <i class="bi bi-clock-fill"></i>
-					    HOURLY
+                    <span th:if="${curso.tipoTrabajador.name() == 'HOURLY'}"
+                          class="tipo-badge hourly">
 
-					</span>
+                        <i class="bi bi-clock-fill"></i>
+                        HOURLY
 
-					<span th:if="${curso.tipoTrabajador.name() == 'AMBOS'}"
-					      class="tipo-badge ambos">
+                    </span>
 
-					    <i class="bi bi-people-fill"></i>
-					    AMBOS
+                    <span th:if="${curso.tipoTrabajador.name() == 'AMBOS'}"
+                          class="tipo-badge ambos">
 
-					</span>
+                        <i class="bi bi-people-fill"></i>
+                        AMBOS
+
+                    </span>
+
+                    <!-- 🔥 CONTADORES -->
 
                     <span class="contador bg-success"
                           th:text="${#lists.size(curso.capacitaciones)} + ' cap.'">
@@ -319,15 +473,13 @@
                     <div class="cap-item"
                          th:each="cap : ${curso.capacitaciones}">
 
-                        <!-- NOMBRE -->
                         <span class="cap-name"
                               th:text="${cap.nombreCapacitacion}">
                         </span>
 
-                        <!-- BOTONES -->
                         <div class="actions">
 
-                            <!-- ➕ INSCRIBIR -->
+                            <!-- INSCRIBIR -->
                             <a th:href="@{/capacitaciones/{id}/trabajadores(id=${cap.id})}"
                                class="btn btn-success btn-sm"
                                title="Inscribir trabajadores">
@@ -336,7 +488,7 @@
 
                             </a>
 
-                            <!-- ❌ ELIMINAR -->
+                            <!-- ELIMINAR -->
                             <a th:href="@{/inscripcion/eliminar/{id}(id=${cap.id})}"
                                class="btn-delete"
                                onclick="return confirm('¿Eliminar capacitación?')">
@@ -362,8 +514,9 @@
             </div>
 
             <!-- BOTÓN -->
-			<a th:href="@{/inscripcion/{id}(id=${curso.id})}"
-			   class="btn btn-light btn-sm btn-assign">
+            <a th:href="@{/inscripcion/{id}(id=${curso.id})}"
+               class="btn btn-light btn-sm btn-assign">
+
                 <i class="bi bi-plus-circle"></i>
                 Asignar
 
@@ -374,6 +527,79 @@
     </div>
 
 </div>
+
+<!-- ===================================== -->
+<!-- 🔥 SCRIPT FILTROS -->
+<!-- ===================================== -->
+
+<script>
+
+const buscador =
+    document.getElementById(
+        "buscadorCursos"
+    );
+
+const filtro =
+    document.getElementById(
+        "filtroTipo"
+    );
+
+function filtrarCursos(){
+
+    const texto =
+        buscador.value.toLowerCase();
+
+    const tipo =
+        filtro.value;
+
+    const cursos =
+        document.querySelectorAll(
+            ".tile"
+        );
+
+    cursos.forEach(curso => {
+
+        const nombre =
+            curso.dataset.nombre
+                .toLowerCase();
+
+        const tipoCurso =
+            curso.dataset.tipo;
+
+        const coincideTexto =
+            nombre.includes(texto);
+
+        const coincideTipo =
+            tipo === "TODOS"
+            || tipoCurso === tipo
+            || tipoCurso === "AMBOS";
+
+        if(coincideTexto && coincideTipo){
+
+            curso.classList.remove(
+                "hidden-course"
+            );
+
+        }else{
+
+            curso.classList.add(
+                "hidden-course"
+            );
+        }
+    });
+}
+
+buscador.addEventListener(
+    "keyup",
+    filtrarCursos
+);
+
+filtro.addEventListener(
+    "change",
+    filtrarCursos
+);
+
+</script>
 
 </body>
 </html>

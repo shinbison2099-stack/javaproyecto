@@ -33,4 +33,12 @@ public interface CursoService {
     public void eliminarDefinitivo(Long id);
     
     public List<Curso> filtrarPorTipo(TipoTrabajador tipo);
+    
+    Curso buscarPorClave(String clave);
+    
+    Curso buscarPorClaveNormalizada(String clave);
+    
+    Curso buscarPorNombreNormalizado(String nombre);
+    
+    public List<Curso> filtrarExacto(TipoTrabajador tipo);
 }

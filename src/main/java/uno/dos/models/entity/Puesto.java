@@ -36,9 +36,10 @@ public class Puesto {
     @OneToMany(mappedBy = "puesto", cascade = CascadeType.ALL, orphanRemoval = true)
     @com.fasterxml.jackson.annotation.JsonIgnore
     private List<PuestoCurso> puestoCursos = new ArrayList<>();
+    
 
     // 🔥 SOLO PARA USO EN VISTA (NO BD)
-    @Transient
+    @jakarta.persistence.Transient
     public List<Curso> getCursos() {
         return puestoCursos.stream()
                 .map(PuestoCurso::getCurso)

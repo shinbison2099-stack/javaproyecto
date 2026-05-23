@@ -112,6 +112,29 @@
         .text-muted {
             color: #94a3b8 !important;
         }
+		
+		/* 🔥 BADGES TIPO */
+
+		.tipo-badge{
+		    padding: 6px 10px;
+		    border-radius: 10px;
+		    font-size: 12px;
+		    font-weight: 600;
+		    color: white;
+		    display: inline-block;
+		}
+
+		.salary{
+		    background: linear-gradient(135deg, #2563eb, #3b82f6);
+		}
+
+		.hourly{
+		    background: linear-gradient(135deg, #16a34a, #22c55e);
+		}
+
+		.ambos{
+		    background: linear-gradient(135deg, #9333ea, #a855f7);
+		}
 
     </style>
 
@@ -187,6 +210,7 @@
                         <th>Clave</th>
                         <th>Nombre</th>
                         <th>Duración</th>
+						<th>Tipo</th>
                         <th>Instructor</th>
                         <th>Acciones</th>
                     </tr>
@@ -202,6 +226,34 @@
                             th:text="${cap.nombreCapacitacion}"></td>
 
                         <td th:text="${cap.duracionHoras != null ? cap.duracionHoras + ' hrs' : 'Sin duración'}"></td>
+						
+						<td>
+
+						    <!-- 🔵 SALARY -->
+						    <span th:if="${cap.tipoTrabajador != null and cap.tipoTrabajador.name() == 'SALARY'}"
+						          class="tipo-badge salary">
+
+						        🔵 SALARY
+
+						    </span>
+
+						    <!-- 🟢 HOURLY -->
+						    <span th:if="${cap.tipoTrabajador != null and cap.tipoTrabajador.name() == 'HOURLY'}"
+						          class="tipo-badge hourly">
+
+						        🟢 HOURLY
+
+						    </span>
+
+						    <!-- 🟣 AMBOS -->
+						    <span th:if="${cap.tipoTrabajador != null and cap.tipoTrabajador.name() == 'AMBOS'}"
+						          class="tipo-badge ambos">
+
+						        🟣 AMBOS
+
+						    </span>
+
+						</td>
 
                         <td th:text="${cap.instructor != null ? cap.instructor.nombre : 'Sin instructor'}"></td>
 
@@ -230,7 +282,7 @@
                     </tr>
 
                     <tr th:if="${#lists.isEmpty(capacitaciones)}">
-                        <td colspan="5" class="text-center text-muted">
+                        <td colspan="6" class="text-center text-muted">
                             No hay capacitaciones registradas
                         </td>
                     </tr>

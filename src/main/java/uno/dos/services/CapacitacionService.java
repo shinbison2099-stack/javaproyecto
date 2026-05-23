@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import uno.dos.models.entity.Capacitacion;
+import uno.dos.models.entity.TipoTrabajador;
 
 public interface CapacitacionService {
 
@@ -30,4 +31,10 @@ public interface CapacitacionService {
     void eliminarDefinitivo(Long id);
     
     List<Capacitacion> sinCurso();
+    
+    List<Capacitacion> disponiblesPorTipo(
+            TipoTrabajador tipo
+    );
+    
+    
 }

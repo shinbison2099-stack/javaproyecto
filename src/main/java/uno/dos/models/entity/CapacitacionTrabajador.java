@@ -48,6 +48,8 @@ public class CapacitacionTrabajador {
 	    
 	    private Integer orden;        // 🔥 orden del curso
 	    private boolean completado;   // 🔥 ya terminó
+	    
+	    
 
 }
 

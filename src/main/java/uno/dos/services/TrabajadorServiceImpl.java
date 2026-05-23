@@ -106,4 +106,35 @@ public class TrabajadorServiceImpl implements TrabajadorService {
 	            )
 	            .toList();
 	}
+	
+	@Override
+	public List<Trabajador> buscarPorTipo(
+	        TipoTrabajador tipo){
+
+	    return trabajadorRepository
+	            .findByTipoTrabajadorAndActivoTrue(
+	                    tipo
+	            );
+	}
+	
+	@Override
+	public List<Trabajador> buscarSalaryYAmbos(){
+
+	    return trabajadorRepository.findAll()
+
+	            .stream()
+
+	            .filter(t ->
+
+	                    t.getTipoTrabajador()
+	                    == TipoTrabajador.SALARY
+
+	                    ||
+
+	                    t.getTipoTrabajador()
+	                    == TipoTrabajador.AMBOS
+	            )
+
+	            .toList();
+	}
 }

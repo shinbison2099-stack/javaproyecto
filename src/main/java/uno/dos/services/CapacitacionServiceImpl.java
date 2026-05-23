@@ -1,5 +1,6 @@
 package uno.dos.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import uno.dos.models.entity.Capacitacion;
+import uno.dos.models.entity.TipoTrabajador;
 import uno.dos.repositories.CapacitacionRepository;
 
 @Service
@@ -95,6 +97,17 @@ public class CapacitacionServiceImpl implements CapacitacionService {
         @Override
         public List<Capacitacion> sinCurso() {
             return capacitacionRepository.findByCursoIsNull();
+        }
+        
+        @Override
+        public List<Capacitacion>
+        disponiblesPorTipo(
+                TipoTrabajador tipo){
+
+            return capacitacionRepository
+                    .findByCursoIsNullAndActivoTrueAndTipoTrabajador(
+                            tipo
+                    );
         }
 	
 

@@ -8,6 +8,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -53,6 +55,10 @@ public class Capacitacion {
     private LocalDate fechaFin;
 
     private Integer vigenciaMeses;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_trabajador")
+    private TipoTrabajador tipoTrabajador;
 
     private Boolean requiereEvaluacion = false;
 
@@ -73,5 +79,7 @@ public class Capacitacion {
     @OneToMany(mappedBy = "capacitacion")
     @com.fasterxml.jackson.annotation.JsonIgnore
     private List<CapacitacionTrabajador> capacitacionTrabajadores;
+    
+ 
     
 }

@@ -141,4 +141,43 @@ public class CursoServiceImpl implements CursoService {
                 .toList();
     }
     
+    @Override
+    public Curso buscarPorClave(String clave){
+
+        return cursoRepository
+                .findByClaveCurso(clave)
+                .orElse(null);
+    }
+    
+    @Override
+    public Curso buscarPorClaveNormalizada(
+            String clave){
+
+        return cursoRepository
+                .buscarPorClaveNormalizada(
+                        clave
+                );
+    }
+    
+    @Override
+    public Curso buscarPorNombreNormalizado(
+            String nombre){
+
+        return cursoRepository
+                .buscarPorNombreNormalizado(
+                        nombre
+                );
+    }
+    
+    public List<Curso> filtrarExacto(
+            TipoTrabajador tipo){
+
+        return cursoRepository.findAll().stream()
+
+                .filter(c ->
+                        c.getTipoTrabajador() == tipo
+                )
+
+                .toList();
+    }
 }

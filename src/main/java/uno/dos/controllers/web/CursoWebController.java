@@ -138,15 +138,19 @@ public class CursoWebController {
     }
 
     @PostMapping("/importar")
-    public String importarExcel(@RequestParam("archivo") MultipartFile archivo, Model model) {
+    public String importarExcel(@RequestParam("archivo") MultipartFile archivo,
+                                Model model) {
 
         int importados = 0;
         int duplicados = 0;
         int vacios = 0;
+        int sinInstructor = 0;
 
-        try (Workbook workbook = WorkbookFactory.create(archivo.getInputStream())) {
+        try (Workbook workbook =
+                     WorkbookFactory.create(archivo.getInputStream())) {
 
             Sheet sheet = workbook.getSheetAt(0);
+
             DataFormatter formatter = new DataFormatter();
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
@@ -156,92 +160,342 @@ public class CursoWebController {
                     Row row = sheet.getRow(i);
 
                     if (row == null) {
+
                         vacios++;
+
                         continue;
                     }
 
-                    String claveCurso = formatter.formatCellValue(row.getCell(1)).trim();
-                    String nombreCurso = formatter.formatCellValue(row.getCell(2)).trim();
+                    // =====================================
+                    // 🔥 DATOS
+                    // =====================================
 
+                    String claveCurso =
+                            formatter.formatCellValue(
+                                    row.getCell(1)
+                            ).trim();
+
+                    String nombreCurso =
+                            formatter.formatCellValue(
+                                    row.getCell(2)
+                            ).trim();
+
+                    // =====================================
                     // 🔥 VALIDACIÓN
-                    if (claveCurso.isBlank() || nombreCurso.isBlank()) {
+                    // =====================================
+
+                    if (claveCurso.isBlank()
+                            || nombreCurso.isBlank()) {
+
                         vacios++;
+
                         continue;
                     }
 
+                    // =====================================
                     // 🔥 DUPLICADO
-                    if (cursoService.existeClaveCurso(claveCurso)) {
+                    // =====================================
+
+                    if (cursoService.existeClaveCurso(
+                            claveCurso)) {
+
                         duplicados++;
+
                         continue;
                     }
 
-                    // 🔥 HORAS (más tolerante)
+                    // =====================================
+                    // 🔥 HORAS
+                    // =====================================
+
                     Integer horas = 0;
+
                     try {
-                        String texto = formatter.formatCellValue(row.getCell(4)).trim();
-                        texto = texto.replaceAll("[^0-9]", ""); // limpia "8 hrs"
+
+                        String texto =
+                                formatter.formatCellValue(
+                                        row.getCell(4)
+                                ).trim();
+
+                        texto =
+                                texto.replaceAll("[^0-9]", "");
+
                         if (!texto.isEmpty()) {
+
                             horas = Integer.parseInt(texto);
                         }
-                    } catch (Exception ignored) {}
 
-                    // 🔥 VIGENCIA (más tolerante)
+                    } catch (Exception ignored) {
+                    }
+
+                    // =====================================
+                    // 🔥 VIGENCIA
+                    // =====================================
+
                     Integer vigenciaMeses = 0;
+
                     try {
-                        String texto = formatter.formatCellValue(row.getCell(5)).trim();
-                        texto = texto.replaceAll("[^0-9]", ""); // limpia "36 meses"
+
+                        String texto =
+                                formatter.formatCellValue(
+                                        row.getCell(5)
+                                ).trim();
+
+                        texto =
+                                texto.replaceAll("[^0-9]", "");
+
                         if (!texto.isEmpty()) {
-                            vigenciaMeses = Integer.parseInt(texto);
+
+                            vigenciaMeses =
+                                    Integer.parseInt(texto);
                         }
-                    } catch (Exception ignored) {}
 
-                    // 🔥 ENUM TIPO CURSO
-                    TipoCurso tipoCurso;
-                    try {
-                        String texto = formatter.formatCellValue(row.getCell(7)).trim().toUpperCase();
-                        tipoCurso = TipoCurso.valueOf(texto);
-                    } catch (Exception e) {
-                        tipoCurso = TipoCurso.INTERNO;
+                    } catch (Exception ignored) {
                     }
 
-                    // 🔥 ENUM TIPO TRABAJADOR
-                    TipoTrabajador tipoTrabajador;
-                    try {
-                        String texto = formatter.formatCellValue(row.getCell(8)).trim().toUpperCase();
-                        tipoTrabajador = TipoTrabajador.valueOf(texto);
-                    } catch (Exception e) {
-                        tipoTrabajador = TipoTrabajador.AMBOS;
+                 // =====================================
+                 // 🔥 TIPO CURSO
+                 // =====================================
+
+                 TipoCurso tipoCurso;
+
+                 try {
+
+                     String texto =
+                             formatter.formatCellValue(
+                                     row.getCell(6)
+                             ).trim().toUpperCase();
+
+                     tipoCurso =
+                             TipoCurso.valueOf(texto);
+
+                 } catch (Exception e) {
+
+                     tipoCurso =
+                             TipoCurso.INTERNO;
+                 }
+
+                 // =====================================
+                 // 🔥 TIPO TRABAJADOR
+                 // =====================================
+
+                 TipoTrabajador tipoTrabajador;
+
+                 try {
+
+                     String texto =
+                             formatter.formatCellValue(
+                                     row.getCell(7)
+                             ).trim().toUpperCase();
+
+                     tipoTrabajador =
+                             TipoTrabajador.valueOf(texto);
+
+                 } catch (Exception e) {
+
+                     tipoTrabajador =
+                             TipoTrabajador.AMBOS;
+                 }
+
+                    // =====================================
+                    // 🔥 INSTRUCTOR EXISTENTE
+                    // =====================================
+
+                    String nombreInstructor =
+                            formatter.formatCellValue(
+                                    row.getCell(9)
+                            ).trim();
+
+                    // 🔥 SIN INSTRUCTOR
+                    if (nombreInstructor.isBlank()) {
+
+                        System.out.println(
+                                "⚠️ Curso sin instructor en fila: "
+                                        + i
+                        );
+
+                        sinInstructor++;
+
+                        continue;
                     }
 
+                    // 🔥 BUSCAR EN BD
+                    Instructores instructor =
+                            instructorService.buscarPorNombre(
+                                    nombreInstructor
+                            );
+
+                    // 🔥 SI NO EXISTE
+                    if (instructor == null) {
+
+                        System.out.println(
+                                "❌ Instructor no existe: "
+                                        + nombreInstructor
+                        );
+
+                        sinInstructor++;
+
+                        continue;
+                    }
+
+                    // =====================================
                     // 🔥 CREAR CURSO
+                    // =====================================
+
                     Curso curso = new Curso();
+
                     curso.setClaveCurso(claveCurso);
+
                     curso.setNombreCurso(nombreCurso);
-                    curso.setHoras(horas != null ? horas : 0);
-                    curso.setVigenciaMeses(vigenciaMeses != null ? vigenciaMeses : 0);
+
+                    curso.setHoras(
+                            horas != null ? horas : 0
+                    );
+
+                    curso.setVigenciaMeses(
+                            vigenciaMeses != null
+                                    ? vigenciaMeses
+                                    : 0
+                    );
+
                     curso.setTipoCurso(tipoCurso);
-                    curso.setTipoTrabajador(tipoTrabajador);
+
+                    curso.setTipoTrabajador(
+                            tipoTrabajador
+                    );
+
+                    // 🔥 ASIGNAR INSTRUCTOR
+                    curso.setInstructor(instructor);
+                    
+                 // =====================================
+                 // 🔥 FECHA INICIO
+                 // =====================================
+
+                 try {
+
+                     Cell cellInicio = row.getCell(10);
+
+                     if(cellInicio != null){
+
+                         // 🔥 FECHA EXCEL
+                         if(cellInicio.getCellType() == CellType.NUMERIC
+                                 && DateUtil.isCellDateFormatted(cellInicio)){
+
+                             curso.setFechaInicio(
+                                     cellInicio
+                                             .getLocalDateTimeCellValue()
+                                             .toLocalDate()
+                             );
+
+                         } else {
+
+                             // 🔥 TEXTO
+                             String fechaTexto =
+                                     formatter.formatCellValue(cellInicio)
+                                             .trim();
+
+                             if(!fechaTexto.isBlank()){
+
+                                 curso.setFechaInicio(
+                                         LocalDate.parse(fechaTexto)
+                                 );
+                             }
+                         }
+                     }
+
+                 } catch (Exception e){
+
+                     System.out.println(
+                             "⚠️ Fecha inicio inválida fila: " + i
+                     );
+                 }
+
+                 // =====================================
+                 // 🔥 FECHA FIN
+                 // =====================================
+
+                 try {
+
+                     Cell cellFin = row.getCell(11);
+
+                     if(cellFin != null){
+
+                         // 🔥 FECHA EXCEL
+                         if(cellFin.getCellType() == CellType.NUMERIC
+                                 && DateUtil.isCellDateFormatted(cellFin)){
+
+                             curso.setFechaFin(
+                                     cellFin
+                                             .getLocalDateTimeCellValue()
+                                             .toLocalDate()
+                             );
+
+                         } else {
+
+                             // 🔥 TEXTO
+                             String fechaTexto =
+                                     formatter.formatCellValue(cellFin)
+                                             .trim();
+
+                             if(!fechaTexto.isBlank()){
+
+                                 curso.setFechaFin(
+                                         LocalDate.parse(fechaTexto)
+                                 );
+                             }
+                         }
+                     }
+
+                 } catch (Exception e){
+
+                     System.out.println(
+                             "⚠️ Fecha fin inválida fila: " + i
+                     );
+                 }
+
                     curso.setActivo(true);
+
+                    // =====================================
+                    // 🔥 GUARDAR
+                    // =====================================
 
                     cursoService.guardar(curso);
 
                     importados++;
 
                 } catch (Exception e) {
-                    System.out.println("Error en fila " + i + ": " + e.getMessage());
+
+                    System.out.println(
+                            "❌ Error en fila "
+                                    + i
+                                    + ": "
+                                    + e.getMessage()
+                    );
                 }
             }
 
         } catch (Exception e) {
+
             e.printStackTrace();
         }
 
-        model.addAttribute("mensaje",
-                "Cursos importados: " + importados +
-                " | Duplicados: " + duplicados +
-                " | Vacíos: " + vacios);
+        // =====================================
+        // 🔥 MENSAJE
+        // =====================================
 
-        model.addAttribute("cursos", cursoService.listarActivos());
+        model.addAttribute(
+                "mensaje",
+                "✅ Importados: " + importados
+                        + " | ⚠️ Duplicados: " + duplicados
+                        + " | 📭 Vacíos: " + vacios
+                        + " | 👨‍🏫 Sin instructor: "
+                        + sinInstructor
+        );
+
+        model.addAttribute(
+                "cursos",
+                cursoService.listarActivos()
+        );
 
         return "cursos/lista";
     }
@@ -367,75 +621,146 @@ public class CursoWebController {
 
             Sheet sheet = workbook.createSheet("Cursos");
 
-            // 🔥 ENCABEZADOS CORREGIDOS
+            // =========================================
+            // 🔥 ENCABEZADOS
+            // =========================================
+
             Row header = sheet.createRow(0);
 
             header.createCell(0).setCellValue("claveInstitucion");
             header.createCell(1).setCellValue("claveCurso");
             header.createCell(2).setCellValue("nombreCurso");
             header.createCell(3).setCellValue("claveAreaTematica");
-            header.createCell(4).setCellValue("horas");             // 🔥 CAMBIO
-            header.createCell(5).setCellValue("vigenciaMeses");     // 🔥 NUEVO
+            header.createCell(4).setCellValue("horas");
+            header.createCell(5).setCellValue("vigenciaMeses");
             header.createCell(6).setCellValue("tipoCurso");
             header.createCell(7).setCellValue("tipoTrabajador");
             header.createCell(8).setCellValue("areaResponsable");
-            header.createCell(9).setCellValue("fechaInicio");
-            header.createCell(10).setCellValue("fechaFin");
 
-            // 🔥 EJEMPLO CORREGIDO
+            // 🔥 NUEVO
+            header.createCell(9).setCellValue("instructor");
+
+            header.createCell(10).setCellValue("fechaInicio");
+            header.createCell(11).setCellValue("fechaFin");
+
+            // =========================================
+            // 🔥 EJEMPLO
+            // =========================================
+
             Row ejemplo = sheet.createRow(1);
 
             ejemplo.createCell(0).setCellValue("INST01");
             ejemplo.createCell(1).setCellValue("CUR001");
             ejemplo.createCell(2).setCellValue("Java Básico");
             ejemplo.createCell(3).setCellValue("SISTEMAS");
-            ejemplo.createCell(4).setCellValue(8);     // horas
-            ejemplo.createCell(5).setCellValue(36);    // vigencia (meses)
+
+            ejemplo.createCell(4).setCellValue(8);
+
+            ejemplo.createCell(5).setCellValue(36);
+
             ejemplo.createCell(6).setCellValue("INTERNO");
+
             ejemplo.createCell(7).setCellValue("AMBOS");
+
             ejemplo.createCell(8).setCellValue("TI");
-            ejemplo.createCell(9).setCellValue("2026-03-01");
-            ejemplo.createCell(10).setCellValue("2026-03-10");
+
+            // 🔥 INSTRUCTOR EXISTENTE
+            ejemplo.createCell(9).setCellValue("Juan Perez");
+
+            ejemplo.createCell(10).setCellValue("2026-03-01");
+
+            ejemplo.createCell(11).setCellValue("2026-03-10");
 
             // =========================================
             // 🔥 VALIDACIONES
             // =========================================
 
-            DataValidationHelper helper = sheet.getDataValidationHelper();
-
-            // Tipo Curso
-            DataValidationConstraint tipoCursoConstraint =
-                    helper.createExplicitListConstraint(new String[]{"INTERNO", "EXTERNO"});
-
-            CellRangeAddressList tipoCursoRange =
-                    new CellRangeAddressList(1, 100, 6, 6);
-
-            sheet.addValidationData(helper.createValidation(tipoCursoConstraint, tipoCursoRange));
-
-            // Tipo Trabajador
-            DataValidationConstraint tipoTrabajadorConstraint =
-                    helper.createExplicitListConstraint(new String[]{"SALARY", "HOURLY", "AMBOS"});
-
-            CellRangeAddressList tipoTrabajadorRange =
-                    new CellRangeAddressList(1, 100, 7, 7);
-
-            sheet.addValidationData(helper.createValidation(tipoTrabajadorConstraint, tipoTrabajadorRange));
+            DataValidationHelper helper =
+                    sheet.getDataValidationHelper();
 
             // =========================================
+            // 🔥 TIPO CURSO
+            // =========================================
 
+            DataValidationConstraint tipoCursoConstraint =
+                    helper.createExplicitListConstraint(
+                            new String[]{
+                                    "INTERNO",
+                                    "EXTERNO"
+                            }
+                    );
+
+            CellRangeAddressList tipoCursoRange =
+                    new CellRangeAddressList(
+                            1,
+                            1000,
+                            6,
+                            6
+                    );
+
+            sheet.addValidationData(
+                    helper.createValidation(
+                            tipoCursoConstraint,
+                            tipoCursoRange
+                    )
+            );
+
+            // =========================================
+            // 🔥 TIPO TRABAJADOR
+            // =========================================
+
+            DataValidationConstraint tipoTrabajadorConstraint =
+                    helper.createExplicitListConstraint(
+                            new String[]{
+                                    "SALARY",
+                                    "HOURLY",
+                                    "AMBOS"
+                            }
+                    );
+
+            CellRangeAddressList tipoTrabajadorRange =
+                    new CellRangeAddressList(
+                            1,
+                            1000,
+                            7,
+                            7
+                    );
+
+            sheet.addValidationData(
+                    helper.createValidation(
+                            tipoTrabajadorConstraint,
+                            tipoTrabajadorRange
+                    )
+            );
+
+            // =========================================
             // 🔥 AUTO SIZE
-            for (int i = 0; i <= 10; i++) {
+            // =========================================
+
+            for (int i = 0; i <= 11; i++) {
+
                 sheet.autoSizeColumn(i);
             }
 
+            // =========================================
             // 🔥 RESPUESTA
-            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.setHeader("Content-Disposition", "attachment; filename=plantilla_cursos.xlsx");
+            // =========================================
+
+            response.setContentType(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            );
+
+            response.setHeader(
+                    "Content-Disposition",
+                    "attachment; filename=plantilla_cursos.xlsx"
+            );
 
             workbook.write(response.getOutputStream());
+
             response.getOutputStream().flush();
 
         } catch (Exception e) {
+
             e.printStackTrace();
         }
     }

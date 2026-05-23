@@ -7,13 +7,19 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import uno.dos.models.entity.Capacitacion;
+import uno.dos.models.entity.Curso;
 import uno.dos.models.entity.Puesto;
 import uno.dos.models.entity.PuestoCapacitacion;
+import uno.dos.models.entity.PuestoCurso;
 import uno.dos.models.entity.Trabajador;
+import uno.dos.repositories.CursoRepository;
 import uno.dos.repositories.EvaluacionCapacitacionRepository;
 import uno.dos.repositories.PuestoCapacitacionRepository;
+import uno.dos.repositories.PuestoCursoRepository;
 import uno.dos.repositories.PuestoRepository;
 import uno.dos.repositories.TrabajadorRepository;
 
@@ -26,6 +32,9 @@ public class PuestoServiceImpl implements PuestoService{
     private final PuestoCapacitacionRepository puestoCapacitacionRepository;
     private final TrabajadorRepository trabajadorRepository;
     private final EvaluacionCapacitacionRepository evaluacionRepository;
+    private final CursoRepository cursoRepository;
+    private final PuestoCursoRepository puestoCursoRepository;
+    
     
     
     
@@ -41,8 +50,9 @@ public class PuestoServiceImpl implements PuestoService{
         return puestoRepository.findById(id);
     }
 
-    public void guardar(Puesto puesto){
-        puestoRepository.save(puesto);
+    @Override
+    public Puesto guardar(Puesto puesto){
+       return puestoRepository.save(puesto);
     }
 
     public void eliminar(Long id){
@@ -152,5 +162,60 @@ public class PuestoServiceImpl implements PuestoService{
 
         // 🔥 eliminación masiva real
         puestoRepository.deleteAllByIdInBatch(ids);
+    }
+
+	
+    @Override
+    @Transactional
+    public void asignarCurso(
+            Long puestoId,
+            Long cursoId){
+
+        Puesto puesto =
+                puestoRepository
+                        .findById(puestoId)
+                        .orElseThrow();
+
+        Curso curso =
+                cursoRepository
+                        .findById(cursoId)
+                        .orElseThrow();
+
+        // =====================================
+        // 🔥 VALIDAR DUPLICADO
+        // =====================================
+
+        boolean existe =
+                puestoCursoRepository
+                        .existsByPuestoIdAndCursoId(
+                                puestoId,
+                                cursoId
+                        );
+
+        if(existe){
+
+            return;
+        }
+
+        // =====================================
+        // 🔥 CREAR RELACIÓN
+        // =====================================
+
+        PuestoCurso pc =
+                new PuestoCurso();
+
+        pc.setPuesto(puesto);
+
+        pc.setCurso(curso);
+
+        pc.setObligatorio(true);
+
+        pc.setOrden(1);
+
+        // =====================================
+        // 🔥 GUARDAR DIRECTO
+        // =====================================
+
+        puestoCursoRepository.save(pc);
     }
 }

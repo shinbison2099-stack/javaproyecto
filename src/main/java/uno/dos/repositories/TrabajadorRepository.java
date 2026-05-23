@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import uno.dos.models.entity.Inscripcion;
+import uno.dos.models.entity.TipoTrabajador;
 import uno.dos.models.entity.Trabajador;
 
 @Repository
@@ -19,5 +20,8 @@ public interface TrabajadorRepository extends JpaRepository<Trabajador, Long> {
     List<Trabajador> findByActivoFalse();
     
     void deleteById(Long id);
+    
+    List<Trabajador>
+    findByTipoTrabajadorAndActivoTrue(TipoTrabajador tipo);
 
 }

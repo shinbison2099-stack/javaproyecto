@@ -30,5 +30,9 @@ public interface TrabajadorService {
 	public void eliminarDefinitivo(Long id);
 	
 	List<Trabajador> filtrarPorTipo(TipoTrabajador tipo);
+	
+	List<Trabajador> buscarPorTipo(TipoTrabajador tipo);
+	
+	List<Trabajador> buscarSalaryYAmbos();
     
 }

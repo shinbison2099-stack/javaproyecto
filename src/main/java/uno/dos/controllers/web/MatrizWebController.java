@@ -36,8 +36,21 @@ public class MatrizWebController {
     @GetMapping("/crear-salary")
     public String crear(Model model){
 
-        model.addAttribute("trabajadores", trabajadorService.listarActivos());
-        model.addAttribute("cursos", cursoService.listarActivos());
+        // 🔥 SOLO SALARY
+        model.addAttribute(
+                "trabajadores",
+                trabajadorService.filtrarPorTipo(
+                        TipoTrabajador.SALARY
+                )
+        );
+
+        // 🔥 SOLO CURSOS SALARY
+        model.addAttribute(
+                "cursos",
+                cursoService.filtrarExacto(
+                        TipoTrabajador.SALARY
+                )
+        );
 
         return "/matriz/crear";
     }
@@ -414,5 +427,89 @@ public class MatrizWebController {
         model.addAttribute("trabajadores", trabajadores);
 
         return "matriz/seleccionar-tipo";
+    }
+    
+    @GetMapping("/hourly")
+    public String matrizHourly(Model model){
+
+        // =====================================
+        // 🔥 SOLO HOURLY
+        // =====================================
+
+        List<Trabajador> trabajadores =
+
+                trabajadorService
+                .buscarPorTipo(
+                        TipoTrabajador.HOURLY
+                );
+
+        // =====================================
+        // 🔥 CAPACITACIONES HOURLY
+        // =====================================
+
+        List<Capacitacion> capacitaciones =
+
+        		capacitacionService
+        		.disponiblesPorTipo(
+        		        TipoTrabajador.HOURLY
+        		);
+
+        // =====================================
+        // 🔥 SKILL MATRIX
+        // =====================================
+
+        List<SkillMatrix> skills =
+
+                matrizService
+                .listarSkills();
+
+        // =====================================
+        // 🔥 MAPA
+        // =====================================
+
+        Map<String, SkillMatrix> matrix =
+                new HashMap<>();
+
+        for(SkillMatrix s : skills){
+
+            String key =
+
+                    s.getTrabajador().getId()
+
+                    +
+
+                    "-"
+
+                    +
+
+                    s.getCapacitacion().getId();
+
+            matrix.put(key, s);
+        }
+
+        // =====================================
+        // 🔥 MODEL
+        // =====================================
+
+        model.addAttribute(
+                "trabajadores",
+                trabajadores
+        );
+
+        model.addAttribute(
+                "capacitaciones",
+                capacitaciones
+        );
+
+        model.addAttribute(
+                "matrix",
+                matrix
+        );
+
+        // =====================================
+        // 🔥 VIEW
+        // =====================================
+
+        return "matriz/hourly-matrix";
     }
 }

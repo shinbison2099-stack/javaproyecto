@@ -19,53 +19,189 @@
 
     <style>
 
-        body {
+        body{
             background: linear-gradient(135deg, #0f172a, #1e293b);
             color: white;
-            font-family: Arial;
+            font-family: 'Segoe UI', sans-serif;
         }
 
-        .content {
+        .content{
             margin-left: 120px;
             padding: 30px;
         }
 
-        .card-box {
+        .card-box{
             background: rgba(255,255,255,0.08);
-            backdrop-filter: blur(12px);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            backdrop-filter: blur(14px);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.35);
         }
 
-        .header {
+        .header{
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .header h2{
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .acciones{
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
             margin-bottom: 20px;
         }
 
-        .btn {
-            border-radius: 10px;
+        .btn{
+            border-radius: 12px;
+            font-weight: 600;
         }
 
-        table {
+        /* =========================================
+           🔥 WINDOWS 11 BUTTON
+        ========================================= */
+
+        .btn-win11{
+
+            background: rgba(255,255,255,0.12);
+
+            border: 1px solid rgba(255,255,255,0.18);
+
+            backdrop-filter: blur(14px);
+
+            color: white;
+
+            border-radius: 14px;
+
+            padding: 10px 18px;
+
+            font-weight: 600;
+
+            transition: all 0.25s ease;
+
+            box-shadow:
+                0 4px 20px rgba(0,0,0,0.25),
+                inset 0 1px 1px rgba(255,255,255,0.08);
+
+            text-decoration: none;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 8px;
+        }
+
+        .btn-win11:hover{
+
+            transform: translateY(-2px);
+
+            background: rgba(255,255,255,0.18);
+
+            color: white;
+
+            box-shadow:
+                0 10px 30px rgba(59,130,246,0.35);
+        }
+
+        .btn-win11 i{
+
+            font-size: 18px;
+        }
+
+        /* ========================================= */
+
+        .form-control{
+            border-radius: 12px;
+        }
+
+        table{
             background: white;
             color: black;
-            border-radius: 15px;
+            border-radius: 18px;
             overflow: hidden;
         }
 
-        tbody tr:hover {
-            background: #f1f1f1;
+        tbody tr:hover{
+            background: #f3f4f6;
             transition: 0.2s;
         }
 
-        .acciones {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+        .badge{
+            padding: 8px 12px;
+            border-radius: 10px;
         }
+		
+		/* =========================================
+		   🔥 SCROLL TABLA WINDOWS 11
+		========================================= */
+
+		.tabla-scroll{
+
+		    max-height: 620px;
+
+		    overflow-y: auto;
+
+		    border-radius: 18px;
+
+		    box-shadow:
+		        inset 0 0 15px rgba(0,0,0,0.15);
+		}
+
+		/* 🔥 HEADER FIJO */
+		.tabla-scroll thead th{
+
+		    position: sticky;
+
+		    top: 0;
+
+		    z-index: 10;
+
+		    background: #1f2937 !important;
+
+		    color: white;
+		}
+
+		/* =========================================
+		   🔥 SCROLL PERSONALIZADO
+		========================================= */
+
+		.tabla-scroll::-webkit-scrollbar{
+
+		    width: 10px;
+		}
+
+		.tabla-scroll::-webkit-scrollbar-track{
+
+		    background: rgba(255,255,255,0.08);
+
+		    border-radius: 20px;
+		}
+
+		.tabla-scroll::-webkit-scrollbar-thumb{
+
+		    background: linear-gradient(
+		        180deg,
+		        #3b82f6,
+		        #2563eb
+		    );
+
+		    border-radius: 20px;
+		}
+
+		.tabla-scroll::-webkit-scrollbar-thumb:hover{
+
+		    background: linear-gradient(
+		        180deg,
+		        #60a5fa,
+		        #3b82f6
+		    );
+		}
 
     </style>
 
@@ -80,6 +216,7 @@
 
     <div class="card-box">
 
+        <!-- HEADER -->
         <div class="header">
 
             <h2>
@@ -88,30 +225,55 @@
             </h2>
 
             <span class="badge bg-success"
-                  th:text="${#lists.size(puestos)} + ' puestos'"></span>
+                  th:text="${#lists.size(puestos)} + ' puestos'">
+            </span>
 
         </div>
 
-        <div class="acciones mb-3">
+        <!-- BOTONES -->
+        <div class="acciones">
 
-            <a href="/puestos/nuevo" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Nuevo
+            <a href="/puestos/nuevo"
+               class="btn btn-primary">
+
+                <i class="bi bi-plus-circle"></i>
+                Nuevo
+
             </a>
 
-            <a href="/puestos/eliminados" class="btn btn-secondary">
-                <i class="bi bi-trash"></i> Eliminados
+            <a href="/puestos/eliminados"
+               class="btn btn-secondary">
+
+                <i class="bi bi-trash"></i>
+                Eliminados
+
             </a>
 
-            <a href="/puestos/pdf" class="btn btn-danger">
-                <i class="bi bi-file-earmark-pdf"></i> PDF
+            <!-- 🔥 BOTÓN WINDOWS 11 -->
+            <a href="/puestos/plantilla"
+               class="btn-win11">
+
+                <i class="bi bi-cloud-arrow-down-fill"></i>
+
+                Descargar plantilla
+
+            </a>
+
+            <a href="/puestos/pdf"
+               class="btn btn-danger">
+
+                <i class="bi bi-file-earmark-pdf"></i>
+                PDF
+
             </a>
 
         </div>
 
+        <!-- IMPORTAR -->
         <form action="/puestos/importar"
               method="post"
               enctype="multipart/form-data"
-              class="d-flex gap-2 mb-3">
+              class="d-flex gap-2 mb-4">
 
             <input type="file"
                    name="archivo"
@@ -120,88 +282,115 @@
                    required>
 
             <button class="btn btn-success">
-                <i class="bi bi-file-earmark-excel"></i> Importar
+
+                <i class="bi bi-file-earmark-excel"></i>
+                Importar
+
             </button>
 
         </form>
 
-        <div class="table-responsive">
+		<!-- TABLA -->
+		<div class="table-responsive tabla-scroll">
 
-            <table class="table table-hover text-center align-middle">
+		    <table class="table table-hover text-center align-middle">
 
-                <thead class="table-dark">
-                <tr>
-                    <th>#</th>
-                    <th>Nombre</th>
-                    <th>Tipo</th> <!-- 🔥 CAMBIADO -->
-                    <th>Nivel</th>
-                    <th>Cursos</th>
-                    <th>Acciones</th>
-                </tr>
-                </thead>
+		        <thead class="table-dark">
 
-                <tbody>
+		        <tr>
 
-                <tr th:each="p, iterStat : ${puestos}">
+		            <th>#</th>
 
-                    <td th:text="${iterStat.count}"></td>
+		            <th>Nombre</th>
 
-                    <td class="fw-semibold text-primary"
-                        th:text="${p.nombrePuesto}">
-                    </td>
+		            <th>Tipo</th>
 
-                    <!-- 🔥 AQUÍ ESTABA EL ERROR -->
-                    <td>
-                        <span class="badge bg-secondary"
-                              th:text="${p.tipoTrabajador != null ? #strings.capitalize(p.tipoTrabajador.name().toLowerCase()) : 'Sin tipo'}">
-                        </span>
-                    </td>
+		            <th>Nivel</th>
 
-                    <td>
-                        <span class="badge bg-info"
-                              th:text="${p.nivel}"></span>
-                    </td>
+		            <th>Cursos</th>
 
-                    <!-- CURSOS -->
-                    <td>
-                        <div th:if="${p.cursos != null and !p.cursos.isEmpty()}">
+		            <th>Acciones</th>
 
-                            <span th:each="c : ${p.cursos}"
-                                  class="badge rounded-pill bg-primary me-1 mb-1"
-                                  th:text="${c.nombreCurso}">
-                            </span>
+		        </tr>
 
-                        </div>
+		        </thead>
 
-                        <span th:if="${p.cursos == null or p.cursos.isEmpty()}"
-                              class="text-muted">
-                            Sin cursos
-                        </span>
-                    </td>
+		        <tbody>
 
-                    <td>
+		        <tr th:each="p, iterStat : ${puestos}">
 
-                        <a th:href="@{/puestos/editar/{id}(id=${p.id})}"
-                           class="btn btn-warning btn-sm">
-                            <i class="bi bi-pencil"></i>
-                        </a>
+		            <td th:text="${iterStat.count}"></td>
 
-                        <a th:href="@{/puestos/eliminar/{id}(id=${p.id})}"
-                           class="btn btn-danger btn-sm"
-                           onclick="return confirm('Eliminar puesto?')">
-                            <i class="bi bi-trash"></i>
-                        </a>
+		            <td class="fw-semibold text-primary"
+		                th:text="${p.nombrePuesto}">
+		            </td>
 
-                    </td>
+		            <td>
 
-                </tr>
+		                <span class="badge bg-secondary"
+		                      th:text="${p.tipoTrabajador != null
+		                      ? #strings.capitalize(p.tipoTrabajador.name().toLowerCase())
+		                      : 'Sin tipo'}">
+		                </span>
 
-                </tbody>
+		            </td>
 
-            </table>
+		            <td>
 
-        </div>
+		                <span class="badge bg-info"
+		                      th:text="${p.nivel}">
+		                </span>
 
+		            </td>
+
+		            <!-- CURSOS -->
+		            <td>
+
+		                <div th:if="${p.cursos != null and !p.cursos.isEmpty()}">
+
+		                    <span th:each="c : ${p.cursos}"
+		                          class="badge rounded-pill bg-primary me-1 mb-1"
+		                          th:text="${c.nombreCurso}">
+		                    </span>
+
+		                </div>
+
+		                <span th:if="${p.cursos == null or p.cursos.isEmpty()}"
+		                      class="text-muted">
+
+		                    Sin cursos
+
+		                </span>
+
+		            </td>
+
+		            <!-- ACCIONES -->
+		            <td>
+
+		                <a th:href="@{/puestos/editar/{id}(id=${p.id})}"
+		                   class="btn btn-warning btn-sm">
+
+		                    <i class="bi bi-pencil"></i>
+
+		                </a>
+
+		                <a th:href="@{/puestos/eliminar/{id}(id=${p.id})}"
+		                   class="btn btn-danger btn-sm"
+		                   onclick="return confirm('Eliminar puesto?')">
+
+		                    <i class="bi bi-trash"></i>
+
+		                </a>
+
+		            </td>
+
+		        </tr>
+
+		        </tbody>
+
+		    </table>
+
+		</div>
     </div>
 
 </div>

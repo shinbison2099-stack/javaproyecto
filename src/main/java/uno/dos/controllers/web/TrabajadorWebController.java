@@ -15,6 +15,7 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,11 +26,11 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import uno.dos.models.entity.Capacitacion;
 import uno.dos.models.entity.CapacitacionTrabajador;
 import uno.dos.models.entity.EvaluacionCapacitacion;
 import uno.dos.models.entity.Inscripcion;
 import uno.dos.models.entity.Puesto;
+import uno.dos.models.entity.TipoTrabajador;
 import uno.dos.models.entity.Trabajador;
 import uno.dos.repositories.CapacitacionTrabajadorRepository;
 import uno.dos.repositories.InscripcionRepository;
@@ -140,11 +141,13 @@ public class TrabajadorWebController {
         
      // 🔥 RECONSTRUIR PUESTO
         if(trabajador.getPuesto() != null && trabajador.getPuesto().getId() != null){
-            Puesto p = puestoService
-                    .buscarPorId(trabajador.getPuesto().getId())
-                    .orElse(null);
+        	Puesto p = puestoService
+        	        .buscarPorId(
+        	                trabajador.getPuesto().getId()
+        	        )
+        	        .orElseThrow();
 
-            trabajador.setPuesto(p);
+        	trabajador.setPuesto(p);
         }
 
         trabajador.setActivo(true);
@@ -155,95 +158,277 @@ public class TrabajadorWebController {
     }
 
     @PostMapping("/importar")
-    public String importarExcel(@RequestParam("archivo") MultipartFile archivo) {
+    public String importarExcel(
+            @RequestParam("archivo")
+            MultipartFile archivo) {
 
         int importados = 0;
         int duplicados = 0;
         int vacios = 0;
 
-        try (Workbook workbook = WorkbookFactory.create(archivo.getInputStream())) {
+        try (Workbook workbook =
+                     WorkbookFactory.create(
+                             archivo.getInputStream())) {
 
             Sheet sheet = workbook.getSheetAt(0);
-            DataFormatter formatter = new DataFormatter();
 
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            DataFormatter formatter =
+                    new DataFormatter();
+
+            for (int i = 1;
+                 i <= sheet.getLastRowNum();
+                 i++) {
 
                 try {
 
                     Row row = sheet.getRow(i);
+
                     if (row == null) {
+
                         vacios++;
+
                         continue;
                     }
 
-                    // 🔥 SOLO LO NECESARIO (como tu tabla)
-                    String numeroPersonal = formatter.formatCellValue(row.getCell(0)).trim();
-                    String curp = formatter.formatCellValue(row.getCell(1)).trim();
-                    String nombreCompleto = formatter.formatCellValue(row.getCell(2)).trim();
-                    String areaEmpleado = formatter.formatCellValue(row.getCell(3)).trim();
-                    String puestoTexto = formatter.formatCellValue(row.getCell(4)).trim();
-                    String email = formatter.formatCellValue(row.getCell(5)).trim();
+                    // =====================================
+                    // 🔥 LEER COLUMNAS
+                    // =====================================
 
-                    // 🔥 VALIDACIÓN
-                    if (curp.isEmpty() || nombreCompleto.isEmpty()) {
+                    String numeroPersonal =
+                            formatter.formatCellValue(
+                                    row.getCell(0)
+                            ).trim();
+
+                    String curp =
+                            formatter.formatCellValue(
+                                    row.getCell(1)
+                            ).trim();
+
+                    String nombreCompleto =
+                            formatter.formatCellValue(
+                                    row.getCell(2)
+                            ).trim();
+
+                    String areaEmpleado =
+                            formatter.formatCellValue(
+                                    row.getCell(3)
+                            ).trim();
+
+                    String puestoTexto =
+                            formatter.formatCellValue(
+                                    row.getCell(4)
+                            ).trim();
+
+                    // 🔥 NUEVO
+                    String tipoTexto =
+                            formatter.formatCellValue(
+                                    row.getCell(5)
+                            ).trim();
+
+                    String email =
+                            formatter.formatCellValue(
+                                    row.getCell(6)
+                            ).trim();
+
+                    // =====================================
+                    // 🔥 VALIDACIONES
+                    // =====================================
+
+                    if (curp.isBlank()
+                            || nombreCompleto.isBlank()) {
+
                         vacios++;
+
                         continue;
                     }
 
-                    if (trabajadorService.existeCurp(curp)) {
+                    if (trabajadorService
+                            .existeCurp(curp)) {
+
                         duplicados++;
+
                         continue;
                     }
 
-                    // 🔥 SEPARAR NOMBRE (opcional)
+                    // =====================================
+                    // 🔥 SEPARAR NOMBRE
+                    // =====================================
+
                     String nombre = "";
+
                     String primerApellido = "";
+
                     String segundoApellido = "";
 
-                    String[] partes = nombreCompleto.split(" ");
+                    String[] partes =
+                            nombreCompleto.split(" ");
 
-                    if (partes.length > 0) nombre = partes[0];
-                    if (partes.length > 1) primerApellido = partes[1];
-                    if (partes.length > 2) segundoApellido = partes[2];
+                    if (partes.length > 0)
+                        nombre = partes[0];
 
-                    // 🔥 CREAR OBJETO
-                    Trabajador trabajador = new Trabajador();
+                    if (partes.length > 1)
+                        primerApellido = partes[1];
 
-                    trabajador.setNumeroPersonal(numeroPersonal);
-                    trabajador.setCurp(curp);
-                    trabajador.setNombre(nombre);
-                    trabajador.setPrimerApellido(primerApellido);
-                    trabajador.setSegundoApellido(segundoApellido);
-                    trabajador.setAreaEmpleado(areaEmpleado);
-                    trabajador.setEmail(email);
-                    trabajador.setActivo(true);
+                    if (partes.length > 2)
+                        segundoApellido = partes[2];
 
-                    // 🔥 BUSCAR PUESTO (si existe)
-                    if (!puestoTexto.isEmpty()) {
-                        Puesto puesto = puestoService.buscarPorNombre(puestoTexto);
-                        trabajador.setPuesto(puesto);
+                    // =====================================
+                    // 🔥 TIPO TRABAJADOR
+                    // =====================================
+
+                    TipoTrabajador tipo =
+                            TipoTrabajador.AMBOS;
+
+                    try {
+
+                        if (!tipoTexto.isBlank()) {
+
+                            tipo =
+                                    TipoTrabajador.valueOf(
+                                            tipoTexto
+                                                    .trim()
+                                                    .toUpperCase()
+                                    );
+                        }
+
+                    } catch (Exception e) {
+
+                        tipo =
+                                TipoTrabajador.AMBOS;
                     }
 
-                    trabajadorService.guardar(trabajador);
+                    // =====================================
+                    // 🔥 CREAR OBJETO
+                    // =====================================
+
+                    Trabajador trabajador =
+                            new Trabajador();
+
+                    trabajador.setNumeroPersonal(
+                            numeroPersonal
+                    );
+
+                    trabajador.setCurp(curp);
+
+                    trabajador.setNombre(nombre);
+
+                    trabajador.setPrimerApellido(
+                            primerApellido
+                    );
+
+                    trabajador.setSegundoApellido(
+                            segundoApellido
+                    );
+
+                    trabajador.setAreaEmpleado(
+                            areaEmpleado
+                    );
+
+                    trabajador.setEmail(email);
+
+                    trabajador.setTipoTrabajador(
+                            tipo
+                    );
+
+                    trabajador.setActivo(true);
+
+                    // =====================================
+                    // 🔥 BUSCAR PUESTO
+                    // =====================================
+
+                    if (!puestoTexto.isBlank()) {
+
+                        Puesto puesto =
+                                puestoService
+                                        .buscarPorNombre(
+                                                puestoTexto
+                                        );
+
+                        // 🔥 VALIDAR TIPO
+                        if (puesto != null) {
+
+                            boolean valido = false;
+
+                            if (tipo ==
+                                    TipoTrabajador.AMBOS) {
+
+                                valido = true;
+                            }
+
+                            else if (
+                                    puesto.getTipoTrabajador()
+                                            ==
+                                    TipoTrabajador.AMBOS) {
+
+                                valido = true;
+                            }
+
+                            else if (
+                                    puesto.getTipoTrabajador()
+                                            ==
+                                    tipo) {
+
+                                valido = true;
+                            }
+
+                            if (valido) {
+
+                                trabajador.setPuesto(
+                                        puesto
+                                );
+
+                            } else {
+
+                                System.out.println(
+                                        "⚠️ Puesto incompatible fila "
+                                                + i
+                                );
+                            }
+                        }
+                    }
+
+                    // =====================================
+                    // 🔥 GUARDAR
+                    // =====================================
+
+                    trabajadorService
+                            .guardar(trabajador);
+
                     importados++;
 
                 } catch (Exception e) {
-                    System.out.println("Error en fila " + i + ": " + e.getMessage());
-                    continue; // 🔥 NO TRUENA TODO
+
+                    System.out.println(
+                            "❌ Error fila "
+                                    + i
+                                    + ": "
+                                    + e.getMessage()
+                    );
                 }
             }
 
         } catch (Exception e) {
+
             e.printStackTrace();
         }
 
-        System.out.println("Importados: " + importados);
-        System.out.println("Duplicados: " + duplicados);
-        System.out.println("Vacíos: " + vacios);
+        System.out.println(
+                "✅ Importados: "
+                        + importados
+        );
+
+        System.out.println(
+                "⚠️ Duplicados: "
+                        + duplicados
+        );
+
+        System.out.println(
+                "❌ Vacíos: "
+                        + vacios
+        );
 
         return "redirect:/trabajadores";
     }
-
     /* ===============================
        EXPORTAR PDF
        =============================== */
@@ -316,33 +501,81 @@ public class TrabajadorWebController {
        MOSTRAR FOTO
        =============================== */
 
-    @GetMapping("/foto/{numero}")
+    @GetMapping("/foto/{foto}")
     @ResponseBody
-    public ResponseEntity<byte[]> verFoto(@PathVariable String numero) {
+    public ResponseEntity<byte[]> verFoto(
+            @PathVariable String foto) {
 
         try {
 
-            // 🔥 RUTA REAL DEL PROYECTO
-            String basePath = System.getProperty("user.dir");
+            // =====================================
+            // 🔥 RUTA REAL PROYECTO
+            // =====================================
 
-            Path ruta = Paths.get(basePath, rutaFotos, numero + ".jpg");
+            String basePath =
+                    System.getProperty("user.dir");
 
-            System.out.println("BUSCANDO: " + ruta);
+            // =====================================
+            // 🔥 RUTA COMPLETA
+            // =====================================
+
+            Path ruta = Paths.get(
+
+                    basePath,
+
+                    "uploads",
+
+                    "trabajadores",
+
+                    foto
+            );
+
+            System.out.println(
+                    "BUSCANDO FOTO EN: "
+                    + ruta.toAbsolutePath()
+            );
+
+            // =====================================
+            // 🔥 VALIDAR
+            // =====================================
 
             if (!Files.exists(ruta)) {
-                System.out.println("NO EXISTE");
-                return ResponseEntity.notFound().build();
+
+                System.out.println(
+                        "NO EXISTE FOTO"
+                );
+
+                return ResponseEntity
+                        .notFound()
+                        .build();
             }
 
-            byte[] imagen = Files.readAllBytes(ruta);
+            // =====================================
+            // 🔥 LEER IMAGEN
+            // =====================================
+
+            byte[] imagen =
+                    Files.readAllBytes(ruta);
+
+            // =====================================
+            // 🔥 RETORNAR
+            // =====================================
 
             return ResponseEntity.ok()
-                    .header("Content-Type", "image/jpeg")
+
+                    .contentType(
+                            MediaType.IMAGE_JPEG
+                    )
+
                     .body(imagen);
 
         } catch (Exception e) {
+
             e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+
+            return ResponseEntity
+                    .internalServerError()
+                    .build();
         }
     }
 
@@ -369,54 +602,152 @@ public class TrabajadorWebController {
 
     @PostMapping("/actualizar")
     public String actualizar(
-            @ModelAttribute Trabajador trabajador,
-            @RequestParam(required = false) MultipartFile fotoArchivo
+
+            @ModelAttribute Trabajador form,
+
+            @RequestParam(required = false)
+            MultipartFile fotoArchivo
+
     ) throws Exception {
 
-        Trabajador original = trabajadorService
-                .buscarPorId(trabajador.getId())
-                .orElseThrow();
-        
-        // 🔥 reconstruir puesto
-        if(trabajador.getPuesto() != null && trabajador.getPuesto().getId() != null){
-            Puesto p = puestoService
-                    .buscarPorId(trabajador.getPuesto().getId())
-                    .orElse(null);
+        // =====================================
+        // 🔥 ORIGINAL
+        // =====================================
 
-            trabajador.setPuesto(p);
+        Trabajador trabajador =
+
+                trabajadorService
+                .buscarPorId(form.getId())
+                .orElseThrow();
+
+        // =====================================
+        // 🔥 DATOS
+        // =====================================
+
+        trabajador.setNumeroPersonal(
+                form.getNumeroPersonal()
+        );
+
+        trabajador.setNombre(
+                form.getNombre()
+        );
+
+        trabajador.setPrimerApellido(
+                form.getPrimerApellido()
+        );
+
+        trabajador.setSegundoApellido(
+                form.getSegundoApellido()
+        );
+
+        trabajador.setCurp(
+                form.getCurp()
+        );
+
+        trabajador.setEmail(
+                form.getEmail()
+        );
+
+        trabajador.setAreaEmpleado(
+                form.getAreaEmpleado()
+        );
+
+        trabajador.setTipoTrabajador(
+                form.getTipoTrabajador()
+        );
+
+        // =====================================
+        // 🔥 PUESTO REAL
+        // =====================================
+
+        if(form.getPuesto() != null
+           &&
+           form.getPuesto().getId() != null){
+
+            Puesto puesto =
+
+                    puestoService
+                    .buscarPorId(
+                            form.getPuesto().getId()
+                    )
+                    .orElseThrow();
+
+            trabajador.setPuesto(puesto);
         }
 
-        // mantener foto anterior si no sube nueva
-        trabajador.setFoto(original.getFoto());
+        // =====================================
+        // 🔥 FOTO
+        // =====================================
 
-        if (fotoArchivo != null && !fotoArchivo.isEmpty()) {
+        if (fotoArchivo != null
+            &&
+            !fotoArchivo.isEmpty()) {
 
             BufferedImage imagenOriginal =
-                    ImageIO.read(fotoArchivo.getInputStream());
+                    ImageIO.read(
+                            fotoArchivo.getInputStream()
+                    );
 
             int ancho = 300;
             int alto = 300;
 
             BufferedImage imagenRedimensionada =
-                    new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_RGB);
+                    new BufferedImage(
+                            ancho,
+                            alto,
+                            BufferedImage.TYPE_INT_RGB
+                    );
 
-            Graphics2D g = imagenRedimensionada.createGraphics();
-            g.drawImage(imagenOriginal, 0, 0, ancho, alto, null);
+            Graphics2D g =
+                    imagenRedimensionada
+                    .createGraphics();
+
+            g.drawImage(
+                    imagenOriginal,
+                    0,
+                    0,
+                    ancho,
+                    alto,
+                    null
+            );
+
             g.dispose();
 
             String nombreArchivo =
-                    trabajador.getNumeroPersonal() + ".jpg";
 
-            Path ruta = Paths.get(rutaFotos, nombreArchivo);
+                    trabajador.getNumeroPersonal()
+                    +
+                    ".jpg";
 
-            Files.createDirectories(ruta.getParent());
+            Path ruta = Paths.get(
+                    rutaFotos,
+                    nombreArchivo
+            );
 
-            ImageIO.write(imagenRedimensionada, "jpg", ruta.toFile());
+            Files.createDirectories(
+                    ruta.getParent()
+            );
 
-            trabajador.setFoto(nombreArchivo);
+            ImageIO.write(
+                    imagenRedimensionada,
+                    "jpg",
+                    ruta.toFile()
+            );
+
+            trabajador.setFoto(
+                    nombreArchivo
+            );
         }
 
+        // =====================================
+        // 🔥 ACTIVO
+        // =====================================
+
         trabajador.setActivo(true);
+
+        // =====================================
+        // 🔥 SAVE
+        // =====================================
 
         trabajadorService.guardar(trabajador);
 
@@ -465,105 +796,230 @@ public class TrabajadorWebController {
         return "redirect:/trabajadores/eliminados";
     }
     
-    @Controller
-    @RequestMapping("/foto")
-    public class FotoController {
-
-        @Value("${ruta.fotos}")
-        private String rutaFotos;
-
-        @GetMapping("/{numero}")
-        @ResponseBody
-        public ResponseEntity<byte[]> verFoto(@PathVariable String numero) {
-
-            try {
-
-                String basePath = System.getProperty("user.dir");
-
-                Path ruta = Paths.get(basePath, rutaFotos, numero + ".jpg");
-
-                if (!Files.exists(ruta)) {
-                    return ResponseEntity.notFound().build();
-                }
-
-                byte[] imagen = Files.readAllBytes(ruta);
-
-                return ResponseEntity.ok()
-                        .header("Content-Type", "image/jpeg")
-                        .body(imagen);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return ResponseEntity.internalServerError().build();
-            }
-        }
-    }
-    
     @GetMapping("/plantilla")
-    public void descargarPlantilla(HttpServletResponse response) {
+    public void descargarPlantilla(
+            HttpServletResponse response) {
 
-        try (Workbook workbook = new XSSFWorkbook()) {
+        try (Workbook workbook =
+                     new XSSFWorkbook()) {
 
-            Sheet sheet = workbook.createSheet("Trabajadores");
+            Sheet sheet =
+                    workbook.createSheet(
+                            "Trabajadores"
+                    );
 
-            // 🔥 ENCABEZADOS (IGUAL A TU TABLA)
+            // =====================================
+            // 🔥 ENCABEZADOS
+            // =====================================
+
             Row header = sheet.createRow(0);
 
-            header.createCell(0).setCellValue("numeroPersonal");
-            header.createCell(1).setCellValue("curp");
-            header.createCell(2).setCellValue("nombreCompleto");
-            header.createCell(3).setCellValue("areaEmpleado");
-            header.createCell(4).setCellValue("puesto");
-            header.createCell(5).setCellValue("email");
+            header.createCell(0)
+                    .setCellValue("numeroPersonal");
 
+            header.createCell(1)
+                    .setCellValue("curp");
+
+            header.createCell(2)
+                    .setCellValue("nombreCompleto");
+
+            header.createCell(3)
+                    .setCellValue("areaEmpleado");
+
+            header.createCell(4)
+                    .setCellValue("puesto");
+
+            header.createCell(5)
+                    .setCellValue("tipoTrabajador");
+
+            header.createCell(6)
+                    .setCellValue("email");
+
+            // =====================================
             // 🔥 FILA EJEMPLO
+            // =====================================
+
             Row ejemplo = sheet.createRow(1);
 
-            ejemplo.createCell(0).setCellValue("001");
-            ejemplo.createCell(1).setCellValue("CURP123456789012");
-            ejemplo.createCell(2).setCellValue("Juan Perez Lopez");
-            ejemplo.createCell(3).setCellValue("Sistemas");
-            ejemplo.createCell(4).setCellValue("Developer");
-            ejemplo.createCell(5).setCellValue("juan@mail.com");
+            ejemplo.createCell(0)
+                    .setCellValue("001");
 
-            // 🔥 VALIDACIÓN LISTA (OPCIONAL PARA PUESTO)
-            DataValidationHelper helper = sheet.getDataValidationHelper();
+            ejemplo.createCell(1)
+                    .setCellValue("CURP123456789012");
 
-            DataValidationConstraint constraint =
-                    helper.createExplicitListConstraint(new String[]{
-                            "Developer", "Analista", "Supervisor", "Gerente"
-                    });
+            ejemplo.createCell(2)
+                    .setCellValue("Juan Perez Lopez");
 
-            CellRangeAddressList addressList =
-                    new CellRangeAddressList(1, 100, 4, 4);
+            ejemplo.createCell(3)
+                    .setCellValue("Produccion");
 
-            DataValidation validation =
-                    helper.createValidation(constraint, addressList);
+            ejemplo.createCell(4)
+                    .setCellValue("Operador de Producción");
 
-            validation.setShowErrorBox(true);
-            sheet.addValidationData(validation);
+            ejemplo.createCell(5)
+                    .setCellValue("HOURLY");
 
-            // 🔥 AJUSTAR COLUMNAS
-            for (int i = 0; i < 6; i++) {
+            ejemplo.createCell(6)
+                    .setCellValue("juan@mail.com");
+
+            // =====================================
+            // 🔥 VALIDACIONES
+            // =====================================
+
+            DataValidationHelper helper =
+                    sheet.getDataValidationHelper();
+
+            // =====================================
+            // 🔥 TIPO TRABAJADOR
+            // =====================================
+
+            DataValidationConstraint tipoConstraint =
+                    helper.createExplicitListConstraint(
+                            new String[]{
+                                    "HOURLY",
+                                    "SALARY",
+                                    "AMBOS"
+                            }
+                    );
+
+            CellRangeAddressList tipoRange =
+                    new CellRangeAddressList(
+                            1,
+                            1000,
+                            5,
+                            5
+                    );
+
+            DataValidation tipoValidation =
+                    helper.createValidation(
+                            tipoConstraint,
+                            tipoRange
+                    );
+
+            tipoValidation.setShowErrorBox(true);
+
+            tipoValidation.setSuppressDropDownArrow(false);
+
+            sheet.addValidationData(tipoValidation);
+
+            // =====================================
+            // 🔥 HOJA OCULTA PUESTOS
+            // =====================================
+
+            Sheet hiddenSheet =
+                    workbook.createSheet(
+                            "PUESTOS"
+                    );
+
+            List<Puesto> puestos =
+                    puestoService.listarActivos();
+
+            for (int i = 0;
+                 i < puestos.size();
+                 i++) {
+
+                Row rowHidden =
+                        hiddenSheet.createRow(i);
+
+                rowHidden.createCell(0)
+                        .setCellValue(
+                                puestos.get(i)
+                                        .getNombrePuesto()
+                        );
+            }
+
+            // 🔥 OCULTAR HOJA
+            workbook.setSheetHidden(
+                    workbook.getSheetIndex(hiddenSheet),
+                    true
+            );
+
+            // =====================================
+            // 🔥 VALIDACIÓN PUESTOS
+            // =====================================
+
+            DataValidationConstraint puestoConstraint =
+                    helper.createFormulaListConstraint(
+                            "PUESTOS!$A$1:$A$"
+                                    + puestos.size()
+                    );
+
+            CellRangeAddressList puestoRange =
+                    new CellRangeAddressList(
+                            1,
+                            1000,
+                            4,
+                            4
+                    );
+
+            DataValidation puestoValidation =
+                    helper.createValidation(
+                            puestoConstraint,
+                            puestoRange
+                    );
+
+            puestoValidation.setShowErrorBox(true);
+
+            puestoValidation.setSuppressDropDownArrow(false);
+
+            sheet.addValidationData(
+                    puestoValidation
+            );
+
+            // =====================================
+            // 🔥 ESTILO HEADER
+            // =====================================
+
+            CellStyle headerStyle =
+                    workbook.createCellStyle();
+
+            org.apache.poi.ss.usermodel.Font font =
+                    workbook.createFont();
+
+            font.setBold(true);
+
+            headerStyle.setFont(font);
+
+            for (int i = 0; i <= 6; i++) {
+
+                header.getCell(i)
+                        .setCellStyle(headerStyle);
+            }
+
+            // =====================================
+            // 🔥 AUTO SIZE
+            // =====================================
+
+            for (int i = 0; i <= 6; i++) {
+
                 sheet.autoSizeColumn(i);
             }
 
+            // =====================================
             // 🔥 RESPUESTA
+            // =====================================
+
             response.setContentType(
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            );
 
             response.setHeader(
                     "Content-Disposition",
-                    "attachment; filename=plantilla_trabajadores.xlsx");
+                    "attachment; filename=plantilla_trabajadores.xlsx"
+            );
 
-            workbook.write(response.getOutputStream());
-            response.getOutputStream().flush();
+            workbook.write(
+                    response.getOutputStream()
+            );
+
+            response.getOutputStream()
+                    .flush();
 
         } catch (Exception e) {
+
             e.printStackTrace();
         }
     }
-    
     @GetMapping("/eliminar-definitivo/{id}")
     public String eliminarDefinitivo(@PathVariable Long id, RedirectAttributes flash) {
 

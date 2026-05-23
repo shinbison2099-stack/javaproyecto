@@ -53,7 +53,10 @@ public class Trabajador {
 	    private Boolean activo = true;
 	    
 	    @Enumerated(EnumType.STRING)
+	    @Column(name = "tipo_trabajador")
 	    private TipoTrabajador tipoTrabajador;
+	    
+	   
 
 
 }

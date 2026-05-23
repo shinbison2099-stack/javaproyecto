@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import uno.dos.models.entity.Capacitacion;
+import uno.dos.models.entity.TipoTrabajador;
 
 public interface CapacitacionRepository extends JpaRepository<Capacitacion, Long> {
 
@@ -32,5 +33,15 @@ void deleteById(Long id);
 boolean existsById(Long id);
 
 List<Capacitacion> findByCursoIsNull();
+
+List<Capacitacion> findByCursoIsNullAndTipoTrabajadorIn(
+        List<TipoTrabajador> tipos
+);
+
+// 🔥 NUEVO
+List<Capacitacion>
+findByCursoIsNullAndActivoTrueAndTipoTrabajador(
+        TipoTrabajador tipoTrabajador
+);
 
 }
