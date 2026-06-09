@@ -426,37 +426,41 @@ public class MatrizWebController {
         model.addAttribute("cursos", cursos);
         model.addAttribute("trabajadores", trabajadores);
 
-        return "matriz/seleccionar-tipo";
+        return "matriz/nueva-matriz";
     }
     
     @GetMapping("/hourly")
-    public String matrizHourly(Model model){
+    public String cursosHourly(Model model){
 
-        // =====================================
-        // 🔥 SOLO HOURLY
-        // =====================================
+        model.addAttribute(
 
-        List<Trabajador> trabajadores =
+                "cursos",
 
-                trabajadorService
-                .buscarPorTipo(
+                cursoService.filtrarExacto(
                         TipoTrabajador.HOURLY
-                );
+                )
+        );
 
-        // =====================================
-        // 🔥 CAPACITACIONES HOURLY
-        // =====================================
+        return "matriz/hourly-cursos";
+    }
+    
+    @GetMapping("/hourly/curso/{id}")
+    public String matrizCursoHourly(
+
+            @PathVariable Long id,
+
+            Model model){
+
+        Curso curso =
+
+                cursoService
+                .buscarPorId(id)
+                .orElseThrow();
 
         List<Capacitacion> capacitaciones =
 
-        		capacitacionService
-        		.disponiblesPorTipo(
-        		        TipoTrabajador.HOURLY
-        		);
-
-        // =====================================
-        // 🔥 SKILL MATRIX
-        // =====================================
+                capacitacionService
+                .buscarPorCursoId(id);
 
         List<SkillMatrix> skills =
 
@@ -464,7 +468,15 @@ public class MatrizWebController {
                 .listarSkills();
 
         // =====================================
-        // 🔥 MAPA
+        // 🔥 SOLO INSCRITOS EN EL CURSO
+        // =====================================
+
+        Set<Trabajador> trabajadores =
+
+                new LinkedHashSet<>();
+
+        // =====================================
+        // 🔥 MATRIZ
         // =====================================
 
         Map<String, SkillMatrix> matrix =
@@ -472,7 +484,7 @@ public class MatrizWebController {
 
         for(SkillMatrix s : skills){
 
-            String key =
+            matrix.put(
 
                     s.getTrabajador().getId()
 
@@ -482,18 +494,46 @@ public class MatrizWebController {
 
                     +
 
-                    s.getCapacitacion().getId();
+                    s.getCapacitacion().getId(),
 
-            matrix.put(key, s);
+                    s
+            );
+
+            // =====================================
+            // 🔥 TRABAJADORES DEL CURSO
+            // =====================================
+
+            if(
+
+                s.getCapacitacion() != null
+
+                &&
+
+                s.getCapacitacion().getCurso() != null
+
+                &&
+
+                s.getCapacitacion()
+                 .getCurso()
+                 .getId()
+                 .equals(id)
+
+            ){
+
+                trabajadores.add(
+                        s.getTrabajador()
+                );
+            }
         }
 
-        // =====================================
-        // 🔥 MODEL
-        // =====================================
+        model.addAttribute(
+                "curso",
+                curso
+        );
 
         model.addAttribute(
                 "trabajadores",
-                trabajadores
+                new ArrayList<>(trabajadores)
         );
 
         model.addAttribute(
@@ -505,10 +545,6 @@ public class MatrizWebController {
                 "matrix",
                 matrix
         );
-
-        // =====================================
-        // 🔥 VIEW
-        // =====================================
 
         return "matriz/hourly-matrix";
     }

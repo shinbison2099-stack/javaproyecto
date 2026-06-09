@@ -3,9 +3,7 @@ package uno.dos.models.entity;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.format.annotation.DateTimeFormat;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,22 +12,20 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+
+@Entity
+@Table(name = "capacitaciones")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-
-@Table(name = "capacitaciones")
 public class Capacitacion {
 
     @Id
@@ -39,6 +35,7 @@ public class Capacitacion {
     private String claveCapacitacion;
 
     private String nombreCapacitacion;
+
     @Column(length = 1000)
     private String descripcion;
 
@@ -54,8 +51,6 @@ public class Capacitacion {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate fechaFin;
 
-    private Integer vigenciaMeses;
-    
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_trabajador")
     private TipoTrabajador tipoTrabajador;
@@ -63,23 +58,19 @@ public class Capacitacion {
     private Boolean requiereEvaluacion = false;
 
     private Boolean requiereConstancia = false;
-    
-    @Column(name = "activo")
-    private Boolean activo;
-    
-    @ManyToOne
-    @JoinColumn(name = "instructor_id")
-    @JsonIgnore // 🔥 ESTA LÍNEA
-    private Instructores instructor;
+
+    private Boolean activo = true;
 
     @ManyToOne
     @JoinColumn(name = "curso_id")
     private Curso curso;
-    
+
+    @ManyToOne
+    @JoinColumn(name = "instructor_id")
+    private Instructores instructor;
+
     @OneToMany(mappedBy = "capacitacion")
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private List<CapacitacionTrabajador> capacitacionTrabajadores;
-    
- 
-    
+    @JsonIgnore
+    private List<CapacitacionTrabajador> capacitacionTrabajadores =
+            new ArrayList<>();
 }

@@ -25,6 +25,7 @@ import uno.dos.services.CapacitacionTrabajadorService;
 import uno.dos.services.CursoService;
 import uno.dos.services.EvaluacionService;
 import uno.dos.services.SkillMatrixService;
+import org.springframework.format.annotation.DateTimeFormat;
 
 @Controller
 @RequestMapping("/evaluaciones")
@@ -168,32 +169,47 @@ public class EvaluacionWebController {
 
                 @RequestParam Long id,
 
-                @RequestParam NivelSkill nivel,
-
                 @RequestParam(required = false)
+                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                 LocalDate fechaProgramada,
 
                 @RequestParam(required = false)
+                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                 LocalDate fechaCapacitado,
 
                 @RequestParam(required = false)
+                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                 LocalDate fechaExperiencia,
 
                 @RequestParam(required = false)
+                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                 LocalDate fechaCertificado,
-
                 @RequestParam(required = false)
                 Integer horasExperiencia,
 
                 @RequestParam(required = false)
                 String observaciones,
 
+                // =====================================
+                // 🔥 PDFS
+                // =====================================
+
                 @RequestParam(required = false)
-                MultipartFile archivo
+                MultipartFile pdfProgramado,
+
+                @RequestParam(required = false)
+                MultipartFile pdfCapacitado,
+
+                @RequestParam(required = false)
+                MultipartFile pdfExperiencia,
+
+                @RequestParam(required = false)
+                MultipartFile pdfAcreditado
 
         ){
 
             SkillMatrix skill =
+
                     skillMatrixService
                     .buscarPorId(id)
                     .orElseThrow();
@@ -201,8 +217,13 @@ public class EvaluacionWebController {
             // =====================================
             // 🔥 ACTUALIZAR
             // =====================================
-
-            skill.setNivel(nivel);
+            
+            System.out.println("================================");
+            System.out.println("Programada : " + fechaProgramada);
+            System.out.println("Capacitado : " + fechaCapacitado);
+            System.out.println("Experiencia: " + fechaExperiencia);
+            System.out.println("Certificado: " + fechaCertificado);
+            System.out.println("================================");
 
             skill.setFechaProgramada(
                     fechaProgramada
@@ -229,36 +250,42 @@ public class EvaluacionWebController {
             );
 
             // =====================================
-            // 🔥 PDF
+            // 🔥 RUTA
             // =====================================
 
-            if(archivo != null &&
-               !archivo.isEmpty()){
+            try{
 
-                try{
+                Path ruta = Paths.get(
+                        "uploads",
+                        "skills"
+                );
+
+                if(!Files.exists(ruta)){
+
+                    Files.createDirectories(
+                            ruta
+                    );
+                }
+
+                // =====================================
+                // 🔥 PDF PROGRAMADO
+                // =====================================
+
+                if(pdfProgramado != null &&
+                   !pdfProgramado.isEmpty()){
 
                     String nombreArchivo =
+
                             System.currentTimeMillis()
                             +
                             "_"
                             +
-                            archivo.getOriginalFilename();
-
-                    Path ruta =
-                            Paths.get(
-                            "uploads"
-                            );
-
-                    if(!Files.exists(ruta)){
-
-                        Files.createDirectories(
-                                ruta
-                        );
-                    }
+                            pdfProgramado
+                            .getOriginalFilename();
 
                     Files.copy(
 
-                            archivo.getInputStream(),
+                            pdfProgramado.getInputStream(),
 
                             ruta.resolve(
                                     nombreArchivo
@@ -268,21 +295,171 @@ public class EvaluacionWebController {
                             .REPLACE_EXISTING
                     );
 
-                    skill.setEvidencia(
+                    skill.setEvidenciaProgramado(
                             nombreArchivo
                     );
-
-                }catch(Exception e){
-
-                    e.printStackTrace();
                 }
+
+                // =====================================
+                // 🔥 PDF CAPACITADO
+                // =====================================
+
+                if(pdfCapacitado != null &&
+                   !pdfCapacitado.isEmpty()){
+
+                    String nombreArchivo =
+
+                            System.currentTimeMillis()
+                            +
+                            "_"
+                            +
+                            pdfCapacitado
+                            .getOriginalFilename();
+
+                    Files.copy(
+
+                            pdfCapacitado.getInputStream(),
+
+                            ruta.resolve(
+                                    nombreArchivo
+                            ),
+
+                            StandardCopyOption
+                            .REPLACE_EXISTING
+                    );
+
+                    skill.setEvidenciaCapacitado(
+                            nombreArchivo
+                    );
+                }
+
+                // =====================================
+                // 🔥 PDF EXPERIENCIA
+                // =====================================
+
+                if(pdfExperiencia != null &&
+                   !pdfExperiencia.isEmpty()){
+
+                    String nombreArchivo =
+
+                            System.currentTimeMillis()
+                            +
+                            "_"
+                            +
+                            pdfExperiencia
+                            .getOriginalFilename();
+
+                    Files.copy(
+
+                            pdfExperiencia.getInputStream(),
+
+                            ruta.resolve(
+                                    nombreArchivo
+                            ),
+
+                            StandardCopyOption
+                            .REPLACE_EXISTING
+                    );
+
+                    skill.setEvidenciaExperiencia(
+                            nombreArchivo
+                    );
+                }
+
+                // =====================================
+                // 🔥 PDF ACREDITADO
+                // =====================================
+
+                if(pdfAcreditado != null &&
+                   !pdfAcreditado.isEmpty()){
+
+                    String nombreArchivo =
+
+                            System.currentTimeMillis()
+                            +
+                            "_"
+                            +
+                            pdfAcreditado
+                            .getOriginalFilename();
+
+                    Files.copy(
+
+                            pdfAcreditado.getInputStream(),
+
+                            ruta.resolve(
+                                    nombreArchivo
+                            ),
+
+                            StandardCopyOption
+                            .REPLACE_EXISTING
+                    );
+
+                    skill.setEvidenciaAcreditado(
+                            nombreArchivo
+                    );
+                }
+
+            }catch(Exception e){
+
+                e.printStackTrace();
             }
+            
+         // =====================================
+         // 🔥 CALCULAR NIVEL AUTOMÁTICO
+         // =====================================
+
+         if(skill.getFechaCertificado() != null
+                 &&
+                 skill.getEvidenciaAcreditado() != null){
+
+             skill.setNivel(
+                     NivelSkill.ACREDITADO
+             );
+         }
+         else if(skill.getFechaExperiencia() != null
+                 &&
+                 skill.getEvidenciaExperiencia() != null
+                 &&
+                 skill.getHorasExperiencia() != null
+                 &&
+                 skill.getHorasExperiencia() >= 40){
+
+             skill.setNivel(
+                     NivelSkill.EXPERIENCIA_40H
+             );
+         }
+         else if(skill.getFechaCapacitado() != null
+                 &&
+                 skill.getEvidenciaCapacitado() != null){
+
+             skill.setNivel(
+                     NivelSkill.CAPACITADO
+             );
+         }
+         else if(skill.getFechaProgramada() != null
+                 &&
+                 skill.getEvidenciaProgramado() != null){
+
+             skill.setNivel(
+                     NivelSkill.PROGRAMADO
+             );
+         }
+         else{
+
+             skill.setNivel(
+                     NivelSkill.VACIO
+             );
+         }
 
             // =====================================
             // 🔥 GUARDAR
             // =====================================
 
             skillMatrixService.guardar(skill);
+
+            // =====================================
+            // 🔥 REDIRECT
+            // =====================================
 
             return "redirect:/evaluaciones/hourly/"
                     +

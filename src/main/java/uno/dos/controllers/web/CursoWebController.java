@@ -9,25 +9,19 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
 import jakarta.servlet.http.HttpServletResponse;
-import uno.dos.models.entity.Capacitacion;
 import uno.dos.models.entity.Curso;
-import uno.dos.models.entity.Instructores;
 import uno.dos.models.entity.TipoCurso;
 import uno.dos.models.entity.TipoTrabajador;
 import uno.dos.services.TrabajadorService;
-import uno.dos.services.CapacitacionService;
 import uno.dos.services.CursoService;
 import uno.dos.services.InscripcionService;
-import uno.dos.services.InstructorService;
-
 import java.io.ByteArrayOutputStream;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,12 +32,9 @@ import java.util.Map;
 public class CursoWebController {
 
     private final CursoService cursoService;
-    private final InstructorService instructorService;
     private final InscripcionService inscripcionService;
     private final TrabajadorService trabajadorService;
     private final TemplateEngine templateEngine;
-    private final CapacitacionService capacitacionService;
-
     @GetMapping
     public String listar(Model model) {
         model.addAttribute("cursos", cursoService.listarActivos());
@@ -53,7 +44,7 @@ public class CursoWebController {
     @GetMapping("/nuevo")
     public String nuevo(Model model) {
         model.addAttribute("curso", new Curso());
-        model.addAttribute("instructores", instructorService.listarInstructores());
+        
         return "cursos/form";
     }
 
@@ -73,16 +64,6 @@ public class CursoWebController {
         // 🔥 ACTIVO
         if(curso.getId() == null){
             curso.setActivo(true);
-        }
-
-        // 🔥 INSTRUCTOR
-        if(curso.getInstructor() != null && curso.getInstructor().getId() != null){
-            Instructores instructor = instructorService
-                    .buscarPorId(curso.getInstructor().getId())
-                    .orElse(null);
-            curso.setInstructor(instructor);
-        } else {
-            curso.setInstructor(null);
         }
 
         // 🔥 VALIDACIÓN HORAS
@@ -138,326 +119,128 @@ public class CursoWebController {
     }
 
     @PostMapping("/importar")
-    public String importarExcel(@RequestParam("archivo") MultipartFile archivo,
-                                Model model) {
+    public String importarExcel(
+            @RequestParam("archivo") MultipartFile archivo,
+            RedirectAttributes redirectAttributes) {
 
         int importados = 0;
         int duplicados = 0;
         int vacios = 0;
-        int sinInstructor = 0;
+        int errores = 0;
 
         try (Workbook workbook =
-                     WorkbookFactory.create(archivo.getInputStream())) {
+                     WorkbookFactory.create(
+                             archivo.getInputStream())) {
 
-            Sheet sheet = workbook.getSheetAt(0);
+            Sheet sheet =
+                    workbook.getSheetAt(0);
 
-            DataFormatter formatter = new DataFormatter();
+            DataFormatter formatter =
+                    new DataFormatter();
 
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            for (int i = 1;
+                 i <= sheet.getLastRowNum();
+                 i++) {
 
                 try {
 
                     Row row = sheet.getRow(i);
 
                     if (row == null) {
-
                         vacios++;
-
                         continue;
                     }
 
-                    // =====================================
-                    // 🔥 DATOS
-                    // =====================================
-
                     String claveCurso =
                             formatter.formatCellValue(
-                                    row.getCell(1)
-                            ).trim();
+                                    row.getCell(1))
+                                    .trim();
 
                     String nombreCurso =
                             formatter.formatCellValue(
-                                    row.getCell(2)
-                            ).trim();
-
-                    // =====================================
-                    // 🔥 VALIDACIÓN
-                    // =====================================
+                                    row.getCell(2))
+                                    .trim();
 
                     if (claveCurso.isBlank()
                             || nombreCurso.isBlank()) {
 
                         vacios++;
-
                         continue;
                     }
-
-                    // =====================================
-                    // 🔥 DUPLICADO
-                    // =====================================
 
                     if (cursoService.existeClaveCurso(
                             claveCurso)) {
 
                         duplicados++;
-
                         continue;
                     }
-
-                    // =====================================
-                    // 🔥 HORAS
-                    // =====================================
-
-                    Integer horas = 0;
-
-                    try {
-
-                        String texto =
-                                formatter.formatCellValue(
-                                        row.getCell(4)
-                                ).trim();
-
-                        texto =
-                                texto.replaceAll("[^0-9]", "");
-
-                        if (!texto.isEmpty()) {
-
-                            horas = Integer.parseInt(texto);
-                        }
-
-                    } catch (Exception ignored) {
-                    }
-
-                    // =====================================
-                    // 🔥 VIGENCIA
-                    // =====================================
-
-                    Integer vigenciaMeses = 0;
-
-                    try {
-
-                        String texto =
-                                formatter.formatCellValue(
-                                        row.getCell(5)
-                                ).trim();
-
-                        texto =
-                                texto.replaceAll("[^0-9]", "");
-
-                        if (!texto.isEmpty()) {
-
-                            vigenciaMeses =
-                                    Integer.parseInt(texto);
-                        }
-
-                    } catch (Exception ignored) {
-                    }
-
-                 // =====================================
-                 // 🔥 TIPO CURSO
-                 // =====================================
-
-                 TipoCurso tipoCurso;
-
-                 try {
-
-                     String texto =
-                             formatter.formatCellValue(
-                                     row.getCell(6)
-                             ).trim().toUpperCase();
-
-                     tipoCurso =
-                             TipoCurso.valueOf(texto);
-
-                 } catch (Exception e) {
-
-                     tipoCurso =
-                             TipoCurso.INTERNO;
-                 }
-
-                 // =====================================
-                 // 🔥 TIPO TRABAJADOR
-                 // =====================================
-
-                 TipoTrabajador tipoTrabajador;
-
-                 try {
-
-                     String texto =
-                             formatter.formatCellValue(
-                                     row.getCell(7)
-                             ).trim().toUpperCase();
-
-                     tipoTrabajador =
-                             TipoTrabajador.valueOf(texto);
-
-                 } catch (Exception e) {
-
-                     tipoTrabajador =
-                             TipoTrabajador.AMBOS;
-                 }
-
-                    // =====================================
-                    // 🔥 INSTRUCTOR EXISTENTE
-                    // =====================================
-
-                    String nombreInstructor =
-                            formatter.formatCellValue(
-                                    row.getCell(9)
-                            ).trim();
-
-                    // 🔥 SIN INSTRUCTOR
-                    if (nombreInstructor.isBlank()) {
-
-                        System.out.println(
-                                "⚠️ Curso sin instructor en fila: "
-                                        + i
-                        );
-
-                        sinInstructor++;
-
-                        continue;
-                    }
-
-                    // 🔥 BUSCAR EN BD
-                    Instructores instructor =
-                            instructorService.buscarPorNombre(
-                                    nombreInstructor
-                            );
-
-                    // 🔥 SI NO EXISTE
-                    if (instructor == null) {
-
-                        System.out.println(
-                                "❌ Instructor no existe: "
-                                        + nombreInstructor
-                        );
-
-                        sinInstructor++;
-
-                        continue;
-                    }
-
-                    // =====================================
-                    // 🔥 CREAR CURSO
-                    // =====================================
 
                     Curso curso = new Curso();
 
-                    curso.setClaveCurso(claveCurso);
+                    curso.setClaveInstitucion(
+                            formatter.formatCellValue(
+                                    row.getCell(0))
+                                    .trim());
 
-                    curso.setNombreCurso(nombreCurso);
+                    curso.setClaveCurso(
+                            claveCurso);
+
+                    curso.setNombreCurso(
+                            nombreCurso);
+
+                    curso.setClaveAreaTematica(
+                            formatter.formatCellValue(
+                                    row.getCell(3))
+                                    .trim());
 
                     curso.setHoras(
-                            horas != null ? horas : 0
-                    );
+                            obtenerEntero(
+                                    row.getCell(4),
+                                    formatter));
 
                     curso.setVigenciaMeses(
-                            vigenciaMeses != null
-                                    ? vigenciaMeses
-                                    : 0
-                    );
+                            obtenerEntero(
+                                    row.getCell(5),
+                                    formatter));
 
-                    curso.setTipoCurso(tipoCurso);
+                    try {
 
-                    curso.setTipoTrabajador(
-                            tipoTrabajador
-                    );
+                        curso.setTipoCurso(
+                                TipoCurso.valueOf(
+                                        formatter
+                                                .formatCellValue(
+                                                        row.getCell(6))
+                                                .trim()
+                                                .toUpperCase()));
 
-                    // 🔥 ASIGNAR INSTRUCTOR
-                    curso.setInstructor(instructor);
-                    
-                 // =====================================
-                 // 🔥 FECHA INICIO
-                 // =====================================
+                    } catch (Exception e) {
 
-                 try {
+                        curso.setTipoCurso(
+                                TipoCurso.INTERNO);
+                    }
 
-                     Cell cellInicio = row.getCell(10);
+                    try {
 
-                     if(cellInicio != null){
+                        curso.setTipoTrabajador(
+                                TipoTrabajador.valueOf(
+                                        formatter
+                                                .formatCellValue(
+                                                        row.getCell(7))
+                                                .trim()
+                                                .toUpperCase()));
 
-                         // 🔥 FECHA EXCEL
-                         if(cellInicio.getCellType() == CellType.NUMERIC
-                                 && DateUtil.isCellDateFormatted(cellInicio)){
+                    } catch (Exception e) {
 
-                             curso.setFechaInicio(
-                                     cellInicio
-                                             .getLocalDateTimeCellValue()
-                                             .toLocalDate()
-                             );
+                        curso.setTipoTrabajador(
+                                TipoTrabajador.AMBOS);
+                    }
 
-                         } else {
-
-                             // 🔥 TEXTO
-                             String fechaTexto =
-                                     formatter.formatCellValue(cellInicio)
-                                             .trim();
-
-                             if(!fechaTexto.isBlank()){
-
-                                 curso.setFechaInicio(
-                                         LocalDate.parse(fechaTexto)
-                                 );
-                             }
-                         }
-                     }
-
-                 } catch (Exception e){
-
-                     System.out.println(
-                             "⚠️ Fecha inicio inválida fila: " + i
-                     );
-                 }
-
-                 // =====================================
-                 // 🔥 FECHA FIN
-                 // =====================================
-
-                 try {
-
-                     Cell cellFin = row.getCell(11);
-
-                     if(cellFin != null){
-
-                         // 🔥 FECHA EXCEL
-                         if(cellFin.getCellType() == CellType.NUMERIC
-                                 && DateUtil.isCellDateFormatted(cellFin)){
-
-                             curso.setFechaFin(
-                                     cellFin
-                                             .getLocalDateTimeCellValue()
-                                             .toLocalDate()
-                             );
-
-                         } else {
-
-                             // 🔥 TEXTO
-                             String fechaTexto =
-                                     formatter.formatCellValue(cellFin)
-                                             .trim();
-
-                             if(!fechaTexto.isBlank()){
-
-                                 curso.setFechaFin(
-                                         LocalDate.parse(fechaTexto)
-                                 );
-                             }
-                         }
-                     }
-
-                 } catch (Exception e){
-
-                     System.out.println(
-                             "⚠️ Fecha fin inválida fila: " + i
-                     );
-                 }
+                    curso.setAreaResponsable(
+                            formatter.formatCellValue(
+                                    row.getCell(8))
+                                    .trim());
 
                     curso.setActivo(true);
-
-                    // =====================================
-                    // 🔥 GUARDAR
-                    // =====================================
 
                     cursoService.guardar(curso);
 
@@ -465,41 +248,59 @@ public class CursoWebController {
 
                 } catch (Exception e) {
 
+                    errores++;
+
                     System.out.println(
-                            "❌ Error en fila "
+                            "❌ Error fila "
                                     + i
                                     + ": "
-                                    + e.getMessage()
-                    );
+                                    + e.getMessage());
                 }
             }
 
         } catch (Exception e) {
 
             e.printStackTrace();
+
+            redirectAttributes.addFlashAttribute(
+                    "error",
+                    "Error al procesar el archivo Excel");
+
+            return "redirect:/cursos";
         }
 
-        // =====================================
-        // 🔥 MENSAJE
-        // =====================================
-
-        model.addAttribute(
+        redirectAttributes.addFlashAttribute(
                 "mensaje",
-                "✅ Importados: " + importados
-                        + " | ⚠️ Duplicados: " + duplicados
-                        + " | 📭 Vacíos: " + vacios
-                        + " | 👨‍🏫 Sin instructor: "
-                        + sinInstructor
-        );
+                "Importados: " + importados
+                        + " | Duplicados: " + duplicados
+                        + " | Vacíos: " + vacios
+                        + " | Errores: " + errores);
 
-        model.addAttribute(
-                "cursos",
-                cursoService.listarActivos()
-        );
-
-        return "cursos/lista";
+        return "redirect:/cursos";
     }
+    
+    private Integer obtenerEntero(
+            Cell cell,
+            DataFormatter formatter) {
 
+        try {
+
+            String texto =
+                    formatter
+                            .formatCellValue(cell)
+                            .trim()
+                            .replaceAll("[^0-9]", "");
+
+            return texto.isEmpty()
+                    ? 0
+                    : Integer.parseInt(texto);
+
+        } catch (Exception e) {
+
+            return 0;
+        }
+    }
+    
     @GetMapping("/pdf")
     public ResponseEntity<byte[]> exportarPdf() {
 
@@ -536,45 +337,30 @@ public class CursoWebController {
     }
     
     @GetMapping("/editar/{id}")
-    public String editar(@PathVariable Long id, Model model){
+    public String editar(
+            @PathVariable Long id,
+            Model model){
 
-        Curso curso = cursoService
+        Curso curso =
+                cursoService
                 .buscarPorId(id)
-                .orElseThrow(() -> new RuntimeException("Curso no encontrado"));
+                .orElseThrow(
+                        () -> new RuntimeException(
+                                "Curso no encontrado"
+                        )
+                );
 
-        model.addAttribute("curso", curso);
-
-        model.addAttribute("instructores",
-                instructorService.listarInstructores());
+        model.addAttribute(
+                "curso",
+                curso
+        );
 
         return "cursos/form";
     }
     
     @PostMapping("/actualizar")
-    public String actualizar(@ModelAttribute Curso curso){
-
-        Curso original = cursoService.buscarPorId(curso.getId()).orElseThrow();
-
-        // 🔥 conservar fechas si vienen null
-        if(curso.getFechaInicio() == null){
-            curso.setFechaInicio(original.getFechaInicio());
-        }
-
-        if(curso.getFechaFin() == null){
-            curso.setFechaFin(original.getFechaFin());
-        }
-
-        // 🔥 RESOLVER INSTRUCTOR (IGUAL QUE EN GUARDAR)
-        if(curso.getInstructor() != null && curso.getInstructor().getId() != null){
-
-            Instructores inst = instructorService
-                    .buscarPorId(curso.getInstructor().getId())
-                    .orElse(null);
-
-            curso.setInstructor(inst);
-        } else {
-            curso.setInstructor(null);
-        }
+    public String actualizar(
+            @ModelAttribute Curso curso){
 
         curso.setActivo(true);
 
@@ -615,72 +401,179 @@ public class CursoWebController {
     }
     
     @GetMapping("/plantilla")
-    public void descargarPlantilla(HttpServletResponse response) {
+    public void descargarPlantilla(
+            HttpServletResponse response) {
 
-        try (Workbook workbook = new XSSFWorkbook()) {
+        try (Workbook workbook =
+                     new XSSFWorkbook()) {
 
-            Sheet sheet = workbook.createSheet("Cursos");
-
-            // =========================================
-            // 🔥 ENCABEZADOS
-            // =========================================
-
-            Row header = sheet.createRow(0);
-
-            header.createCell(0).setCellValue("claveInstitucion");
-            header.createCell(1).setCellValue("claveCurso");
-            header.createCell(2).setCellValue("nombreCurso");
-            header.createCell(3).setCellValue("claveAreaTematica");
-            header.createCell(4).setCellValue("horas");
-            header.createCell(5).setCellValue("vigenciaMeses");
-            header.createCell(6).setCellValue("tipoCurso");
-            header.createCell(7).setCellValue("tipoTrabajador");
-            header.createCell(8).setCellValue("areaResponsable");
-
-            // 🔥 NUEVO
-            header.createCell(9).setCellValue("instructor");
-
-            header.createCell(10).setCellValue("fechaInicio");
-            header.createCell(11).setCellValue("fechaFin");
+            Sheet sheet =
+                    workbook.createSheet(
+                            "Cursos"
+                    );
 
             // =========================================
-            // 🔥 EJEMPLO
+            // ENCABEZADOS
             // =========================================
 
-            Row ejemplo = sheet.createRow(1);
+            Row header =
+                    sheet.createRow(0);
 
-            ejemplo.createCell(0).setCellValue("INST01");
-            ejemplo.createCell(1).setCellValue("CUR001");
-            ejemplo.createCell(2).setCellValue("Java Básico");
-            ejemplo.createCell(3).setCellValue("SISTEMAS");
+            header.createCell(0)
+                    .setCellValue(
+                            "claveInstitucion"
+                    );
 
-            ejemplo.createCell(4).setCellValue(8);
+            header.createCell(1)
+                    .setCellValue(
+                            "claveCurso"
+                    );
 
-            ejemplo.createCell(5).setCellValue(36);
+            header.createCell(2)
+                    .setCellValue(
+                            "nombreCurso"
+                    );
 
-            ejemplo.createCell(6).setCellValue("INTERNO");
+            header.createCell(3)
+                    .setCellValue(
+                            "claveAreaTematica"
+                    );
 
-            ejemplo.createCell(7).setCellValue("AMBOS");
+            header.createCell(4)
+                    .setCellValue(
+                            "horas"
+                    );
 
-            ejemplo.createCell(8).setCellValue("TI");
+            header.createCell(5)
+                    .setCellValue(
+                            "vigenciaMeses"
+                    );
 
-            // 🔥 INSTRUCTOR EXISTENTE
-            ejemplo.createCell(9).setCellValue("Juan Perez");
+            header.createCell(6)
+                    .setCellValue(
+                            "tipoCurso"
+                    );
 
-            ejemplo.createCell(10).setCellValue("2026-03-01");
+            header.createCell(7)
+                    .setCellValue(
+                            "tipoTrabajador"
+                    );
 
-            ejemplo.createCell(11).setCellValue("2026-03-10");
+            header.createCell(8)
+                    .setCellValue(
+                            "areaResponsable"
+                    );
 
             // =========================================
-            // 🔥 VALIDACIONES
+            // EJEMPLO 1
+            // =========================================
+
+            Row ejemplo1 =
+                    sheet.createRow(1);
+
+            ejemplo1.createCell(0)
+                    .setCellValue(
+                            "INST01"
+                    );
+
+            ejemplo1.createCell(1)
+                    .setCellValue(
+                            "CUR001"
+                    );
+
+            ejemplo1.createCell(2)
+                    .setCellValue(
+                            "Java Básico"
+                    );
+
+            ejemplo1.createCell(3)
+                    .setCellValue(
+                            "SISTEMAS"
+                    );
+
+            ejemplo1.createCell(4)
+                    .setCellValue(
+                            8
+                    );
+
+            ejemplo1.createCell(5)
+                    .setCellValue(
+                            36
+                    );
+
+            ejemplo1.createCell(6)
+                    .setCellValue(
+                            "INTERNO"
+                    );
+
+            ejemplo1.createCell(7)
+                    .setCellValue(
+                            "AMBOS"
+                    );
+
+            ejemplo1.createCell(8)
+                    .setCellValue(
+                            "TI"
+                    );
+
+            // =========================================
+            // EJEMPLO 2
+            // =========================================
+
+            Row ejemplo2 =
+                    sheet.createRow(2);
+
+            ejemplo2.createCell(0)
+                    .setCellValue(
+                            "INST01"
+                    );
+
+            ejemplo2.createCell(1)
+                    .setCellValue(
+                            "CUR002"
+                    );
+
+            ejemplo2.createCell(2)
+                    .setCellValue(
+                            "Spring Boot"
+                    );
+
+            ejemplo2.createCell(3)
+                    .setCellValue(
+                            "DESARROLLO"
+                    );
+
+            ejemplo2.createCell(4)
+                    .setCellValue(
+                            24
+                    );
+
+            ejemplo2.createCell(5)
+                    .setCellValue(
+                            24
+                    );
+
+            ejemplo2.createCell(6)
+                    .setCellValue(
+                            "INTERNO"
+                    );
+
+            ejemplo2.createCell(7)
+                    .setCellValue(
+                            "SALARY"
+                    );
+
+            ejemplo2.createCell(8)
+                    .setCellValue(
+                            "TI"
+                    );
+
+            // =========================================
+            // VALIDACION TIPO CURSO
             // =========================================
 
             DataValidationHelper helper =
                     sheet.getDataValidationHelper();
-
-            // =========================================
-            // 🔥 TIPO CURSO
-            // =========================================
 
             DataValidationConstraint tipoCursoConstraint =
                     helper.createExplicitListConstraint(
@@ -706,7 +599,7 @@ public class CursoWebController {
             );
 
             // =========================================
-            // 🔥 TIPO TRABAJADOR
+            // VALIDACION TIPO TRABAJADOR
             // =========================================
 
             DataValidationConstraint tipoTrabajadorConstraint =
@@ -734,16 +627,18 @@ public class CursoWebController {
             );
 
             // =========================================
-            // 🔥 AUTO SIZE
+            // AUTO SIZE
             // =========================================
 
-            for (int i = 0; i <= 11; i++) {
+            for (int i = 0;
+                 i <= 8;
+                 i++) {
 
                 sheet.autoSizeColumn(i);
             }
 
             // =========================================
-            // 🔥 RESPUESTA
+            // DESCARGA
             // =========================================
 
             response.setContentType(
@@ -755,9 +650,12 @@ public class CursoWebController {
                     "attachment; filename=plantilla_cursos.xlsx"
             );
 
-            workbook.write(response.getOutputStream());
+            workbook.write(
+                    response.getOutputStream()
+            );
 
-            response.getOutputStream().flush();
+            response.getOutputStream()
+                    .flush();
 
         } catch (Exception e) {
 

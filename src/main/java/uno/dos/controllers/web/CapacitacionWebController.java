@@ -93,13 +93,18 @@ public class CapacitacionWebController {
     @PostMapping("/guardar")
     public String guardar(@ModelAttribute Capacitacion capacitacion){
 
+        if (capacitacion.getInstructor() != null &&
+            capacitacion.getInstructor().getId() == null) {
+
+            capacitacion.setInstructor(null);
+        }
+
         capacitacion.setActivo(true);
 
         capacitacionService.guardar(capacitacion);
 
         return "redirect:/capacitaciones";
     }
-
     /* ===============================
        EDITAR
        =============================== */
@@ -124,6 +129,12 @@ public class CapacitacionWebController {
 
     @PostMapping("/actualizar")
     public String actualizar(@ModelAttribute Capacitacion capacitacion){
+
+        if (capacitacion.getInstructor() != null &&
+            capacitacion.getInstructor().getId() == null) {
+
+            capacitacion.setInstructor(null);
+        }
 
         capacitacionService.guardar(capacitacion);
 
@@ -306,20 +317,14 @@ public class CapacitacionWebController {
                     // 🔢 DURACIÓN
                     cap.setDuracionHoras(parseEntero(row.getCell(5), formatter));
 
-                    // 📅 FECHAS
-                    cap.setFechaInicio(parseFecha(row.getCell(6), formatter));
-                    cap.setFechaFin(parseFecha(row.getCell(7), formatter));
-
-                    // 📆 VIGENCIA
-                    cap.setVigenciaMeses(parseEntero(row.getCell(8), formatter));
-                    
+                                                         
                  // 🔥 TIPO TRABAJADOR
                     try {
 
-                        String tipoTexto =
-                                formatter.formatCellValue(row.getCell(10))
-                                        .trim()
-                                        .toUpperCase();
+                    	String tipoTexto =
+                    	        formatter.formatCellValue(row.getCell(7))
+                    	                 .trim()
+                    	                 .toUpperCase();
 
                         cap.setTipoTrabajador(
                                 TipoTrabajador.valueOf(tipoTexto)
@@ -331,7 +336,9 @@ public class CapacitacionWebController {
                     }
 
                     // 👨‍🏫 INSTRUCTOR (SOLUCIÓN REAL 🔥)
-                    String nombreInstructor = formatter.formatCellValue(row.getCell(9)).trim();
+                    String nombreInstructor =
+                            formatter.formatCellValue(row.getCell(6))
+                                     .trim();
 
                     if (!nombreInstructor.isBlank()) {
 
@@ -368,6 +375,12 @@ public class CapacitacionWebController {
                     }
 
                     cap.setActivo(true);
+                    
+                    if (cap.getInstructor() != null &&
+                    	    cap.getInstructor().getId() == null) {
+
+                    	    cap.setInstructor(null);
+                    	}
 
                     capacitacionService.guardar(cap);
                     importados++;
@@ -405,11 +418,8 @@ public class CapacitacionWebController {
             header.createCell(3).setCellValue("tipoCapacitacion");
             header.createCell(4).setCellValue("modalidad");
             header.createCell(5).setCellValue("duracionHoras");
-            header.createCell(6).setCellValue("fechaInicio");
-            header.createCell(7).setCellValue("fechaFin");
-            header.createCell(8).setCellValue("vigenciaMeses");
-            header.createCell(9).setCellValue("instructor");
-            header.createCell(10).setCellValue("tipoTrabajador");
+            header.createCell(6).setCellValue("instructor");
+            header.createCell(7).setCellValue("tipoTrabajador");
 
             // 🔥 EJEMPLO
             Row ejemplo = sheet.createRow(1);
@@ -420,11 +430,8 @@ public class CapacitacionWebController {
             ejemplo.createCell(3).setCellValue("TECNICA");
             ejemplo.createCell(4).setCellValue("PRESENCIAL");
             ejemplo.createCell(5).setCellValue(8);
-            ejemplo.createCell(6).setCellValue("2026-01-10");
-            ejemplo.createCell(7).setCellValue("2026-01-12");
-            ejemplo.createCell(8).setCellValue(12);
-            ejemplo.createCell(9).setCellValue("Juan Perez");
-            ejemplo.createCell(10).setCellValue("AMBOS");
+            ejemplo.createCell(6).setCellValue("");
+            ejemplo.createCell(7).setCellValue("AMBOS");
 
             // =========================================
             // 🔥 VALIDACIONES (DROP DOWN)

@@ -1,7 +1,6 @@
 package uno.dos.models.entity;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -15,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -49,7 +49,7 @@ public class SkillMatrix {
     private Capacitacion capacitacion;
 
     // =====================================
-    // 🔥 NIVEL SKILL
+    // 🔥 NIVEL ACTUAL
     // =====================================
 
     @Enumerated(EnumType.STRING)
@@ -61,33 +61,43 @@ public class SkillMatrix {
         PROGRAMADO
         CAPACITADO
         EXPERIENCIA_40H
-        CERTIFICADO
+        ACREDITADO
     */
 
     // =====================================
-    // 🔥 EVIDENCIA
-    // =====================================
-
-    private String evidencia;
-
-    // =====================================
-    // 🔥 FECHAS
+    // 🔥 PROGRAMADO
     // =====================================
 
     private LocalDate fechaProgramada;
 
+    private String evidenciaProgramado;
+
+    // =====================================
+    // 🔥 CAPACITADO
+    // =====================================
+
     private LocalDate fechaCapacitado;
+
+    private String evidenciaCapacitado;
+
+    // =====================================
+    // 🔥 EXPERIENCIA 40H
+    // =====================================
 
     private LocalDate fechaExperiencia;
 
-    private LocalDate fechaCertificado;
-
-    // =====================================
-    // 🔥 HORAS EXPERIENCIA
-    // =====================================
+    private String evidenciaExperiencia;
 
     @Column(name = "horas_experiencia")
     private Integer horasExperiencia = 0;
+
+    // =====================================
+    // 🔥 ACREDITADO
+    // =====================================
+
+    private LocalDate fechaCertificado;
+
+    private String evidenciaAcreditado;
 
     // =====================================
     // 🔥 OBSERVACIONES

@@ -59,6 +59,38 @@
 
             animation: aparecer 0.6s ease forwards;
         }
+        
+        /* ===================================== */
+/* 🔥 AREAS */
+/* ===================================== */
+
+.areas{
+
+    background:
+    linear-gradient(
+        135deg,
+        #10b981,
+        #06b6d4
+    );
+
+    color:white;
+}
+
+.areas:hover{
+
+    transform:
+    translateY(-8px)
+    scale(1.05);
+
+    box-shadow:
+    0 15px 35px
+    rgba(16,185,129,.45);
+}
+
+.areas i{
+
+    color:white;
+}
 
         /* 🔥 ANIMACIÓN ESCALONADA */
         .tile:nth-child(1) { animation-delay: 0.1s; }
@@ -66,6 +98,7 @@
         .tile:nth-child(3) { animation-delay: 0.3s; }
         .tile:nth-child(4) { animation-delay: 0.4s; }
         .tile:nth-child(5) { animation-delay: 0.5s; }
+        .tile:nth-child(6) { animation-delay: 0.6s; }
 
         @keyframes aparecer {
             to {
@@ -136,6 +169,14 @@
             <i class="bi bi-briefcase-fill"></i>
             <span>Puestos</span>
         </a>
+        
+         <a href="/area" class="tile areas">
+
+    <i class="bi bi-diagram-3-fill"></i>
+
+    <span>Áreas</span>
+
+</a>
 
     </div>
 

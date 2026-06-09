@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <title>Área</title>
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <style>
+
+        body{
+            background:linear-gradient(135deg,#0f172a,#1e293b);
+            min-height:100vh;
+            color:white;
+            font-family:'Segoe UI';
+        }
+
+        .card-area{
+
+            max-width:700px;
+
+            margin:60px auto;
+
+            background:
+            rgba(255,255,255,.08);
+
+            backdrop-filter:blur(12px);
+
+            border-radius:25px;
+
+            padding:35px;
+
+            box-shadow:
+            0 15px 40px rgba(0,0,0,.4);
+        }
+
+        .titulo{
+
+            font-size:28px;
+
+            font-weight:600;
+
+            margin-bottom:30px;
+        }
+
+        .form-control{
+
+            background:
+            rgba(255,255,255,.12);
+
+            border:none;
+
+            color:white;
+        }
+
+        .form-control:focus{
+
+            background:
+            rgba(255,255,255,.18);
+
+            color:white;
+
+            box-shadow:none;
+        }
+
+        .btn-save{
+
+            background:
+            linear-gradient(
+                135deg,
+                #3b82f6,
+                #2563eb
+            );
+
+            border:none;
+        }
+
+        .btn-save:hover{
+
+            transform:
+            translateY(-2px);
+        }
+
+        .btn-back{
+
+            background:
+            rgba(255,255,255,.15);
+
+            border:none;
+        }
+        
+        
+
+    </style>
+
+</head>
+
+<script>
+
+let subareas = [];
+
+// =====================================
+// AGREGAR SUBAREA
+// =====================================
+
+function agregarSubarea(){
+
+    const input =
+        document.getElementById(
+            "subareaInput"
+        );
+
+    const nombre =
+        input.value.trim();
+
+    if(nombre === ""){
+
+        alert(
+            "Captura una subárea"
+        );
+
+        return;
+    }
+
+    subareas.push(
+        nombre
+    );
+
+    renderSubareas();
+
+    input.value = "";
+
+    input.focus();
+}
+
+// =====================================
+// EDITAR
+// =====================================
+
+function editarSubarea(index){
+
+    const nuevo =
+        prompt(
+            "Editar subárea",
+            subareas[index]
+        );
+
+    if(
+        nuevo == null ||
+        nuevo.trim() === ""
+    ){
+        return;
+    }
+
+    subareas[index] =
+        nuevo.trim();
+
+    renderSubareas();
+}
+
+// =====================================
+// ELIMINAR
+// =====================================
+
+function eliminarSubarea(index){
+
+    if(
+        confirm(
+            "¿Eliminar subárea?"
+        )
+    ){
+
+        subareas.splice(
+            index,
+            1
+        );
+
+        renderSubareas();
+    }
+}
+
+// =====================================
+// PINTAR LISTA
+// =====================================
+
+function renderSubareas(){
+
+    const lista =
+        document.getElementById(
+            "listaSubareas"
+        );
+
+    lista.innerHTML = "";
+
+    subareas.forEach(
+        (sub,index)=>{
+
+        lista.innerHTML += `
+
+            <div
+                class="d-flex
+                       justify-content-between
+                       align-items-center
+                       mb-2
+                       p-2
+                       rounded"
+                style="
+                    background:
+                    rgba(255,255,255,.08);
+                ">
+
+                <span>
+
+                    <i class="bi bi-arrow-return-right"></i>
+
+                    ${sub}
+
+                </span>
+
+                <div>
+
+                    <button
+                        type="button"
+                        class="btn btn-warning btn-sm me-1"
+                        onclick="editarSubarea(${index})">
+
+                        <i class="bi bi-pencil"></i>
+
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-danger btn-sm"
+                        onclick="eliminarSubarea(${index})">
+
+                        <i class="bi bi-trash"></i>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+    });
+
+    // =====================================
+    // GUARDAR EN HIDDEN
+    // =====================================
+
+    document.getElementById(
+        "subareasHidden"
+    ).value =
+        subareas.join(",");
+}
+
+// =====================================
+// ENTER AGREGA SUBAREA
+// =====================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function(){
+
+        document
+            .getElementById(
+                "subareaInput"
+            )
+            .addEventListener(
+                "keypress",
+                function(e){
+
+                    if(
+                        e.key === "Enter"
+                    ){
+
+                        e.preventDefault();
+
+                        agregarSubarea();
+                    }
+                }
+            );
+    }
+);
+
+</script>
+
+<body>
+
+<div class="card-area">
+
+    <h2 class="titulo">
+
+        <i class="bi bi-diagram-3-fill"></i>
+
+        <span th:text="${area.id == null ? 'Nueva Área' : 'Editar Área'}">
+        </span>
+
+    </h2>
+
+    <form th:action="@{/area/guardar}"
+          method="post"
+          th:object="${area}">
+
+        <!-- ID -->
+
+        <input type="hidden"
+               th:field="*{id}">
+
+        <!-- NOMBRE -->
+
+        <div class="mb-4">
+
+            <label class="form-label">
+
+                Nombre del Área
+
+            </label>
+
+            <input type="text"
+                   th:field="*{nombreArea}"
+                   class="form-control"
+                   placeholder="Ej. Producción"
+                   required>
+
+        </div>
+        
+        <hr>
+
+<h5 class="mb-3">
+
+    <i class="bi bi-list-ul"></i>
+
+    Subáreas
+
+</h5>
+
+<div class="row mb-3">
+
+    <div class="col-md-10">
+
+        <input type="text"
+               id="subareaInput"
+               class="form-control"
+               placeholder="Ej. Soldadura">
+
+    </div>
+
+    <div class="col-md-2">
+
+        <button type="button"
+                class="btn btn-success w-100"
+                onclick="agregarSubarea()">
+
+            <i class="bi bi-plus-circle"></i>
+
+        </button>
+
+    </div>
+
+</div>
+
+<div id="listaSubareas"></div>
+
+<input type="hidden"
+       name="subareas"
+       id="subareasHidden">
+
+        <!-- BOTONES -->
+
+        <div class="d-flex
+                    justify-content-between">
+
+            <a th:href="@{/area}"
+               class="btn btn-back">
+
+                <i class="bi bi-arrow-left"></i>
+
+                Volver
+
+            </a>
+
+            <button type="submit"
+                    class="btn btn-primary btn-save">
+
+                <i class="bi bi-floppy"></i>
+
+                Guardar Área
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+</body>
+
+</html>

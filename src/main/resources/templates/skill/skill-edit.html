@@ -166,6 +166,19 @@
             </div>
 
         </div>
+        
+        <!-- ===================================== -->
+		<!-- 🔥 NIVEL ACTUAL -->
+		<!-- ===================================== -->
+
+		<div class="alert alert-info mb-4">
+
+    	<strong>Nivel Actual:</strong>
+
+    	<span th:text="${skill.nivel}">
+    	</span>
+
+		</div>
 
         <!-- ===================================== -->
         <!-- 🔥 FORM -->
@@ -180,160 +193,273 @@
                    name="id"
                    th:value="${skill.id}">
 
-            <!-- ===================================== -->
-            <!-- 🔥 NIVEL -->
-            <!-- ===================================== -->
+           
+<!-- ===================================== -->
+<!-- 🔥 PROGRAMADO -->
+<!-- ===================================== -->
+
+<div class="nivel-card">
+
+    <div class="nivel-title mb-3">
+
+        🔵 Programado
+
+    </div>
+
+    <div class="row g-3">
+
+        <!-- FECHA -->
+        <div class="col-md-6">
 
             <label class="form-label">
 
-                Nivel Actual
+                Fecha Programada
 
             </label>
 
-            <select name="nivel"
-                    class="form-select mb-4">
+           <input type="date"
+       name="fechaProgramada"
+       class="form-control"
+       th:value="${skill.fechaProgramada != null ? #temporals.format(skill.fechaProgramada,'yyyy-MM-dd') : ''}">
 
-                <option value="VACIO"
-                        th:selected="${skill.nivel.name() == 'VACIO'}">
+        </div>
 
-                    ⚪ VACIO
+        <!-- PDF -->
+        <div class="col-md-6">
 
-                </option>
+            <label class="form-label">
 
-                <option value="PROGRAMADO"
-                        th:selected="${skill.nivel.name() == 'PROGRAMADO'}">
+                PDF Programado
 
-                    🔵 PROGRAMADO
+            </label>
 
-                </option>
+            <input type="file"
+                   name="pdfProgramado"
+                   class="form-control">
 
-                <option value="CAPACITADO"
-                        th:selected="${skill.nivel.name() == 'CAPACITADO'}">
+            <a th:if="${skill.evidenciaProgramado != null}"
 
-                    🟡 CAPACITADO
+               th:href="@{'/uploads/skills/' + ${skill.evidenciaProgramado}}"
 
-                </option>
+               target="_blank"
 
-                <option value="EXPERIENCIA_40H"
-                        th:selected="${skill.nivel.name() == 'EXPERIENCIA_40H'}">
+               class="btn btn-outline-primary btn-sm mt-2">
 
-                    🟠 EXPERIENCIA 40H
+                <i class="bi bi-file-earmark-pdf"></i>
 
-                </option>
+                Ver PDF
 
-                <option value="ACREDITADO"
-                        th:selected="${skill.nivel.name() == 'ACREDITADO'}">
+            </a>
 
-                    🟢 ACREDITADO
+        </div>
 
-                </option>
+    </div>
 
-            </select>
+</div>
 
-            <!-- ===================================== -->
-            <!-- 🔥 FECHA PROGRAMADA -->
-            <!-- ===================================== -->
+<!-- ===================================== -->
+<!-- 🔥 CAPACITADO -->
+<!-- ===================================== -->
 
-            <div class="nivel-card">
+<div class="nivel-card">
 
-                <div class="nivel-title">
+    <div class="nivel-title mb-3">
 
-                    🔵 Programado
+        🟡 Capacitado
 
-                </div>
+    </div>
 
-                <input type="date"
-                       name="fechaProgramada"
-                       class="form-control mt-2"
-                       th:value="${skill.fechaProgramada}">
+    <div class="row g-3">
 
-            </div>
+        <!-- FECHA -->
+        <div class="col-md-6">
 
-            <!-- ===================================== -->
-            <!-- 🔥 FECHA CAPACITADO -->
-            <!-- ===================================== -->
+            <label class="form-label">
 
-            <div class="nivel-card">
+                Fecha Capacitado
 
-                <div class="nivel-title">
+            </label>
 
-                    🟡 Capacitado
+            <input type="date"
+       name="fechaCapacitado"
+       class="form-control"
+       th:value="${skill.fechaCapacitado != null ? #temporals.format(skill.fechaCapacitado,'yyyy-MM-dd') : ''}">
 
-                </div>
+        </div>
 
-                <input type="date"
-                       name="fechaCapacitado"
-                       class="form-control mt-2"
-                       th:value="${skill.fechaCapacitado}">
+        <!-- PDF -->
+        <div class="col-md-6">
 
-            </div>
+            <label class="form-label">
 
-            <!-- ===================================== -->
-            <!-- 🔥 FECHA EXPERIENCIA -->
-            <!-- ===================================== -->
+                PDF Capacitado
 
-            <div class="nivel-card">
+            </label>
 
-                <div class="nivel-title">
+            <input type="file"
+                   name="pdfCapacitado"
+                   class="form-control">
 
-                    🟠 Experiencia 40H
+            <a th:if="${skill.evidenciaCapacitado != null}"
 
-                </div>
+               th:href="@{'/uploads/skills/' + ${skill.evidenciaCapacitado}}"
 
-                <input type="date"
-                       name="fechaExperiencia"
-                       class="form-control mt-2"
-                       th:value="${skill.fechaExperiencia}">
+               target="_blank"
 
-            </div>
+               class="btn btn-outline-warning btn-sm mt-2">
 
-            <!-- ===================================== -->
-            <!-- 🔥 FECHA ACREDITADO -->
-            <!-- ===================================== -->
+                <i class="bi bi-file-earmark-pdf"></i>
 
-            <div class="nivel-card">
+                Ver PDF
 
-                <div class="nivel-title">
+            </a>
 
-                    🟢 Acreditado
+        </div>
 
-                </div>
+    </div>
 
-                <input type="date"
-                       name="fechaCertificado"
-                       class="form-control mt-2"
-                       th:value="${skill.fechaCertificado}">
+</div>
 
-            </div>
+<!-- ===================================== -->
+<!-- 🔥 EXPERIENCIA -->
+<!-- ===================================== -->
 
-            <!-- ===================================== -->
-            <!-- 🔥 HORAS -->
-            <!-- ===================================== -->
+<div class="nivel-card">
 
-            <label class="form-label mt-3">
+    <div class="nivel-title mb-3">
 
-                Horas de Experiencia
+        🟠 Experiencia 40H
+
+    </div>
+
+    <div class="row g-3">
+
+        <!-- FECHA -->
+        <div class="col-md-4">
+
+            <label class="form-label">
+
+                Fecha
+
+            </label>
+
+            <input type="date"
+       name="fechaExperiencia"
+       class="form-control"
+       th:value="${skill.fechaExperiencia != null ? #temporals.format(skill.fechaExperiencia,'yyyy-MM-dd') : ''}">
+        </div>
+
+        <!-- HORAS -->
+        <div class="col-md-4">
+
+            <label class="form-label">
+
+                Horas
 
             </label>
 
             <input type="number"
                    name="horasExperiencia"
-                   class="form-control mb-4"
+                   class="form-control"
                    th:value="${skill.horasExperiencia}">
 
-            <!-- ===================================== -->
-            <!-- 🔥 EVIDENCIA -->
-            <!-- ===================================== -->
+        </div>
+
+        <!-- PDF -->
+        <div class="col-md-4">
 
             <label class="form-label">
 
-                Evidencia PDF
+                PDF Experiencia
 
             </label>
 
             <input type="file"
-                   name="archivo"
-                   class="form-control mb-4">
+                   name="pdfExperiencia"
+                   class="form-control">
+
+            <a th:if="${skill.evidenciaExperiencia != null}"
+
+               th:href="@{'/uploads/skills/' + ${skill.evidenciaExperiencia}}"
+
+               target="_blank"
+
+               class="btn btn-outline-info btn-sm mt-2">
+
+                <i class="bi bi-file-earmark-pdf"></i>
+
+                Ver PDF
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ===================================== -->
+<!-- 🔥 ACREDITADO -->
+<!-- ===================================== -->
+
+<div class="nivel-card">
+
+    <div class="nivel-title mb-3">
+
+        🟢 Acreditado
+
+    </div>
+
+    <div class="row g-3">
+
+        <!-- FECHA -->
+        <div class="col-md-6">
+
+            <label class="form-label">
+
+                Fecha Acreditado
+
+            </label>
+
+           <input type="date"
+       name="fechaCertificado"
+       class="form-control"
+       th:value="${skill.fechaCertificado != null ? #temporals.format(skill.fechaCertificado,'yyyy-MM-dd') : ''}">
+
+        </div>
+
+        <!-- PDF -->
+        <div class="col-md-6">
+
+            <label class="form-label">
+
+                PDF Acreditado
+
+            </label>
+
+            <input type="file"
+                   name="pdfAcreditado"
+                   class="form-control">
+
+            <a th:if="${skill.evidenciaAcreditado != null}"
+
+               th:href="@{'/uploads/skills/' + ${skill.evidenciaAcreditado}}"
+
+               target="_blank"
+
+               class="btn btn-outline-success btn-sm mt-2">
+
+                <i class="bi bi-file-earmark-pdf"></i>
+
+                Ver PDF
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
 
             <!-- ===================================== -->
             <!-- 🔥 OBSERVACIONES -->

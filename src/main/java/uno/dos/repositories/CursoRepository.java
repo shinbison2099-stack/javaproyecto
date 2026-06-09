@@ -20,8 +20,6 @@ public interface CursoRepository extends JpaRepository<Curso, Long> {
 
 	List<Curso> findByActivoFalse();
 
-    List<Curso> findByInstructorId(Long instructorId);
-    
     boolean existsByClaveCurso(String claveCurso);
     
     @Query("SELECT DISTINCT c FROM Curso c LEFT JOIN FETCH c.capacitaciones WHERE c.activo = true")

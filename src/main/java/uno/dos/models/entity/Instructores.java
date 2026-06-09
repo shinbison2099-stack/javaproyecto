@@ -33,9 +33,8 @@ public class Instructores {
     @Enumerated(EnumType.STRING)
     private Rol rol;
 
-    private boolean activo;
-
-    // 🔥 NUEVO CAMPO
     @Enumerated(EnumType.STRING)
     private TipoInstructor tipo;
+
+    private Boolean activo = true;
 }

@@ -116,89 +116,148 @@
 
             <table class="table table-bordered table-hover">
 
-                <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Clave</th>
-                    <th>Nombre</th>
-                    <th>Área</th>
-                    <th>Duración</th>
-                    <th>Tipo Curso</th>
-                    <th>Tipo Trabajador</th>
-                    <th>Instructor</th>
-                    <th>Inicio</th>
-                    <th>Fin</th>
-                    <th>Activo</th>
-                    <th>Acciones</th>
-                </tr>
-                </thead>
+				<thead>
+					<tr>
+					    <th>#</th>
+					    <th>Clave</th>
+					    <th>Nombre</th>
+					    <th>Área Temática</th>
+					    <th>Área Responsable</th>
+					    <th>Duración</th>
+					    <th>Tipo Curso</th>
+					    <th>Tipo Trabajador</th>
+					    <th>Vigencia</th>
+					    <th>Capacitaciones</th>
+					    <th>Activo</th>
+					    <th>Acciones</th>
+					</tr>
+				</thead>
+				<tbody>
 
-                <tbody>
+				<tr th:each="curso, iterStat : ${cursos}">
 
-                <tr th:each="curso, iterStat : ${cursos}">
+				    <td th:text="${iterStat.count}"></td>
 
-                    <td th:text="${iterStat.count}"></td>
-                    <td th:text="${curso.claveCurso}"></td>
-                    <td th:text="${curso.nombreCurso}"></td>
-                    <td th:text="${curso.claveAreaTematica}"></td>
+				    <td th:text="${curso.claveCurso}"></td>
 
-                    <!-- 🔥 CORREGIDO -->
-                    <td>
-                        <div>⏱️ <span th:text="${curso.horas}"></span> hrs</div>
-                        <div>📅 <span th:text="${curso.vigenciaMeses}"></span> meses</div>
-                    </td>
+				    <td th:text="${curso.nombreCurso}"></td>
 
-                    <!-- TIPO CURSO -->
-                    <td>
-                        <span class="badge"
-                              th:classappend="
-                                ${curso.tipoCurso != null and curso.tipoCurso == 'INTERNO'} 
-                                ? ' badge-interno' 
-                                : ' badge-externo'"
-                              th:text="${curso.tipoCurso != null ? curso.tipoCurso : 'SIN TIPO'}">
-                        </span>
-                    </td>
+				    <td th:text="${curso.claveAreaTematica}"></td>
 
-                    <!-- TIPO TRABAJADOR -->
-                    <td>
-                        <span class="badge"
-                              th:classappend="
-                                ${curso.tipoTrabajador != null and curso.tipoTrabajador == 'HOURLY'} ? ' badge-hourly' :
-                                (${curso.tipoTrabajador != null and curso.tipoTrabajador == 'SALARY'} ? ' badge-salary' : ' badge-ambos')"
-                              th:text="${curso.tipoTrabajador != null ? curso.tipoTrabajador : 'SIN TIPO'}">
-                        </span>
-                    </td>
+				    <td th:text="${curso.areaResponsable}"></td>
 
-                    <td th:text="${curso.instructor != null ? curso.instructor.nombre : 'Sin instructor'}"></td>
+				    <!-- HORAS -->
+				    <td>
 
-                    <td th:text="${curso.fechaInicio != null ? #temporals.format(curso.fechaInicio,'dd/MM/yyyy') : '-'}"></td>
-                    <td th:text="${curso.fechaFin != null ? #temporals.format(curso.fechaFin,'dd/MM/yyyy') : '-'}"></td>
+				        <span class="badge bg-secondary">
 
-                    <td>
-                        <span class="badge bg-success" th:if="${curso.activo}">Activo</span>
-                        <span class="badge bg-danger" th:if="${!curso.activo}">Inactivo</span>
-                    </td>
+				            ⏱️
 
-                    <td>
+				            <span th:text="${curso.horas}"></span>
 
-                        <a th:href="@{/cursos/editar/{id}(id=${curso.id})}"
-                           class="btn btn-warning btn-sm">
-                            <i class="bi bi-pencil"></i>
-                        </a>
+				            hrs
 
-                        <a th:href="@{/cursos/eliminar/{id}(id=${curso.id})}"
-                           class="btn btn-danger btn-sm"
-                           onclick="return confirm('¿Eliminar curso?')">
-                            <i class="bi bi-trash"></i>
-                        </a>
+				        </span>
 
-                    </td>
+				    </td>
 
-                </tr>
+				    <!-- TIPO CURSO -->
+				    <td>
 
-                </tbody>
+				        <span class="badge"
 
-            </table>
+				              th:classappend="
+				              ${curso.tipoCurso != null and curso.tipoCurso.name() == 'INTERNO'}
+				              ? ' badge-interno'
+				              : ' badge-externo'"
+
+				              th:text="${curso.tipoCurso != null ? curso.tipoCurso : 'SIN TIPO'}">
+
+				        </span>
+
+				    </td>
+
+				    <!-- TIPO TRABAJADOR -->
+				    <td>
+
+				        <span class="badge"
+
+				              th:classappend="
+				              ${curso.tipoTrabajador != null and curso.tipoTrabajador.name() == 'HOURLY'} ? ' badge-hourly' :
+				              (${curso.tipoTrabajador != null and curso.tipoTrabajador.name() == 'SALARY'} ? ' badge-salary' : ' badge-ambos')"
+
+				              th:text="${curso.tipoTrabajador != null ? curso.tipoTrabajador : 'SIN TIPO'}">
+
+				        </span>
+
+				    </td>
+
+				    <!-- VIGENCIA -->
+				    <td>
+
+				        <span class="badge bg-info">
+
+				            <span th:text="${curso.vigenciaMeses}"></span>
+
+				            meses
+
+				        </span>
+
+				    </td>
+
+				    <!-- CAPACITACIONES -->
+				    <td>
+
+				        <span class="badge bg-primary"
+
+				              th:text="${curso.capacitaciones != null ? #lists.size(curso.capacitaciones) : 0}">
+
+				        </span>
+
+				    </td>
+
+				    <!-- ACTIVO -->
+				    <td>
+
+				        <span class="badge bg-success"
+				              th:if="${curso.activo}">
+
+				            Activo
+
+				        </span>
+
+				        <span class="badge bg-danger"
+				              th:if="${!curso.activo}">
+
+				            Inactivo
+
+				        </span>
+
+				    </td>
+
+				    <!-- ACCIONES -->
+				    <td>
+
+				        <a th:href="@{/cursos/editar/{id}(id=${curso.id})}"
+				           class="btn btn-warning btn-sm">
+
+				            <i class="bi bi-pencil"></i>
+
+				        </a>
+
+				        <a th:href="@{/cursos/eliminar/{id}(id=${curso.id})}"
+				           class="btn btn-danger btn-sm"
+				           onclick="return confirm('¿Eliminar curso?')">
+
+				            <i class="bi bi-trash"></i>
+
+				        </a>
+
+				    </td>
+
+				</tr>
+
+				</tbody>
 
         </div>
 

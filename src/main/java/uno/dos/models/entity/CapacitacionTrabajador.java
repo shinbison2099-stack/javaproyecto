@@ -11,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,34 +23,107 @@ import lombok.NoArgsConstructor;
 @Table(name = "capacitaciontrabajador")
 public class CapacitacionTrabajador {
 
-		@Id
-	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	    @ManyToOne
-	    @JsonIgnore // 🔥 rompe el loop
-	    private Trabajador trabajador;
+    // =====================================
+    // TRABAJADOR
+    // =====================================
 
-	    @ManyToOne
-	    @JsonIgnore // 🔥 rompe el loop
-	    private Capacitacion capacitacion;
+    @ManyToOne
+    @JsonIgnore
+    private Trabajador trabajador;
 
-	    private LocalDate fechaInscripcion;
+    // =====================================
+    // CAPACITACION
+    // =====================================
 
-	    private Double calificacion;
+    @ManyToOne
+    @JsonIgnore
+    private Capacitacion capacitacion;
 
-	    private Boolean aprobado;
-	    
-	 // 👇 NUEVO
-	    private Boolean activo = true;
-	    
-	    @Column
-	    private Integer nivel;
-	    
-	    private Integer orden;        // 🔥 orden del curso
-	    private boolean completado;   // 🔥 ya terminó
-	    
-	    
+    // =====================================
+    // FECHAS
+    // =====================================
 
+    private LocalDate fechaInscripcion;
+
+    /**
+     * Fecha en la que el trabajador acreditó
+     * la capacitación.
+     */
+    private LocalDate fechaAcreditacion;
+
+    // =====================================
+    // RESULTADOS
+    // =====================================
+
+    private Double calificacion;
+
+    private Boolean aprobado = false;
+
+    private Boolean completado = false;
+
+    // =====================================
+    // MATRICES
+    // =====================================
+
+    @Column
+    private Integer nivel;
+
+    private Integer orden;
+
+    // =====================================
+    // ESTATUS
+    // =====================================
+
+    private Boolean activo = true;
+
+    // =====================================
+    // FECHA VENCIMIENTO
+    // =====================================
+
+    @Transient
+    public LocalDate getFechaVencimiento(){
+
+        if(fechaAcreditacion == null){
+            return null;
+        }
+
+        if(capacitacion == null){
+            return null;
+        }
+
+        if(capacitacion.getCurso() == null){
+            return null;
+        }
+
+        if(capacitacion.getCurso().getVigenciaMeses() == null){
+            return null;
+        }
+
+        return fechaAcreditacion.plusMonths(
+                capacitacion
+                .getCurso()
+                .getVigenciaMeses()
+        );
+    }
+
+    // =====================================
+    // VENCIDO
+    // =====================================
+
+    @Transient
+    public boolean isVencido(){
+
+        LocalDate vencimiento =
+                getFechaVencimiento();
+
+        return vencimiento != null
+                &&
+                vencimiento.isBefore(
+                        LocalDate.now()
+                );
+    }
 }
-

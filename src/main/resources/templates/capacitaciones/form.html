@@ -219,35 +219,26 @@
 
                 </div>
 
-                <div class="row">
+				<div class="col-md-6 mb-3"
+				     th:if="${capacitacion.id != null}">
 
-                    <div class="col-md-6 mb-3">
-                        <label>Vigencia (Meses)</label>
-                        <input type="number" th:field="*{vigenciaMeses}" class="form-control">
-                    </div>
+				    <label>Instructor</label>
 
-					<div class="col-md-6 mb-3">
+				    <select th:field="*{instructor.id}"
+				            class="form-control">
 
-					    <label>Instructor</label>
+				        <option value="">
+				            Sin instructor
+				        </option>
 
-					    <select th:field="*{instructor.id}"
-					            class="form-control">
+				        <option th:each="inst : ${instructores}"
+				                th:value="${inst.id}"
+				                th:text="${inst.nombre}">
+				        </option>
 
-					        <option value="">
-					            Seleccione instructor
-					        </option>
+				    </select>
 
-					        <option th:each="inst : ${instructores}"
-					                th:value="${inst.id}"
-					                th:text="${inst.nombre}">
-					        </option>
-
-					    </select>
-
-					</div>
-
-                </div>
-
+				</div>
                 <div class="form-check mb-2">
                     <input type="checkbox" th:field="*{requiereEvaluacion}" class="form-check-input">
                     <label class="form-check-label">Requiere Evaluación</label>

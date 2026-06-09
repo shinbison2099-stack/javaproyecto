@@ -125,37 +125,13 @@
                     <option value="">-- Selecciona --</option>
                     <option value="HOURLY">HOURLY</option>
                     <option value="SALARY">SALARY</option>
-                    <option value="AMBOS">AMBOS</option>
+                   
                 </select>
             </div>
 
         </div>
 
-        <!-- INSTRUCTOR -->
-        <div class="mb-3">
-            <label>Instructor</label>
-            <select th:field="*{instructor.id}" class="form-control">
-                <option value="">Seleccione instructor</option>
-
-                <option th:each="inst : ${instructores}"
-                        th:value="${inst.id}"
-                        th:text="${inst.nombre}">
-                </option>
-            </select>
-        </div>
-
-        <!-- FECHAS -->
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label>Fecha Inicio</label>
-                <input type="date" th:field="*{fechaInicio}" class="form-control">
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <label>Fecha Fin</label>
-                <input type="date" th:field="*{fechaFin}" class="form-control">
-            </div>
-        </div>
+      
 
         <!-- COMENTARIOS -->
         <div class="mb-3">

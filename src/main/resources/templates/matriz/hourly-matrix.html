@@ -69,51 +69,94 @@
         }
 
         .trabajador{
+     min-width:320px;
+    text-align:left;
+    font-weight:600;
+}
 
-            min-width:240px;
-            text-align:left;
-            font-weight:600;
-        }
+/* ===================================== */
+/* 🔥 FOTO TRABAJADOR */
+/* ===================================== */
+
+.worker-info{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+}
+
+.worker-photo{
+
+    width:50px;
+
+    height:50px;
+
+    border-radius:50%;
+
+    object-fit:cover;
+
+    border:2px solid #64748b;
+
+    flex-shrink:0;
+}
+
+.worker-name{
+
+    color:white;
+
+    font-size:15px;
+
+    font-weight:600;
+}
+
+.worker-position{
+
+    color:#cbd5e1;
+
+    font-size:12px;
+
+    margin-top:2px;
+}
+
+.trabajador{
+    min-width:240px;
+}
 
         /* ===================================== */
         /* 🔥 CIRCULOS */
         /* ===================================== */
 
         .circle{
+    font-size:28px;
+    font-weight:bold;
+}
 
-            width:22px;
-            height:22px;
+.vacio::before{
+    content:"○";
+    color:#cbd5e1;
+}
 
-            border-radius:50%;
+.programado::before{
+    content:"◔";
+    color:#3b82f6;
+}
 
-            display:inline-block;
+.capacitado::before{
+    content:"◑";
+    color:#facc15;
+}
 
-            border:2px solid #cbd5e1;
-        }
+.experiencia::before{
+    content:"◕";
+    color:#fb923c;
+}
 
-        .vacio{
-            background:transparent;
-        }
-
-        .programado{
-            background:#3b82f6;
-            border:none;
-        }
-
-        .capacitado{
-            background:#facc15;
-            border:none;
-        }
-
-        .experiencia{
-            background:#fb923c;
-            border:none;
-        }
-
-        .acreditado{
-            background:#22c55e;
-            border:none;
-        }
+.acreditado::before{
+    content:"●";
+    color:#22c55e;
+}
 
         /* ===================================== */
         /* 🔥 LEYENDA */
@@ -170,7 +213,7 @@
 
             </h2>
 
-            <a href="/matriz"
+            <a href="/matriz/hourly"
                class="btn btn-outline-light">
 
                 <i class="bi bi-arrow-left"></i>
@@ -275,31 +318,60 @@
 
                     <td class="trabajador">
 
-                        <div>
+    <div class="worker-info">
 
-                            <strong>
+        <!-- FOTO -->
 
-                                <span th:text="
-                                ${trab.nombre}
-                                +
-                                ' '
-                                +
-                                ${trab.primerApellido}">
-                                </span>
+        <img class="worker-photo"
 
-                            </strong>
+             th:if="${trab.foto != null}"
 
-                        </div>
+             th:src="@{/foto/{foto}(foto=${trab.foto})}"
 
-                        <small>
+             alt="Foto">
 
-                            <span th:text="
-                            ${trab.puesto.nombrePuesto}">
-                            </span>
+        <img class="worker-photo"
 
-                        </small>
+             th:if="${trab.foto == null}"
 
-                    </td>
+             src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+
+             alt="Sin foto">
+
+        <!-- DATOS -->
+
+        <div>
+
+            <div class="worker-name">
+
+                <span th:text="
+                ${trab.nombre}
+                +
+                ' '
+                +
+                ${trab.primerApellido}
+                +
+                ' '
+                +
+                ${trab.segundoApellido}">
+                </span>
+
+            </div>
+
+            <div class="worker-position">
+
+                <span th:text="${trab.puesto != null
+                ? trab.puesto.nombrePuesto
+                : 'Sin puesto asignado'}">
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</td>
 
                     <!-- ===================================== -->
                     <!-- 🔥 MATRIX -->
@@ -313,50 +385,87 @@
                         capId=${cap.id}
                         )}">
 
-                            <!-- VACIO -->
-                            <span th:if="
-                            ${matrix[trab.id + '-' + cap.id] == null
-                            ||
-                            matrix[trab.id + '-' + cap.id].nivel.name() == 'VACIO'}"
+                            <div th:with="
+skill=${matrix[trab.id + '-' + cap.id]}
+">
 
-                                  class="circle vacio">
-                            </span>
+    <!-- ===================================== -->
+    <!-- 🔥 VACIO -->
+    <!-- ===================================== -->
 
-                            <!-- PROGRAMADO -->
-                            <span th:if="
-                            ${matrix[trab.id + '-' + cap.id] != null
-                            &&
-                            matrix[trab.id + '-' + cap.id].nivel.name() == 'PROGRAMADO'}"
+    <span th:if="
+    ${skill == null
+    ||
+    skill.fechaProgramada == null}"
 
-                                  class="circle programado">
-                            </span>
+          class="circle vacio">
+    </span>
 
-                            <!-- CAPACITADO -->
-                            <span th:if="
-                            ${matrix[trab.id + '-' + cap.id] != null
-                            &&
-                            matrix[trab.id + '-' + cap.id].nivel.name() == 'CAPACITADO'}"
+    <!-- ===================================== -->
+    <!-- 🔥 PROGRAMADO -->
+    <!-- ===================================== -->
 
-                                  class="circle capacitado">
-                            </span>
+    <span th:if="
+    ${skill != null
+    &&
+    skill.fechaProgramada != null
+    &&
+    skill.evidenciaProgramado != null
+    &&
+    skill.fechaCapacitado == null}"
 
-                            <!-- EXPERIENCIA -->
-                            <span th:if="
-                            ${matrix[trab.id + '-' + cap.id] != null
-                            &&
-                            matrix[trab.id + '-' + cap.id].nivel.name() == 'EXPERIENCIA_40H'}"
+          class="circle programado">
+    </span>
 
-                                  class="circle experiencia">
-                            </span>
+    <!-- ===================================== -->
+    <!-- 🔥 CAPACITADO -->
+    <!-- ===================================== -->
 
-                            <!-- ACREDITADO -->
-                            <span th:if="
-                            ${matrix[trab.id + '-' + cap.id] != null
-                            &&
-                            matrix[trab.id + '-' + cap.id].nivel.name() == 'ACREDITADO'}"
+    <span th:if="
+    ${skill != null
+    &&
+    skill.fechaCapacitado != null
+    &&
+    skill.evidenciaCapacitado != null
+    &&
+    skill.fechaExperiencia == null}"
 
-                                  class="circle acreditado">
-                            </span>
+          class="circle capacitado">
+    </span>
+
+    <!-- ===================================== -->
+    <!-- 🔥 EXPERIENCIA -->
+    <!-- ===================================== -->
+
+    <span th:if="
+    ${skill != null
+    &&
+    skill.fechaExperiencia != null
+    &&
+    skill.evidenciaExperiencia != null
+    &&
+    skill.horasExperiencia >= 40
+    &&
+    skill.fechaCertificado == null}"
+
+          class="circle experiencia">
+    </span>
+
+    <!-- ===================================== -->
+    <!-- 🔥 ACREDITADO -->
+    <!-- ===================================== -->
+
+    <span th:if="
+    ${skill != null
+    &&
+    skill.fechaCertificado != null
+    &&
+    skill.evidenciaAcreditado != null}"
+
+          class="circle acreditado">
+    </span>
+
+</div>
 
                         </a>
 
