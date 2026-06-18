@@ -20,4 +20,6 @@ public interface HabilidadRepository
             String nombreHabilidad,
             SubArea subArea
     );
+    
+    List<Habilidad> findBySubAreaId(Long subAreaId);
 }

@@ -22,4 +22,8 @@ public interface SubAreaRepository
             String nombreSubArea,
             Area area
     );
+    
+    List<SubArea> findByArea(
+            Area area
+    );
 }

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Skill Matrix Salary</title>
+
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<style>
+
+body{
+    background:#081229;
+    color:white;
+}
+
+.card-box{
+    background:#0f1b33;
+    border-radius:15px;
+    padding:20px;
+    margin-top:20px;
+}
+
+.table{
+    color:white;
+}
+
+.table th{
+    background:#132544;
+    color:white;
+    text-align:center;
+    vertical-align:middle;
+}
+
+.table td{
+    text-align:center;
+    vertical-align:middle;
+}
+
+.nombre{
+    text-align:left;
+    font-weight:bold;
+}
+
+.porcentaje{
+    color:#ffd700;
+    font-weight:bold;
+}
+
+.estado-verde{
+    color:#22c55e;
+    font-size:20px;
+}
+
+.estado-amarillo{
+    color:#facc15;
+    font-size:20px;
+}
+
+.estado-rojo{
+    color:#ef4444;
+    font-size:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container-fluid">
+
+    <div class="card-box">
+
+        <h2>
+
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+
+            Skill Matrix Salary
+
+        </h2>
+
+        <hr>
+
+        <table class="table table-bordered">
+
+            <thead>
+
+            <tr>
+
+                <th>ID</th>
+
+                <th>Trabajador</th>
+
+                <th th:each="h : ${habilidades}"
+                    th:text="${h.nombreHabilidad}">
+                </th>
+
+                <th>TOTAL</th>
+
+            </tr>
+
+            </thead>
+
+            <tbody>
+
+            <tr th:each="t : ${trabajadores}">
+
+                <td th:text="${t.id}"></td>
+
+                <td class="nombre">
+
+                    <span th:text="${t.nombre}"></span>
+
+                </td>
+
+                <td th:each="h : ${habilidades}">
+
+                    <i class="bi bi-circle-fill estado-verde"></i>
+
+                </td>
+
+                <td class="porcentaje">
+
+                    100%
+
+                </td>
+
+            </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

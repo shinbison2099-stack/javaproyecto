@@ -155,15 +155,19 @@
 
             </div>
 
-            <div>
+			<div>
 
-                <strong>Puesto:</strong>
+			    <strong>Puesto:</strong>
 
-                <span th:text="
-                ${skill.trabajador.puesto.nombrePuesto}">
-                </span>
+			    <span th:if="${skill.trabajador.puesto != null}"
+			          th:text="${skill.trabajador.puesto.nombrePuesto}">
+			    </span>
 
-            </div>
+			    <span th:if="${skill.trabajador.puesto == null}">
+			        SIN PUESTO ASIGNADO
+			    </span>
+
+			</div>
 
         </div>
         

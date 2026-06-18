@@ -10,4 +10,6 @@ boolean existsByPuestoIdAndCursoId(
     Long puestoId,
     Long cursoId
 );
+
+void deleteByPuestoId(Long puestoId);
 }

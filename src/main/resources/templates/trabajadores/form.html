@@ -252,7 +252,19 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label>Área</label>
-                                <input type="text" th:field="*{areaEmpleado}" class="form-control">
+								<select th:field="*{areaEmpleado}"
+								        class="form-control">
+
+								    <option value="">
+								        Seleccione área
+								    </option>
+
+								    <option th:each="a : ${areas}"
+								            th:value="${a.nombreArea}"
+								            th:text="${a.nombreArea}">
+								    </option>
+
+								</select>
                             </div>
 							
 							<div class="col-md-6 mb-3">

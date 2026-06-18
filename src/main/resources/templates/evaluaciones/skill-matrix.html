@@ -222,8 +222,10 @@
                     </td>
 
                     <!-- Puesto -->
-                    <td th:text="${s.trabajador.puesto.nombrePuesto}">
-                    </td>
+					<td th:text="${s.trabajador.puesto != null
+					              ? s.trabajador.puesto.nombrePuesto
+					              : 'SIN PUESTO'}">
+					</td>
 
 <!-- ===================================== -->
 <!-- 🔥 VACIO -->

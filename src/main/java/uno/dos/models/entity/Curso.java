@@ -1,33 +1,34 @@
 package uno.dos.models.entity;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "cursos")
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class Curso {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "clave_institucion")
     private String claveInstitucion;
 
-    @Column(name = "clave_curso", unique = true)
+    @Column(unique = true)
     private String claveCurso;
 
     private String nombreCurso;
 
-    @Column(name = "clave_area_tematica")
     private String claveAreaTematica;
 
     private Integer horas;
@@ -47,16 +48,31 @@ public class Curso {
     @Column(length = 1000)
     private String comentarios;
 
-    @OneToMany(mappedBy = "curso")
-    @JsonIgnore
-    private List<Capacitacion> capacitaciones = new ArrayList<>();
+    // =====================================
+    // CAPACITACIONES
+    // =====================================
 
     @OneToMany(mappedBy = "curso")
     @JsonIgnore
-    private List<PuestoCurso> puestoCursos;
+    private List<Capacitacion> capacitaciones =
+            new ArrayList<>();
+
+    // =====================================
+    // PUESTOS
+    // =====================================
+
+    @OneToMany(mappedBy = "curso")
+    @JsonIgnore
+    private List<PuestoCurso> puestoCursos =
+            new ArrayList<>();
+
+    // =====================================
+    // SOLO PARA VISTAS
+    // =====================================
 
     @Transient
     public String getNombre() {
+
         return nombreCurso;
     }
 
@@ -66,5 +82,94 @@ public class Curso {
         return puestoCursos.stream()
                 .map(PuestoCurso::getPuesto)
                 .toList();
+    }
+
+    // =====================================
+    // TOTAL CAPACITACIONES
+    // =====================================
+
+    @Transient
+    public int getTotalCapacitaciones() {
+
+        return capacitaciones != null
+                ? capacitaciones.size()
+                : 0;
+    }
+
+    // =====================================
+    // TOTAL INSCRITOS
+    // =====================================
+
+    @Transient
+    public int getTotalInscritos() {
+
+        if (capacitaciones == null) {
+            return 0;
+        }
+
+        return capacitaciones.stream()
+
+                .filter(c ->
+                        c.getCapacitacionTrabajadores()
+                                != null)
+
+                .mapToInt(c ->
+                        c.getCapacitacionTrabajadores()
+                                .size())
+
+                .sum();
+    }
+
+    // =====================================
+    // HORAS USADAS
+    // =====================================
+
+    @Transient
+    public int getHorasUsadas() {
+
+        if (capacitaciones == null) {
+            return 0;
+        }
+
+        return capacitaciones.stream()
+
+                .mapToInt(c ->
+                        c.getDuracionHoras() != null
+                                ? c.getDuracionHoras()
+                                : 0)
+
+                .sum();
+    }
+
+    // =====================================
+    // HORAS RESTANTES
+    // =====================================
+
+    @Transient
+    public int getHorasRestantes() {
+
+        if (horas == null) {
+            return 0;
+        }
+
+        return horas - getHorasUsadas();
+    }
+
+    // =====================================
+    // CALCULAR VENCIMIENTO
+    // =====================================
+
+    @Transient
+    public LocalDate calcularVencimiento(
+            LocalDate fechaAcreditacion) {
+
+        if (fechaAcreditacion == null
+                || vigenciaMeses == null) {
+
+            return null;
+        }
+
+        return fechaAcreditacion
+                .plusMonths(vigenciaMeses);
     }
 }

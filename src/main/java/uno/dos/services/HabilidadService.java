@@ -30,4 +30,8 @@ public interface HabilidadService {
             String nombreHabilidad,
             SubArea subArea
     );
+    
+    List<Habilidad> buscarPorSubArea(
+            Long subAreaId
+    );
 }

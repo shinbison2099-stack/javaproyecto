@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+<title>Editar Matriz</title>
+
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+<style>
+
+body{
+    background:#0f172a;
+    color:white;
+}
+
+.card{
+    background:#1e293b !important;
+    border:none;
+    border-radius:20px;
+    color:white;
+}
+
+.form-control,
+.form-select{
+    background:#334155;
+    color:white;
+    border:1px solid #475569;
+}
+
+.form-control:focus,
+.form-select:focus{
+    background:#334155;
+    color:white;
+}
+
+h1,h2,h3,h4,h5,h6,label{
+    color:white !important;
+}
+
+.section-title{
+    color:white;
+    font-weight:bold;
+    margin-top:25px;
+    margin-bottom:10px;
+}
+
+.table{
+    color:white;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container mt-5">
+
+    <div class="card p-4">
+
+        <h2>
+
+            ✏️ Editar Matriz
+
+        </h2>
+
+        <form
+            th:action="@{/matriz-habilidad/actualizar}"
+            method="post">
+
+            <input type="hidden"
+                   name="id"
+                   th:value="${matriz.id}">
+
+            <!-- NOMBRE -->
+
+            <div class="mb-3">
+
+                <label>
+                    Nombre
+                </label>
+
+                <input
+                    type="text"
+                    name="nombre"
+                    class="form-control"
+                    th:value="${matriz.nombre}"
+                    required>
+
+            </div>
+
+            <!-- AREA -->
+
+            <div class="mb-3">
+
+                <label>
+                    Área
+                </label>
+
+				<select
+				    name="areaId"
+				    class="form-select">
+
+				    <option
+				        th:each="a : ${areas}"
+				        th:value="${a.id}"
+				        th:text="${a.nombreArea}"
+				        th:selected="${matriz.area.id == a.id}">
+				    </option>
+
+				</select>
+
+            </div>
+
+            <!-- SUBAREA -->
+
+            <div class="mb-3">
+
+                <label>
+                    SubÁrea
+                </label>
+
+				<select
+				    name="subAreaId"
+				    class="form-select">
+
+				    <option
+				        th:value="${matriz.subArea.id}"
+				        th:text="${matriz.subArea.nombreSubArea}">
+				    </option>
+
+				</select>
+
+            </div>
+
+            <!-- TIPO -->
+
+            <div class="mb-3">
+
+                <label>
+                    Tipo Trabajador
+                </label>
+
+                <select
+                    name="tipoTrabajador"
+                    class="form-control">
+
+                    <option value="HOURLY"
+                            th:selected="${matriz.tipoTrabajador.name() == 'HOURLY'}">
+
+                        HOURLY
+
+                    </option>
+
+                    <option value="SALARY"
+                            th:selected="${matriz.tipoTrabajador.name() == 'SALARY'}">
+
+                        SALARY
+
+                    </option>
+
+                </select>
+
+            </div>
+
+            <hr>
+
+            <!-- HABILIDADES -->
+
+			<h4 class="section-title">
+			    Habilidades
+			</h4>
+
+			<div class="card p-3">
+
+			    <div
+			        th:each="h : ${todasLasHabilidades}"
+			        class="form-check mb-2">
+
+			        <input
+			            class="form-check-input"
+			            type="checkbox"
+			            name="habilidadIds"
+			            th:value="${h.id}"
+
+			            th:checked="${
+			                matriz.detalles.![habilidad.id]
+			                .contains(h.id)
+			            }">
+
+			        <label
+			            class="form-check-label"
+			            th:text="${h.nombreHabilidad}">
+			        </label>
+
+			    </div>
+
+			</div>
+            <hr>
+
+            <!-- CURSOS -->
+
+			<h4 class="section-title">
+			    Cursos
+			</h4>
+
+			<div class="card p-3">
+
+				<div
+				    th:each="c : ${todosLosCursos}"
+				    class="form-check mb-2">
+
+				    <input
+				        class="form-check-input"
+				        type="checkbox"
+				        name="cursoIds"
+				        th:value="${c.id}"
+
+				        th:checked="${
+				            matriz.cursos.![curso.id]
+				            .contains(c.id)
+				        }">
+
+				    <label
+				        class="form-check-label"
+				        th:text="${c.nombreCurso}">
+				    </label>
+
+				</div>
+			</div>
+
+            <hr>
+
+            <!-- TRABAJADORES -->
+
+			<h4 class="section-title">
+			    Trabajadores
+			</h4>
+
+			<div class="card p-3">
+
+				<div
+				    th:each="t : ${todosLosTrabajadores}"
+				    class="form-check mb-2">
+
+				    <input
+				        class="form-check-input"
+				        type="checkbox"
+				        name="trabajadorIds"
+				        th:value="${t.id}"
+
+				        th:checked="${
+				            matriz.trabajadores.![trabajador.id]
+				            .contains(t.id)
+				        }">
+
+				    <label
+				        class="form-check-label">
+
+				        <span th:text="${t.numeroPersonal}"></span>
+
+				        -
+
+				        <span th:text="${t.nombre}"></span>
+
+				    </label>
+
+				</div>
+
+			</div>
+
+			<div class="mt-4">
+
+			    <button
+			        type="submit"
+			        class="btn btn-success">
+
+			        <i class="bi bi-check-circle"></i>
+			        Guardar Cambios
+
+			    </button>
+
+			    <a
+			        th:href="@{/matriz-habilidad/lista}"
+			        class="btn btn-secondary">
+
+			        <i class="bi bi-arrow-left"></i>
+			        Cancelar
+
+			    </a>
+
+			</div>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

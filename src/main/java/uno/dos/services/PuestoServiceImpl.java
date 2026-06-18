@@ -147,23 +147,35 @@ public class PuestoServiceImpl implements PuestoService{
     }
     
     @Override
-    public void eliminarMasivoDefinitivo(List<Long> ids) {
+    @Transactional
+    public void eliminarMasivoDefinitivo(
+            List<Long> ids) {
 
         if (ids == null || ids.isEmpty()) {
-            throw new RuntimeException("No se seleccionaron registros");
+
+            throw new RuntimeException(
+                    "No se seleccionaron registros"
+            );
         }
 
-        // validar existencia (opcional pero pro)
         for (Long id : ids) {
+
             if (!puestoRepository.existsById(id)) {
-                throw new RuntimeException("Puesto no encontrado: " + id);
+
+                throw new RuntimeException(
+                        "Puesto no encontrado: " + id
+                );
             }
+
+            // 🔥 eliminar relaciones
+            puestoCursoRepository
+                    .deleteByPuestoId(id);
         }
 
-        // 🔥 eliminación masiva real
-        puestoRepository.deleteAllByIdInBatch(ids);
+        // 🔥 ahora sí eliminar puestos
+        puestoRepository
+                .deleteAllByIdInBatch(ids);
     }
-
 	
     @Override
     @Transactional
@@ -218,4 +230,6 @@ public class PuestoServiceImpl implements PuestoService{
 
         puestoCursoRepository.save(pc);
     }
+    
+    
 }

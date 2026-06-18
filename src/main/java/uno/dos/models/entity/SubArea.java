@@ -2,6 +2,8 @@ package uno.dos.models.entity;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -31,14 +33,16 @@ public class SubArea {
 
     @ManyToOne
     @JoinColumn(name = "area_id")
+    @JsonIgnore
     private Area area;
 
     private Boolean activo = true;
-    
+
     @OneToMany(
             mappedBy = "subArea",
             cascade = CascadeType.ALL,
             fetch = FetchType.LAZY
     )
+    @JsonIgnore
     private List<Habilidad> habilidades;
 }

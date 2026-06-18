@@ -448,17 +448,17 @@
                           th:text="${#lists.size(curso.capacitaciones)} + ' cap.'">
                     </span>
 
-                    <span class="contador bg-primary"
-                          th:text="${curso.totalInscritos} + ' alumnos'">
-                    </span>
+					<span class="contador bg-info"
+					      th:text="${curso.horasUsadas} + ' hrs usadas'">
+					</span>
 
-                    <span class="contador bg-info"
-                          th:text="${horasUsadas[curso.id]} + ' hrs usadas'">
-                    </span>
+					<span class="contador bg-warning text-dark"
+					      th:text="${curso.horasRestantes} + ' hrs restantes'">
+					</span>
 
-                    <span class="contador bg-warning text-dark"
-                          th:text="${horasRestantes[curso.id]} + ' hrs restantes'">
-                    </span>
+					<span class="contador bg-primary"
+					      th:text="${curso.totalInscritos} + ' alumnos'">
+					</span>
 
                 </div>
 

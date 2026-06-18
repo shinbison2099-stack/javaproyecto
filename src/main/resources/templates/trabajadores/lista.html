@@ -208,9 +208,9 @@
 
 				<tbody>
 
-				<tr th:each="trabajador : ${trabajadores}">
+					<tr th:each="trabajador, iterStat : ${trabajadores}">
 
-				    <td th:text="${trabajador.id}"></td>
+					<td th:text="${iterStat.count}"></td>
 
 				    <td th:text="${trabajador.numeroPersonal}"></td>
 

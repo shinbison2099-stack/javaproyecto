@@ -35,6 +35,7 @@ import uno.dos.models.entity.Trabajador;
 import uno.dos.repositories.CapacitacionTrabajadorRepository;
 import uno.dos.repositories.InscripcionRepository;
 import uno.dos.services.TrabajadorService;
+import uno.dos.services.AreaService;
 import uno.dos.services.EvaluacionService;
 import uno.dos.services.MatrizService;
 import uno.dos.services.PuestoService;
@@ -58,6 +59,7 @@ public class TrabajadorWebController {
     private final MatrizService matrizService;
     private final EvaluacionService evaluacionService;
     private final CapacitacionTrabajadorRepository capacitacionTrabajadorRepository;
+    private final AreaService areaService;
 
     @Value("${ruta.fotos}")
     private String rutaFotos;
@@ -96,6 +98,7 @@ public class TrabajadorWebController {
     public String nuevo(Model model) {
 
         model.addAttribute("trabajador", new Trabajador());
+        model.addAttribute("areas",areaService.listar());
         model.addAttribute("puestos", puestoService.listarActivos()); // 👈 IMPORTANTE
 
         return "trabajadores/form";
@@ -592,7 +595,7 @@ public class TrabajadorWebController {
 
         model.addAttribute("trabajador", trabajador);
         model.addAttribute("puestos", puestoService.listarActivos()); // 👈 IMPORTANTE
-
+        model.addAttribute("areas",areaService.listar());
         return "trabajadores/form";
     }
 

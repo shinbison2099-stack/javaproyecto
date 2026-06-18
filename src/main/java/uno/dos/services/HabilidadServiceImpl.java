@@ -80,4 +80,12 @@ public class HabilidadServiceImpl
                         subArea
                 );
     }
+    
+    @Override
+    public List<Habilidad> buscarPorSubArea(
+            Long subAreaId){
+
+        return habilidadRepository
+                .findBySubAreaId(subAreaId);
+    }
 }

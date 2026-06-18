@@ -143,12 +143,14 @@
             </a>
 
             <!-- 🔥 BOTÓN BORRADO MASIVO -->
-            <button class="btn btn-danger"
-                    onclick="return confirmarEliminacionMasiva()">
-                <i class="bi bi-trash"></i>
-                Eliminar seleccionados
-            </button>
+			<button type="button"
+			        class="btn btn-danger"
+			        onclick="confirmarEliminacionMasiva()">
 
+			    <i class="bi bi-trash"></i>
+			    Eliminar seleccionados
+
+			</button>
         </div>
 
         <!-- 🔥 FORM MASIVO -->
@@ -217,23 +219,50 @@
 
 <!-- 🔥 JS -->
 <script>
+
 function toggleAll(source) {
-    document.querySelectorAll('input[name="ids"]').forEach(cb => {
-        cb.checked = source.checked;
-    });
+
+    document
+        .querySelectorAll('input[name="ids"]')
+        .forEach(cb => {
+
+            cb.checked = source.checked;
+
+        });
 }
 
 function confirmarEliminacionMasiva() {
 
-    let seleccionados = document.querySelectorAll('input[name="ids"]:checked');
+    let seleccionados =
+        document.querySelectorAll(
+            'input[name="ids"]:checked'
+        );
 
     if (seleccionados.length === 0) {
-        alert("Selecciona al menos un registro");
-        return false;
+
+        alert(
+            "Selecciona al menos un registro"
+        );
+
+        return;
     }
 
-    return confirm("⚠️ Esta acción eliminará los registros PERMANENTEMENTE.\n\nNo se podrá deshacer.\n\n¿Deseas continuar?");
+    let confirmar = confirm(
+        "⚠️ Esta acción eliminará los registros PERMANENTEMENTE.\n\n" +
+        "No se podrá deshacer.\n\n" +
+        "¿Deseas continuar?"
+    );
+
+    if(confirmar){
+
+        document
+            .getElementById(
+                "formEliminarMasivo"
+            )
+            .submit();
+    }
 }
+
 </script>
 
 </body>

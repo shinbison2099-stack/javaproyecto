@@ -10,6 +10,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "puesto_curso")
@@ -28,6 +29,7 @@ public class PuestoCurso {
 
     @ManyToOne
     @JoinColumn(name = "curso_id")
+    @ToString.Exclude
     private Curso curso;
 
     // 🔥 opcional (aquí está la magia de usar entidad intermedia)
