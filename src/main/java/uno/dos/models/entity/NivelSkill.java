@@ -6,6 +6,7 @@ public enum NivelSkill {
     PROGRAMADO,
     CAPACITADO,
     EXPERIENCIA_40H,
-    ACREDITADO
-
+    ACREDITADO,
+    INSCRITO
+    
 }

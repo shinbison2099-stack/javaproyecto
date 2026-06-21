@@ -2,6 +2,7 @@ package uno.dos.services;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -12,26 +13,29 @@ import uno.dos.dto.CursoHourlyDTO;
 import uno.dos.dto.MatrizHourlyDTO;
 import uno.dos.dto.TrabajadorMatrixDTO;
 import uno.dos.models.entity.Capacitacion;
+import uno.dos.models.entity.CapacitacionTrabajador;
 import uno.dos.models.entity.Curso;
 import uno.dos.models.entity.MatrizHabilidad;
 import uno.dos.models.entity.MatrizHabilidadCurso;
 import uno.dos.models.entity.MatrizHabilidadTrabajador;
 import uno.dos.models.entity.NivelSkill;
+import uno.dos.repositories.CapacitacionTrabajadorRepository;
+import uno.dos.repositories.EvaluacionCapacitacionRepository;
 import uno.dos.repositories.MatrizHabilidadRepository;
-import uno.dos.repositories.SkillMatrixRepository;
 
 @Service
 @RequiredArgsConstructor
-public class MatrizHourlyServiceImpl implements MatrizHourlyService {
+public class MatrizSalaryServiceImpl implements MatrizSalaryService {
 
     private final MatrizHabilidadRepository matrizRepository;
-    private final SkillMatrixRepository skillMatrixRepository;
+    private final CapacitacionTrabajadorRepository capacitacionTrabajadorRepository;
+    private final EvaluacionCapacitacionRepository evaluacionCapacitacionRepository;
 
     @Override
     public MatrizHourlyDTO construir(Long matrizId) {
 
-        MatrizHabilidad matriz =
-                matrizRepository.findById(matrizId).orElseThrow();
+        MatrizHabilidad matriz = matrizRepository.findById(matrizId)
+                .orElseThrow(() -> new RuntimeException("Matriz no encontrada"));
 
         MatrizHourlyDTO dto = new MatrizHourlyDTO();
         dto.setId(matriz.getId());
@@ -39,11 +43,10 @@ public class MatrizHourlyServiceImpl implements MatrizHourlyService {
         dto.setArea(matriz.getArea().getNombreArea());
         dto.setSubArea(matriz.getSubArea().getNombreSubArea());
 
-        // =====================================================
-        // 1) CURSOS + LISTA PLANA DE CAPACITACIONES
-        // =====================================================
+        // ============================================
+        // CURSOS + CAPACITACIONES
+        // ============================================
         List<CursoHourlyDTO> cursos = new ArrayList<>();
-        List<CapacitacionHourlyDTO> capacitacionesPlanas = new ArrayList<>();
 
         for (MatrizHabilidadCurso mc : matriz.getCursos()) {
 
@@ -57,33 +60,23 @@ public class MatrizHourlyServiceImpl implements MatrizHourlyService {
 
             if (curso.getCapacitaciones() != null) {
                 for (Capacitacion cap : curso.getCapacitaciones()) {
-
-                    // si manejas activo en capacitación, puedes filtrar aquí
-                    // if (Boolean.FALSE.equals(cap.getActivo())) continue;
-
                     CapacitacionHourlyDTO capDto = new CapacitacionHourlyDTO();
                     capDto.setId(cap.getId());
                     capDto.setNombreCapacitacion(cap.getNombreCapacitacion());
-                    capDto.setCursoId(curso.getId());
-                    capDto.setNombreCurso(curso.getNombreCurso());
-
                     caps.add(capDto);
-                    capacitacionesPlanas.add(capDto);
                 }
             }
 
             cursoDto.setCapacitaciones(caps);
             cursoDto.setTotalCapacitaciones(caps.size());
-
             cursos.add(cursoDto);
         }
 
         dto.setCursos(cursos);
-        dto.setCapacitaciones(capacitacionesPlanas);
 
-        // =====================================================
-        // 2) TRABAJADORES + CELDAS
-        // =====================================================
+        // ============================================
+        // TRABAJADORES
+        // ============================================
         List<TrabajadorMatrixDTO> trabajadores = new ArrayList<>();
 
         for (MatrizHabilidadTrabajador mt : matriz.getTrabajadores()) {
@@ -99,43 +92,61 @@ public class MatrizHourlyServiceImpl implements MatrizHourlyService {
             if (mt.getTrabajador().getPuesto() != null) {
                 t.setPuesto(mt.getTrabajador().getPuesto().getNombrePuesto());
             } else {
-                t.setPuesto("SIN PUESTO");
+                t.setPuesto("Sin puesto");
             }
 
             t.setFoto(mt.getTrabajador().getFoto());
 
             int totalCaps = 0;
-            int acreditadas = 0;
+            int aprobadas = 0;
 
-            // 🔥 OJO: ahora usamos la lista plana, no curso->capacitaciones
-            for (CapacitacionHourlyDTO capDto : capacitacionesPlanas) {
+            for (CursoHourlyDTO cursoDto : cursos) {
+                for (CapacitacionHourlyDTO capDto : cursoDto.getCapacitaciones()) {
 
-                CeldaMatrixDTO celda = new CeldaMatrixDTO();
-                celda.setCapacitacionId(capDto.getId());
+                    CeldaMatrixDTO celda = new CeldaMatrixDTO();
+                    celda.setCapacitacionId(capDto.getId());
 
-                var skill = skillMatrixRepository
-                        .findByTrabajadorIdAndCapacitacionId(
-                                mt.getTrabajador().getId(),
-                                capDto.getId()
-                        )
-                        .orElse(null);
+                    Long trabajadorId = mt.getTrabajador().getId();
+                    Long capacitacionId = capDto.getId();
 
-                if (skill != null && skill.getNivel() != null) {
-                    celda.setNivel(skill.getNivel());
+                    Optional<CapacitacionTrabajador> inscripcionOpt =
+                            capacitacionTrabajadorRepository
+                                    .findByTrabajadorIdAndCapacitacionId(
+                                            trabajadorId,
+                                            capacitacionId
+                                    );
 
-                    if (skill.getNivel() == NivelSkill.ACREDITADO) {
-                        acreditadas++;
+                    boolean aprobada =
+                            evaluacionCapacitacionRepository
+                                    .existsByTrabajadorIdAndCapacitacionIdAndAprobadaTrue(
+                                            trabajadorId,
+                                            capacitacionId
+                                    );
+
+                    // =====================================
+                    // REGLA SALARY
+                    // VERDE = ACREDITADO
+                    // AMARILLO = INSCRITO
+                    // GRIS = VACIO
+                    // =====================================
+                    if (aprobada) {
+                        celda.setNivel(NivelSkill.ACREDITADO);
+                        aprobadas++;
+
+                    } else if (inscripcionOpt.isPresent()) {
+                        celda.setNivel(NivelSkill.INSCRITO);
+
+                    } else {
+                        celda.setNivel(NivelSkill.VACIO);
                     }
-                } else {
-                    celda.setNivel(NivelSkill.VACIO);
-                }
 
-                t.getCeldas().add(celda);
-                totalCaps++;
+                    t.getCeldas().add(celda);
+                    totalCaps++;
+                }
             }
 
             if (totalCaps > 0) {
-                t.setPorcentaje((acreditadas * 100) / totalCaps);
+                t.setPorcentaje((aprobadas * 100) / totalCaps);
             } else {
                 t.setPorcentaje(0);
             }

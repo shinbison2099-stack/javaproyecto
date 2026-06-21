@@ -15,10 +15,12 @@ import org.thymeleaf.context.Context;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
 import jakarta.servlet.http.HttpServletResponse;
+import uno.dos.models.entity.CapacitacionTrabajador;
 import uno.dos.models.entity.Curso;
 import uno.dos.models.entity.TipoCurso;
 import uno.dos.models.entity.TipoTrabajador;
 import uno.dos.services.TrabajadorService;
+import uno.dos.services.CapacitacionTrabajadorService;
 import uno.dos.services.CursoService;
 import uno.dos.services.InscripcionService;
 import java.io.ByteArrayOutputStream;
@@ -35,6 +37,7 @@ public class CursoWebController {
     private final InscripcionService inscripcionService;
     private final TrabajadorService trabajadorService;
     private final TemplateEngine templateEngine;
+    private final CapacitacionTrabajadorService capacitacionTrabajadorService;
     @GetMapping
     public String listar(Model model) {
         model.addAttribute("cursos", cursoService.listarActivos());
@@ -728,6 +731,21 @@ public class CursoWebController {
         return "redirect:/cursos/eliminados";
     }
     
-    
+    @GetMapping("/capacitaciones/{id}/inscritos")
+    public String verInscritos(
+            @PathVariable Long id,
+            Model model) {
+
+        List<CapacitacionTrabajador> inscritos =
+                capacitacionTrabajadorService
+                        .buscarPorCapacitacion(id);
+
+        model.addAttribute(
+                "inscritos",
+                inscritos
+        );
+
+        return "capacitaciones/inscritos";
+    }
     
 }

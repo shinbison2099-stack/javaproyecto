@@ -14,4 +14,8 @@ public class CapacitacionHourlyDTO {
     private Integer inscritos;
 
     private Integer aprobados;
+    
+ // opcional pero útil para la tabla
+    private Long cursoId;
+    private String nombreCurso;
 }

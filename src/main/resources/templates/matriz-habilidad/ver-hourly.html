@@ -107,6 +107,78 @@
 
 	    font-weight:bold;
 	}
+	
+	.table-dark{
+
+	    background:#16233f;
+	}
+
+	.table-dark th{
+
+	    background:#1d2d4d;
+	    color:white;
+	    text-align:center;
+	}
+	
+	.table-responsive{
+	    overflow-x:auto;
+	}
+
+	table{
+	    min-width:1200px;
+	}
+
+	.avatar{
+
+	    width:45px;
+	    height:45px;
+
+	    border-radius:50%;
+
+	    object-fit:cover;
+
+	    border:2px solid #334155;
+	}
+
+	.estado{
+
+	    font-size:32px;
+	}
+
+	.estado-inscrito{
+
+	    color:#d1d5db;
+	}
+
+	.estado-programado{
+
+	    color:#3b82f6;
+	}
+
+	.estado-capacitado{
+
+	    color:#facc15;
+	}
+
+	.estado-40h{
+
+	    color:#fb923c;
+	}
+
+	.estado-acreditado{
+
+	    color:#22c55e;
+	}
+	
+	.no-inscrito-badge{
+	    background:#475569;
+	    color:#fff;
+	    font-size:11px;
+	    padding:5px 8px;
+	    border-radius:10px;
+	    display:inline-block;
+	    white-space:nowrap;
+	}
 
 	</style>
 
@@ -238,32 +310,138 @@
 
 	<!-- PRÓXIMA SECCIÓN -->
 
+	<!-- ========================================= -->
+	<!-- MATRIZ DE TRABAJADORES -->
+	<!-- ========================================= -->
+
 	<div class="header-card mt-4">
 
-	    <h4>
+	    <h3>
 
 	        <i class="bi bi-people-fill"></i>
 
 	        Matriz de Trabajadores
 
-	    </h4>
+	    </h3>
 
-	    <p class="text-secondary">
+	    <div class="mt-2">
 
-	        Aquí mostraremos posteriormente:
+	        <span class="me-3">
+	            ○ Inscrito
+	        </span>
 
-	        ○ Inscrito
+	        <span class="me-3">
+	            ◔ Programado
+	        </span>
 
-	        ◔ Programado
+	        <span class="me-3">
+	            ◑ Capacitado
+	        </span>
 
-	        ◑ Capacitado
+	        <span class="me-3">
+	            ◕ 40H
+	        </span>
 
-	        ◕ 40 Horas
+	        <span>
+	            ● Acreditado
+	        </span>
 
-	        ● Acreditado
+	    </div>
 
-	    </p>
+	</div>
 
+	<div class="table-responsive">
+	    <table class="table table-dark table-bordered align-middle">
+
+	        <thead>
+	            <!-- FILA 1: CURSOS -->
+	            <tr>
+	                <th>ID</th>
+	                <th>Trabajador</th>
+
+	                <th th:each="curso : ${matriz.cursos}"
+	                    th:colspan="${curso.capacitaciones.size()}"
+	                    class="text-center">
+	                    <span th:text="${curso.nombreCurso}"></span>
+	                </th>
+
+	                <th>TOTAL</th>
+	            </tr>
+
+	            <!-- FILA 2: CAPACITACIONES -->
+	            <tr>
+	                <th></th>
+	                <th></th>
+
+	                <th th:each="cap : ${matriz.capacitaciones}"
+	                    th:text="${cap.nombreCapacitacion}">
+	                </th>
+
+	                <th></th>
+	            </tr>
+	        </thead>
+
+	        <tbody>
+	            <tr th:each="trabajador : ${matriz.trabajadores}">
+
+	                <td th:text="${trabajador.numeroPersonal}"></td>
+
+					<td>
+					    <div class="d-flex align-items-center">
+
+					        <img
+					            th:src="@{/matriz/foto/{numero}(numero=${trabajador.numeroPersonal})}"
+					            class="avatar"
+					            onerror="this.src='/img/user.png'">
+
+					        <div class="ms-2">
+					            <div>
+					                <span th:text="${trabajador.nombre}"></span>
+					                <span th:text="${trabajador.primerApellido}"></span>
+					                <span th:text="${trabajador.segundoApellido}"></span>
+					            </div>
+
+					            <small th:text="${trabajador.puesto}"></small>
+					        </div>
+					    </div>
+					</td>
+
+	                <!-- CELDAS -->
+					<td th:each="celda : ${trabajador.celdas}" class="text-center">
+
+					    <span th:switch="${celda.nivel != null ? celda.nivel.name() : 'VACIO'}">
+
+					        <span th:case="'VACIO'" class="no-inscrito-badge">
+					            No inscrito
+					        </span>
+
+					        <span th:case="'PROGRAMADO'" class="estado estado-programado" title="Programado">
+					            ◔
+					        </span>
+
+					        <span th:case="'CAPACITADO'" class="estado estado-capacitado" title="Capacitado">
+					            ◑
+					        </span>
+
+					        <span th:case="'EXPERIENCIA_40H'" class="estado estado-40h" title="40 Horas">
+					            ◕
+					        </span>
+
+					        <span th:case="'ACREDITADO'" class="estado estado-acreditado" title="Acreditado">
+					            ●
+					        </span>
+
+					    </span>
+
+					</td>
+
+	                <td class="fw-bold text-warning"
+	                    th:text="${trabajador.porcentaje + '%'}">
+	                </td>
+	            </tr>
+	        </tbody>
+
+	    </table>
 	</div>
 	
 

@@ -29,9 +29,22 @@ import uno.dos.services.CursoService;
 import uno.dos.services.HabilidadService;
 import uno.dos.services.MatrizHabilidadService;
 import uno.dos.services.MatrizHourlyService;
+import uno.dos.services.MatrizSalaryService;
 import uno.dos.services.SubAreaService;
 import uno.dos.services.TrabajadorService;
 import uno.dos.services.MatrizHourlyService;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequiredArgsConstructor
@@ -51,6 +64,8 @@ public class MatrizHabilidadWebController {
     private final TrabajadorService trabajadorService;
     
     private final MatrizHourlyService matrizHourlyService;
+    
+    private final MatrizSalaryService matrizSalaryService;
     
         
     @GetMapping
@@ -135,6 +150,9 @@ public class MatrizHabilidadWebController {
                 .buscarPorId(id)
                 .orElseThrow();
 
+        TipoTrabajador tipo =
+                matriz.getTipoTrabajador();
+
         model.addAttribute(
                 "matriz",
                 matriz
@@ -152,12 +170,12 @@ public class MatrizHabilidadWebController {
 
         model.addAttribute(
                 "todosLosCursos",
-                cursoService.listarActivos()
+                cursoService.filtrarPorTipo(tipo)
         );
 
         model.addAttribute(
                 "todosLosTrabajadores",
-                trabajadorService.listarActivos()
+                trabajadorService.buscarPorTipo(tipo)
         );
 
         return "matriz-habilidad/editar";
@@ -283,28 +301,29 @@ public class MatrizHabilidadWebController {
                 .buscarPorId(id)
                 .orElseThrow();
 
-        if(matriz.getTipoTrabajador()
-                == TipoTrabajador.HOURLY){
+        if (matriz.getTipoTrabajador() == TipoTrabajador.HOURLY) {
 
             MatrizHourlyDTO dto =
-                    matrizHourlyService
-                    .construir(id);
+                    matrizHourlyService.construir(id);
 
-            model.addAttribute(
-                    "matriz",
-                    dto
-            );
+            model.addAttribute("matriz", dto);
 
             return "matriz-habilidad/ver-hourly";
         }
 
-        model.addAttribute(
-                "matriz",
-                matriz
-        );
+        if (matriz.getTipoTrabajador() == TipoTrabajador.SALARY) {
 
-        return "matriz-habilidad/ver-salary";
+            MatrizHourlyDTO dto =
+                    matrizSalaryService.construir(id);
+
+            model.addAttribute("matriz", dto);
+
+            return "matriz-habilidad/ver-salary";
+        }
+
+        return "redirect:/matriz-habilidad/lista";
     }
+    
     
     @GetMapping("/validar-eliminar/{id}")
     @ResponseBody
@@ -330,6 +349,34 @@ public class MatrizHabilidadWebController {
         );
 
         return respuesta;
+    }
+    
+    @GetMapping("/foto/{numeroPersonal}")
+    @ResponseBody
+    public ResponseEntity<Resource> verFoto(
+            @PathVariable String numeroPersonal) throws IOException {
+
+        Path ruta = Paths.get("uploads/trabajadores/" + numeroPersonal + ".jpg");
+
+        if (!Files.exists(ruta)) {
+            ruta = Paths.get("uploads/trabajadores/" + numeroPersonal + ".png");
+        }
+
+        if (!Files.exists(ruta)) {
+            ruta = Paths.get("uploads/trabajadores/" + numeroPersonal + ".jpeg");
+        }
+
+        if (!Files.exists(ruta)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Resource recurso = new UrlResource(ruta.toUri());
+
+        String contentType = Files.probeContentType(ruta);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, contentType != null ? contentType : "application/octet-stream")
+                .body(recurso);
     }
     
     

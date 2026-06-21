@@ -477,27 +477,36 @@
                               th:text="${cap.nombreCapacitacion}">
                         </span>
 
-                        <div class="actions">
+						<div class="actions">
 
-                            <!-- INSCRIBIR -->
-                            <a th:href="@{/capacitaciones/{id}/trabajadores(id=${cap.id})}"
-                               class="btn btn-success btn-sm"
-                               title="Inscribir trabajadores">
+						    <!-- INSCRIBIR -->
+						    <a th:href="@{/capacitaciones/{id}/trabajadores(id=${cap.id})}"
+						       class="btn btn-success btn-sm"
+						       title="Inscribir trabajadores">
 
-                                <i class="bi bi-person-plus-fill"></i>
+						        <i class="bi bi-person-plus-fill"></i>
 
-                            </a>
+						    </a>
 
-                            <!-- ELIMINAR -->
-                            <a th:href="@{/inscripcion/eliminar/{id}(id=${cap.id})}"
-                               class="btn-delete"
-                               onclick="return confirm('¿Eliminar capacitación?')">
+						    <!-- VER INSCRITOS -->
+						    <a th:href="@{capacitaciones/{id}/inscritos(id=${cap.id})}"
+						       class="btn btn-info btn-sm"
+						       title="Ver inscritos">
 
-                                <i class="bi bi-x"></i>
+						        <i class="bi bi-people-fill"></i>
 
-                            </a>
+						    </a>
 
-                        </div>
+						    <!-- ELIMINAR -->
+						    <a th:href="@{/inscripcion/eliminar/{id}(id=${cap.id})}"
+						       class="btn-delete"
+						       onclick="return confirm('¿Eliminar capacitación?')">
+
+						        <i class="bi bi-x"></i>
+
+						    </a>
+
+						</div>
 
                     </div>
 

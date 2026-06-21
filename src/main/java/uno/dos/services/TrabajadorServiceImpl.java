@@ -111,10 +111,49 @@ public class TrabajadorServiceImpl implements TrabajadorService {
 	public List<Trabajador> buscarPorTipo(
 	        TipoTrabajador tipo){
 
-	    return trabajadorRepository
-	            .findByTipoTrabajadorAndActivoTrue(
-	                    tipo
-	            );
+	    if(tipo == TipoTrabajador.HOURLY){
+
+	        return trabajadorRepository.findAll()
+
+	                .stream()
+
+	                .filter(t ->
+	                        t.getActivo()
+	                        &&
+	                        (
+	                            t.getTipoTrabajador()
+	                            == TipoTrabajador.HOURLY
+	                            ||
+	                            t.getTipoTrabajador()
+	                            == TipoTrabajador.AMBOS
+	                        )
+	                )
+
+	                .toList();
+	    }
+
+	    if(tipo == TipoTrabajador.SALARY){
+
+	        return trabajadorRepository.findAll()
+
+	                .stream()
+
+	                .filter(t ->
+	                        t.getActivo()
+	                        &&
+	                        (
+	                            t.getTipoTrabajador()
+	                            == TipoTrabajador.SALARY
+	                            ||
+	                            t.getTipoTrabajador()
+	                            == TipoTrabajador.AMBOS
+	                        )
+	                )
+
+	                .toList();
+	    }
+
+	    return listarActivos();
 	}
 	
 	@Override
