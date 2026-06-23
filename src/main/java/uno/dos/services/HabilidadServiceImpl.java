@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import uno.dos.models.entity.Habilidad;
 import uno.dos.models.entity.SubArea;
 import uno.dos.repositories.HabilidadRepository;
+import uno.dos.repositories.SubAreaRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +19,8 @@ public class HabilidadServiceImpl
 
     private final HabilidadRepository
             habilidadRepository;
+    
+    private final SubAreaRepository subAreaRepository;
 
     @Override
     public List<Habilidad> listar(){
@@ -87,5 +90,37 @@ public class HabilidadServiceImpl
 
         return habilidadRepository
                 .findBySubAreaId(subAreaId);
+    }
+    
+    @Override
+    public Habilidad guardarDesdeWizard(
+            Long subAreaId,
+            String nombreHabilidad){
+
+        String nombreLimpio =
+                nombreHabilidad == null
+                ? ""
+                : nombreHabilidad.trim();
+
+        if(nombreLimpio.isBlank()){
+            throw new RuntimeException("El nombre de la habilidad es obligatorio");
+        }
+
+        SubArea subArea =
+                subAreaRepository
+                        .findById(subAreaId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Subárea no encontrada"));
+
+        Habilidad habilidad =
+                new Habilidad();
+
+        habilidad.setNombreHabilidad(nombreLimpio);
+        habilidad.setDescripcion(nombreLimpio);
+        habilidad.setOrden(1);
+        habilidad.setSubArea(subArea);
+        habilidad.setActivo(true);
+
+        return habilidadRepository.save(habilidad);
     }
 }

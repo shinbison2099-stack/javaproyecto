@@ -34,4 +34,9 @@ public interface HabilidadService {
     List<Habilidad> buscarPorSubArea(
             Long subAreaId
     );
+    
+    Habilidad guardarDesdeWizard(
+            Long subAreaId,
+            String nombreHabilidad
+    );
 }

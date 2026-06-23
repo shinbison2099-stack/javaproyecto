@@ -2,296 +2,276 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
+    <title>Editar Matriz</title>
 
-<title>Editar Matriz</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 
-<link rel="stylesheet"
-href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
-<style>
+    <style>
+        body{
+            background:#0f172a;
+            color:white;
+        }
 
-body{
-    background:#0f172a;
-    color:white;
-}
+        .card{
+            background:#1e293b !important;
+            border:none;
+            border-radius:20px;
+            color:white;
+            box-shadow:0 10px 25px rgba(0,0,0,.35);
+        }
 
-.card{
-    background:#1e293b !important;
-    border:none;
-    border-radius:20px;
-    color:white;
-}
+        .form-control,
+        .form-select{
+            background:#334155;
+            color:white;
+            border:1px solid #475569;
+        }
 
-.form-control,
-.form-select{
-    background:#334155;
-    color:white;
-    border:1px solid #475569;
-}
+        .form-control:focus,
+        .form-select:focus{
+            background:#334155;
+            color:white;
+            border-color:#38bdf8;
+            box-shadow:none;
+        }
 
-.form-control:focus,
-.form-select:focus{
-    background:#334155;
-    color:white;
-}
+        .form-check-input{
+            background-color:#334155;
+            border:1px solid #64748b;
+        }
 
-h1,h2,h3,h4,h5,h6,label{
-    color:white !important;
-}
+        .form-check-input:checked{
+            background-color:#22c55e;
+            border-color:#22c55e;
+        }
 
-.section-title{
-    color:white;
-    font-weight:bold;
-    margin-top:25px;
-    margin-bottom:10px;
-}
+        h1,h2,h3,h4,h5,h6,label{
+            color:white !important;
+        }
 
-.table{
-    color:white;
-}
+        .section-title{
+            color:white;
+            font-weight:bold;
+            margin-top:25px;
+            margin-bottom:10px;
+        }
 
-</style>
+        .section-box{
+            background:#243247;
+            border-radius:15px;
+            padding:18px;
+        }
 
+        .badge-info-custom{
+            background:#06b6d4;
+            color:#0f172a;
+            font-weight:600;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="container mt-5">
+<div class="container mt-5 mb-5">
 
     <div class="card p-4">
 
-        <h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">
+                <i class="bi bi-pencil-square"></i>
+                Editar Matriz
+            </h2>
 
-            ✏️ Editar Matriz
+            <span class="badge bg-primary fs-6"
+                  th:text="${matriz.tipoTrabajador}">
+                TIPO
+            </span>
+        </div>
 
-        </h2>
-
-        <form
-            th:action="@{/matriz-habilidad/actualizar}"
-            method="post">
+        <form th:action="@{/matriz-habilidad/actualizar}" method="post">
 
             <input type="hidden"
                    name="id"
                    th:value="${matriz.id}">
 
             <!-- NOMBRE -->
-
             <div class="mb-3">
-
-                <label>
-                    Nombre
-                </label>
-
-                <input
-                    type="text"
-                    name="nombre"
-                    class="form-control"
-                    th:value="${matriz.nombre}"
-                    required>
-
+                <label>Nombre</label>
+                <input type="text"
+                       name="nombre"
+                       class="form-control"
+                       th:value="${matriz.nombre}"
+                       required>
             </div>
 
             <!-- AREA -->
-
             <div class="mb-3">
-
-                <label>
-                    Área
-                </label>
-
-				<select
-				    name="areaId"
-				    class="form-select">
-
-				    <option
-				        th:each="a : ${areas}"
-				        th:value="${a.id}"
-				        th:text="${a.nombreArea}"
-				        th:selected="${matriz.area.id == a.id}">
-				    </option>
-
-				</select>
-
+                <label>Área</label>
+                <select name="areaId" class="form-select">
+                    <option th:each="a : ${areas}"
+                            th:value="${a.id}"
+                            th:text="${a.nombreArea}"
+                            th:selected="${matriz.area != null and matriz.area.id == a.id}">
+                    </option>
+                </select>
             </div>
 
             <!-- SUBAREA -->
-
             <div class="mb-3">
-
-                <label>
-                    SubÁrea
-                </label>
-
-				<select
-				    name="subAreaId"
-				    class="form-select">
-
-				    <option
-				        th:value="${matriz.subArea.id}"
-				        th:text="${matriz.subArea.nombreSubArea}">
-				    </option>
-
-				</select>
-
+                <label>SubÁrea</label>
+                <select name="subAreaId" class="form-select">
+                    <option th:each="s : ${subAreas}"
+                            th:value="${s.id}"
+                            th:text="${s.nombreSubArea}"
+                            th:selected="${matriz.subArea != null and matriz.subArea.id == s.id}">
+                    </option>
+                </select>
             </div>
 
             <!-- TIPO -->
-
             <div class="mb-3">
-
-                <label>
-                    Tipo Trabajador
-                </label>
-
-                <select
-                    name="tipoTrabajador"
-                    class="form-control">
+                <label>Tipo Trabajador</label>
+                <select name="tipoTrabajador" class="form-select">
 
                     <option value="HOURLY"
                             th:selected="${matriz.tipoTrabajador.name() == 'HOURLY'}">
-
                         HOURLY
-
                     </option>
 
                     <option value="SALARY"
                             th:selected="${matriz.tipoTrabajador.name() == 'SALARY'}">
-
                         SALARY
+                    </option>
 
+                    <option value="AMBOS"
+                            th:selected="${matriz.tipoTrabajador.name() == 'AMBOS'}">
+                        AMBOS
                     </option>
 
                 </select>
-
             </div>
 
             <hr>
 
             <!-- HABILIDADES -->
+            <h4 class="section-title">Habilidades</h4>
 
-			<h4 class="section-title">
-			    Habilidades
-			</h4>
+            <div class="section-box">
 
-			<div class="card p-3">
+                <div th:if="${#lists.isEmpty(todasLasHabilidades)}"
+                     class="text-secondary">
+                    No hay habilidades registradas
+                </div>
 
-			    <div
-			        th:each="h : ${todasLasHabilidades}"
-			        class="form-check mb-2">
+                <div th:each="h : ${todasLasHabilidades}"
+                     th:if="${h != null}"
+                     class="form-check mb-2">
 
-			        <input
-			            class="form-check-input"
-			            type="checkbox"
-			            name="habilidadIds"
-			            th:value="${h.id}"
+                    <input class="form-check-input"
+                           type="checkbox"
+                           name="habilidadIds"
+                           th:id="'hab_' + ${h.id}"
+                           th:value="${h.id}"
+                           th:checked="${habilidadIdsSeleccionadas != null and habilidadIdsSeleccionadas.contains(h.id)}">
 
-			            th:checked="${
-			                matriz.detalles.![habilidad.id]
-			                .contains(h.id)
-			            }">
+                    <label class="form-check-label"
+                           th:for="'hab_' + ${h.id}"
+                           th:text="${h.nombreHabilidad}">
+                    </label>
+                </div>
 
-			        <label
-			            class="form-check-label"
-			            th:text="${h.nombreHabilidad}">
-			        </label>
+            </div>
 
-			    </div>
-
-			</div>
             <hr>
 
             <!-- CURSOS -->
+            <h4 class="section-title">Cursos</h4>
 
-			<h4 class="section-title">
-			    Cursos
-			</h4>
+            <div class="section-box">
 
-			<div class="card p-3">
+                <div th:if="${#lists.isEmpty(todosLosCursos)}"
+                     class="text-secondary">
+                    No hay cursos disponibles
+                </div>
 
-				<div
-				    th:each="c : ${todosLosCursos}"
-				    class="form-check mb-2">
+                <div th:each="c : ${todosLosCursos}"
+                     th:if="${c != null}"
+                     class="form-check mb-2">
 
-				    <input
-				        class="form-check-input"
-				        type="checkbox"
-				        name="cursoIds"
-				        th:value="${c.id}"
+                    <input class="form-check-input"
+                           type="checkbox"
+                           name="cursoIds"
+                           th:id="'curso_' + ${c.id}"
+                           th:value="${c.id}"
+                           th:checked="${cursoIdsSeleccionados != null and cursoIdsSeleccionados.contains(c.id)}">
 
-				        th:checked="${
-				            matriz.cursos.![curso.id]
-				            .contains(c.id)
-				        }">
+                    <label class="form-check-label"
+                           th:for="'curso_' + ${c.id}"
+                           th:text="${c.nombreCurso}">
+                    </label>
 
-				    <label
-				        class="form-check-label"
-				        th:text="${c.nombreCurso}">
-				    </label>
+                </div>
 
-				</div>
-			</div>
+            </div>
 
             <hr>
 
             <!-- TRABAJADORES -->
+            <h4 class="section-title">Trabajadores</h4>
 
-			<h4 class="section-title">
-			    Trabajadores
-			</h4>
+            <div class="section-box">
 
-			<div class="card p-3">
+                <div th:if="${#lists.isEmpty(todosLosTrabajadores)}"
+                     class="text-secondary">
+                    No hay trabajadores disponibles
+                </div>
 
-				<div
-				    th:each="t : ${todosLosTrabajadores}"
-				    class="form-check mb-2">
+                <div th:each="t : ${todosLosTrabajadores}"
+                     th:if="${t != null}"
+                     class="form-check mb-2">
 
-				    <input
-				        class="form-check-input"
-				        type="checkbox"
-				        name="trabajadorIds"
-				        th:value="${t.id}"
+                    <input class="form-check-input"
+                           type="checkbox"
+                           name="trabajadorIds"
+                           th:id="'trab_' + ${t.id}"
+                           th:value="${t.id}"
+                           th:checked="${trabajadorIdsSeleccionados != null and trabajadorIdsSeleccionados.contains(t.id)}">
 
-				        th:checked="${
-				            matriz.trabajadores.![trabajador.id]
-				            .contains(t.id)
-				        }">
+                    <label class="form-check-label"
+                           th:for="'trab_' + ${t.id}">
 
-				    <label
-				        class="form-check-label">
+                        <span th:text="${t.numeroPersonal}"></span>
+                        -
+                        <span th:text="${t.nombre}"></span>
+                        <span th:text="${t.primerApellido}"></span>
+                        <span th:if="${t.segundoApellido != null}"
+                              th:text="${' ' + t.segundoApellido}">
+                        </span>
 
-				        <span th:text="${t.numeroPersonal}"></span>
+                    </label>
 
-				        -
+                </div>
 
-				        <span th:text="${t.nombre}"></span>
+            </div>
 
-				    </label>
+            <div class="mt-4 d-flex gap-2">
 
-				</div>
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i>
+                    Guardar Cambios
+                </button>
 
-			</div>
+                <a th:href="@{/matriz-habilidad/lista}"
+                   class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    Cancelar
+                </a>
 
-			<div class="mt-4">
-
-			    <button
-			        type="submit"
-			        class="btn btn-success">
-
-			        <i class="bi bi-check-circle"></i>
-			        Guardar Cambios
-
-			    </button>
-
-			    <a
-			        th:href="@{/matriz-habilidad/lista}"
-			        class="btn btn-secondary">
-
-			        <i class="bi bi-arrow-left"></i>
-			        Cancelar
-
-			    </a>
-
-			</div>
+            </div>
 
         </form>
 

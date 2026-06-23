@@ -67,6 +67,8 @@ public class MatrizHabilidadWebController {
     
     private final MatrizSalaryService matrizSalaryService;
     
+    
+    
         
     @GetMapping
     public String inicio(){
@@ -90,38 +92,39 @@ public class MatrizHabilidadWebController {
     @GetMapping("/nuevo")
     public String nuevo(Model model){
 
-        model.addAttribute(
-                "matriz",
-                new MatrizHabilidad()
-        );
+        model.addAttribute("matriz", new MatrizHabilidad());
 
-        model.addAttribute(
-                "areas",
-                areaService.listar()
-        );
+        model.addAttribute("areas", areaService.listar());
+
+        model.addAttribute("subAreas", List.of());
+
+        model.addAttribute("todasLasHabilidades", List.of());
+
+        model.addAttribute("todosLosCursos", List.of());
+
+        model.addAttribute("todosLosTrabajadores", List.of());
 
         return "matriz-habilidad/wizard";
     }
     
     @PostMapping("/guardar")
     public String guardar(
-
             @RequestParam String nombre,
-
             @RequestParam Long areaId,
-
             @RequestParam Long subAreaId,
-
             @RequestParam TipoTrabajador tipoTrabajador,
+            @RequestParam(required = false) List<Long> habilidadIds,
+            @RequestParam(required = false) List<Long> cursoIds,
+            @RequestParam(required = false) List<Long> trabajadorIds){
 
-            @RequestParam(required = false)
-            List<Long> habilidadIds,
-
-            @RequestParam(required = false)
-            List<Long> cursoIds,
-
-            @RequestParam(required = false)
-            List<Long> trabajadorIds){
+        System.out.println("=== GUARDAR MATRIZ ===");
+        System.out.println("nombre = " + nombre);
+        System.out.println("areaId = " + areaId);
+        System.out.println("subAreaId = " + subAreaId);
+        System.out.println("tipoTrabajador = " + tipoTrabajador);
+        System.out.println("habilidadIds = " + habilidadIds);
+        System.out.println("cursoIds = " + cursoIds);
+        System.out.println("trabajadorIds = " + trabajadorIds);
 
         matrizService.guardar(
                 nombre,
@@ -132,13 +135,21 @@ public class MatrizHabilidadWebController {
                 cursoIds,
                 trabajadorIds
         );
-        System.out.println(
-                "HABILIDADES: " +
-                habilidadIds
-        );
+
         return "redirect:/matriz-habilidad";
     }
     
+    @PostMapping("/habilidades/guardar")
+    @ResponseBody
+    public Habilidad guardarHabilidadWizard(
+            @RequestParam Long subAreaId,
+            @RequestParam String nombreHabilidad){
+
+        return habilidadService.guardarDesdeWizard(
+                subAreaId,
+                nombreHabilidad
+        );
+    }
     
     @GetMapping("/editar/{id}")
     public String editar(
@@ -153,14 +164,14 @@ public class MatrizHabilidadWebController {
         TipoTrabajador tipo =
                 matriz.getTipoTrabajador();
 
-        model.addAttribute(
-                "matriz",
-                matriz
-        );
+        model.addAttribute("matriz", matriz);
+
+        // catálogos
+        model.addAttribute("areas", areaService.listar());
 
         model.addAttribute(
-                "areas",
-                areaService.listar()
+                "subAreas",
+                subAreaService.listarPorArea(matriz.getArea())
         );
 
         model.addAttribute(
@@ -176,6 +187,31 @@ public class MatrizHabilidadWebController {
         model.addAttribute(
                 "todosLosTrabajadores",
                 trabajadorService.buscarPorTipo(tipo)
+        );
+
+        // ids seleccionados para marcar checkboxes
+        model.addAttribute(
+                "habilidadIdsSeleccionadas",
+                matriz.getDetalles()
+                      .stream()
+                      .map(d -> d.getHabilidad().getId())
+                      .toList()
+        );
+
+        model.addAttribute(
+                "cursoIdsSeleccionados",
+                matriz.getCursos()
+                      .stream()
+                      .map(c -> c.getCurso().getId())
+                      .toList()
+        );
+
+        model.addAttribute(
+                "trabajadorIdsSeleccionados",
+                matriz.getTrabajadores()
+                      .stream()
+                      .map(t -> t.getTrabajador().getId())
+                      .toList()
         );
 
         return "matriz-habilidad/editar";

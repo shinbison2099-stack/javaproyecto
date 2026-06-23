@@ -53,16 +53,14 @@ public class MatrizHabilidadServiceImpl
 
     @Override
     public List<MatrizHabilidad> listar(){
-
         return matrizHabilidadRepository.findByActivoTrue();
     }
 
     @Override
     public Optional<MatrizHabilidad> buscarPorId(Long id) {
-
         return matrizHabilidadRepository.findById(id);
     }
-
+    
     @Override
     public void eliminar(Long id){
 

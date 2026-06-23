@@ -1,832 +1,714 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
+    <meta charset="UTF-8">
+    <title>Nueva Matriz</title>
 
-<title>Nueva Matriz</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 
-<link rel="stylesheet"
-href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <style>
+        body{
+            background:#0f172a;
+            color:white;
+        }
 
-<style>
+        .card{
+            background:#1e293b;
+            border:none;
+            color:white;
+        }
 
-body{
-    background:#0f172a;
-    color:white;
-}
+        .modal-content{
+            background:#111827 !important;
+            color:white;
+            border:1px solid #334155;
+        }
 
-.step{
-    display:none;
-}
+        .form-control, .form-select{
+            background:#334155;
+            color:white;
+            border:1px solid #475569;
+        }
 
-.step.active{
-    display:block;
-}
+        .form-control:focus, .form-select:focus{
+            background:#334155;
+            color:white;
+            border-color:#38bdf8;
+            box-shadow:none;
+        }
 
-.card{
-    background:#1e293b;
-    border:none;
-    color:white;
-}
+        .form-check-input{
+            background-color:#334155;
+            border:1px solid #64748b;
+        }
 
-</style>
+        .form-check-input:checked{
+            background-color:#22c55e;
+            border-color:#22c55e;
+        }
 
+        label{
+            color:white;
+            margin-bottom:6px;
+        }
+
+        .wizard-title{
+            font-weight:bold;
+        }
+
+        .wizard-box{
+            max-height:420px;
+            overflow-y:auto;
+            background:#1e293b;
+            border-radius:12px;
+            padding:15px;
+        }
+    </style>
 </head>
-
 <body>
+
+<form method="post" th:action="@{/matriz-habilidad/guardar}">
+
+    <!-- hidden -->
+    <input type="hidden" id="areaId" name="areaId">
+    <input type="hidden" id="subAreaId" name="subAreaId">
+    <input type="hidden" id="tipoTrabajadorHidden" name="tipoTrabajador">
+
+    <div class="container mt-5">
+        <div class="card p-4 shadow">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">🧩 Nueva Matriz de Habilidades</h2>
+                    <div class="text-secondary">
+                        Usa el asistente para crear la matriz paso por paso
+                    </div>
+                </div>
+
+                <button type="button"
+                        class="btn btn-primary"
+                        onclick="abrirWizard()">
+                    Comenzar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================== -->
+    <!-- PASO 1 -->
+    <!-- ===================================== -->
+    <div class="modal fade" id="modalArea" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title wizard-title">Paso 1 - Área y SubÁrea</h5>
+                </div>
+
+                <div class="modal-body">
+                    <label>Área</label>
+                    <select id="area" class="form-select">
+                        <option value="">Seleccione</option>
+                        <option th:each="a : ${areas}"
+                                th:value="${a.id}"
+                                th:text="${a.nombreArea}">
+                        </option>
+                    </select>
+
+                    <br>
+
+                    <label>SubÁrea</label>
+                    <select id="subArea" class="form-select">
+                        <option value="">Seleccione</option>
+                    </select>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-primary"
+                            onclick="abrirPaso2()">
+                        Siguiente
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+	<!-- ===================================== -->
+	<!-- PASO 2 -->
+	<!-- ===================================== -->
+	<div class="modal fade" id="modalHabilidad" tabindex="-1">
+	    <div class="modal-dialog modal-lg">
+	        <div class="modal-content">
+
+	            <div class="modal-header">
+	                <h5 class="modal-title wizard-title">Paso 2 - Habilidades</h5>
+	            </div>
+
+	            <div class="modal-body">
+
+	                <div class="mb-3">
+	                    <label class="fw-bold">Habilidades de la subárea</label>
+	                    <div id="contenedorHabilidades" class="wizard-box"></div>
+	                </div>
+
+	                <hr>
+
+	                <div class="row g-2 align-items-end">
+	                    <div class="col-md-9">
+	                        <label for="nuevaHabilidad">Nueva habilidad</label>
+	                        <input type="text"
+	                               id="nuevaHabilidad"
+	                               class="form-control"
+	                               placeholder="Ej. Interpretación IATF 16949">
+	                    </div>
+
+	                    <div class="col-md-3 d-grid">
+	                        <button type="button"
+	                                class="btn btn-success"
+	                                onclick="agregarHabilidad()">
+	                            + Agregar habilidad
+	                        </button>
+	                    </div>
+	                </div>
+
+	                <div id="mensajeHabilidad" class="mt-2 small"></div>
+
+	            </div>
+
+	            <div class="modal-footer">
+	                <button type="button"
+	                        class="btn btn-secondary"
+	                        onclick="regresarPaso1()">
+	                    Anterior
+	                </button>
+
+	                <button type="button"
+	                        class="btn btn-primary"
+	                        onclick="abrirPaso3()">
+	                    Siguiente
+	                </button>
+	            </div>
+
+	        </div>
+	    </div>
+	</div>
 	
-	<body>
+    <!-- ===================================== -->
+    <!-- PASO 3 -->
+    <!-- ===================================== -->
+    <div class="modal fade" id="modalTipo" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
 
-	<form method="post"
-	      th:action="@{/matriz-habilidad/guardar}">
-
-		  <input type="hidden"
-		         id="areaId"
-		         name="areaId">
-
-		  <input type="hidden"
-		         id="subAreaId"
-		         name="subAreaId">
-
-		  <input type="hidden"
-		         id="tipoTrabajadorHidden"
-		         name="tipoTrabajador">
-		   
-		  
-
-<div class="container mt-5">
-
-		<center>
-	<button type="button"
-	        class="btn btn-primary"
-	        onclick="abrirWizard()">
-
-	    Comencemos a crear la matriz
-
-	</button>
-	</center>
-</div>
-
-<!-- ===================================== -->
-<!-- PASO 1 -->
-<!-- ===================================== -->
-
-<div class="modal fade"
-     id="modalArea"
-     tabindex="-1">
-
-    <div class="modal-dialog modal-lg">
-
-        <div class="modal-content bg-dark text-white">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title">
-
-                    Paso 1 - Área y SubÁrea
-
-                </h5>
-
-            </div>
-
-            <div class="modal-body">
-
-                <label>Área</label>
-
-                <select id="area"
-                        class="form-control">
-
-                    <option value="">
-                        Seleccione
-                    </option>
-
-                    <option th:each="a : ${areas}"
-                            th:value="${a.id}"
-                            th:text="${a.nombreArea}">
-                    </option>
-
-                </select>
-
-                <br>
-
-                <label>SubÁrea</label>
-
-                <select id="subArea"
-                        class="form-control">
-
-                    <option value="">
-                        Seleccione
-                    </option>
-
-                </select>
-
-            </div>
-			
-			<div class="modal-footer">
-
-                <button type="button"
-                        class="btn btn-primary"
-                        onclick="abrirPaso2()">
-
-                    Siguiente
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- ===================================== -->
-<!-- PASO 2 -->
-<!-- ===================================== -->
-
-<div class="modal fade"
-     id="modalHabilidad"
-     tabindex="-1">
-
-    <div class="modal-dialog modal-lg">
-
-        <div class="modal-content bg-dark text-white">
-
-            <div class="modal-header">
-
-                <h5>
-
-                    Paso 2 - Habilidades
-
-                </h5>
-
-            </div>
-
-            <div class="modal-body">
-
-                <div id="contenedorHabilidades">
-
+                <div class="modal-header">
+                    <h5 class="modal-title wizard-title">Paso 3 - Tipo Trabajador</h5>
                 </div>
 
-                <hr>
+                <div class="modal-body">
+                    <select id="tipoTrabajador" class="form-select">
+                        <option value="HOURLY">HOURLY</option>
+                        <option value="SALARY">SALARY</option>
+                        <option value="AMBOS">AMBOS</option>
+                    </select>
+                </div>
 
-                <input type="text"
-                       class="form-control"
-                       placeholder="Nueva habilidad">
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            onclick="regresarPaso2()">
+                        Anterior
+                    </button>
 
-            </div>
-
-            <div class="modal-footer">
-
-                <button type="button"
-                        class="btn btn-secondary"
-                        onclick="regresarPaso1()">
-
-                    Anterior
-
-                </button>
-
-                <button type="button"
-                        class="btn btn-primary"
-                        onclick="abrirPaso3()">
-
-                    Siguiente
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- ===================================== -->
-<!-- PASO 3 -->
-<!-- ===================================== -->
-
-<div class="modal fade"
-     id="modalTipo"
-     tabindex="-1">
-
-    <div class="modal-dialog">
-
-        <div class="modal-content bg-dark text-white">
-
-            <div class="modal-header">
-
-                <h5>
-
-                    Paso 3 - Tipo Trabajador
-
-                </h5>
-
-            </div>
-
-            <div class="modal-body">
-
-                <select id="tipoTrabajador"
-                        class="form-control">
-
-                    <option value="HOURLY">
-                        HOURLY
-                    </option>
-
-                    <option value="SALARY">
-                        SALARY
-                    </option>
-
-                    <option value="AMBOS">
-                        AMBOS
-                    </option>
-
-                </select>
-
-            </div>
-
-            <div class="modal-footer">
-
-                <button type="button"
-                        class="btn btn-secondary"
-                        onclick="regresarPaso2()">
-
-                    Anterior
-
-                </button>
-
-				<button
-				    type="button"
-				    class="btn btn-success"
-				    onclick="cargarCursos()">
-
-				    Siguiente
-
-				</button>
-				
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<div class="modal fade"id="modalCursos">
-
-    <div class="modal-dialog modal-xl">
-
-        <div class="modal-content bg-dark text-white">
-
-            <div class="modal-header">
-
-                <h5>Paso 4 - Cursos</h5>
-
-            </div>
-
-            <div class="modal-body">
-
-                <div id="contenedorCursos">
-
+                    <button type="button"
+                            class="btn btn-success"
+                            onclick="cargarCursos()">
+                        Siguiente
+                    </button>
                 </div>
 
             </div>
-
-            <div class="modal-footer">
-
-                <button class="btn btn-secondary"
-                        onclick="regresarPaso3()">
-
-                    Anterior
-
-                </button>
-
-                <button class="btn btn-primary"
-                        onclick="abrirPaso5()">
-
-                    Siguiente
-
-                </button>
-
-            </div>
-
         </div>
-
     </div>
 
-</div>
+    <!-- ===================================== -->
+    <!-- PASO 4 -->
+    <!-- ===================================== -->
+    <div class="modal fade" id="modalCursos" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
 
-<div class="modal fade" id="modalTrabajadores">
+                <div class="modal-header">
+                    <h5 class="modal-title wizard-title">Paso 4 - Cursos</h5>
+                </div>
 
-    <div class="modal-dialog modal-xl">
+                <div class="modal-body">
+                    <div id="contenedorCursos" class="wizard-box"></div>
+                </div>
 
-        <div class="modal-content bg-dark text-white">
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            onclick="regresarPaso3()">
+                        Anterior
+                    </button>
 
-            <div class="modal-header">
-
-                <h5>
-                    Paso 5 - Trabajadores
-                </h5>
-
-            </div>
-
-            <div class="modal-body">
-
-                <div id="contenedorTrabajadores">
-
+                    <button type="button"
+                            class="btn btn-primary"
+                            onclick="abrirPaso5()">
+                        Siguiente
+                    </button>
                 </div>
 
             </div>
-
-            <div class="modal-footer">
-
-                <button class="btn btn-secondary"
-                        onclick="regresarPaso4()">
-
-                    Anterior
-
-                </button>
-
-                <button class="btn btn-primary"
-                        onclick="abrirPaso6()">
-
-                    Siguiente
-
-                </button>
-
-            </div>
-
         </div>
-
     </div>
 
-</div>
+    <!-- ===================================== -->
+    <!-- PASO 5 -->
+    <!-- ===================================== -->
+    <div class="modal fade" id="modalTrabajadores" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
 
-<div class="modal fade" id="modalNombre">
+                <div class="modal-header">
+                    <h5 class="modal-title wizard-title">Paso 5 - Trabajadores</h5>
+                </div>
 
-    <div class="modal-dialog">
+                <div class="modal-body">
+                    <div id="contenedorTrabajadores" class="wizard-box"></div>
+                </div>
 
-        <div class="modal-content bg-dark text-white">
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            onclick="regresarPaso4()">
+                        Anterior
+                    </button>
 
-            <div class="modal-header">
-
-                <h5>
-                    Paso 6 - Nombre de la Matriz
-                </h5>
-
-            </div>
-
-            <div class="modal-body">
-
-                <label class="mb-2">
-                    Nombre de la matriz
-                </label>
-
-                <input
-                    type="text"
-                    name="nombre"
-                    class="form-control"
-                    placeholder="Ej. Soldadura HOURLY Nivel 1"
-                    required>
-
-            </div>
-
-            <div class="modal-footer">
-
-                <button type="button"
-                        class="btn btn-secondary"
-                        onclick="regresarPaso5()">
-
-                    Anterior
-
-                </button>
-
-                <button
-                    type="submit"
-                    class="btn btn-success">
-
-                    Guardar Matriz
-
-                </button>
+                    <button type="button"
+                            class="btn btn-primary"
+                            onclick="abrirPaso6()">
+                        Siguiente
+                    </button>
+                </div>
 
             </div>
-
         </div>
-
     </div>
 
-</div>
+    <!-- ===================================== -->
+    <!-- PASO 6 -->
+    <!-- ===================================== -->
+    <div class="modal fade" id="modalNombre" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title wizard-title">Paso 6 - Nombre de la Matriz</h5>
+                </div>
+
+                <div class="modal-body">
+                    <label class="mb-2">Nombre de la matriz</label>
+                    <input type="text"
+                           name="nombre"
+                           class="form-control"
+                           placeholder="Ej. Soldadura HOURLY Nivel 1"
+                           required>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            onclick="regresarPaso5()">
+                        Anterior
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-success">
+                        Guardar Matriz
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</form>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+	let modalArea;
+	let modalHabilidad;
+	let modalTipo;
+	let modalCursos;
+	let modalTrabajadores;
+	let modalNombre;
 
-let modalArea;
-let modalHabilidad;
-let modalTipo;
-let modalCursos;
-let modalTrabajadores;
-let modalNombre;
+	let habilidadesSeleccionadas = new Set();
 
 // =====================================
 // ABRIR WIZARD
 // =====================================
-
 function abrirWizard(){
-
-    modalArea = new bootstrap.Modal(
-        document.getElementById("modalArea")
-    );
-
+    modalArea = new bootstrap.Modal(document.getElementById("modalArea"));
     modalArea.show();
 }
 
 // =====================================
 // PASO 1 -> PASO 2
 // =====================================
-
 function abrirPaso2(){
 
-    let area =
-        document.getElementById("area").value;
-
-    let subArea =
-        document.getElementById("subArea").value;
+    let area = document.getElementById("area").value;
+    let subArea = document.getElementById("subArea").value;
 
     if(area === "" || subArea === ""){
-
         alert("Selecciona área y subárea");
-
         return;
     }
 
-    document
-        .getElementById("areaId")
-        .value = area;
+    document.getElementById("areaId").value = area;
+    document.getElementById("subAreaId").value = subArea;
 
-    document
-        .getElementById("subAreaId")
-        .value = subArea;
+    modalArea.hide();
 
-		modalArea.hide();
-
-		cargarHabilidades();
-
-		modalHabilidad =
-		    new bootstrap.Modal(
-		        document.getElementById(
-		            "modalHabilidad"
-		        )
-		    );
-
-		modalHabilidad.show();
-}
-
-// =====================================
-// PASO 2 -> PASO 1
-// =====================================
-
-function regresarPaso1(){
-
-    modalHabilidad.hide();
-
-    modalArea.show();
-}
-
-function cargarHabilidades(){
-
-	let subAreaId =
-	       document.getElementById(
-	           "subArea"
-	       ).value;
-
-	   console.log("SUBAREA:", subAreaId);
-
-	   fetch(
-	       "/matriz-habilidad/habilidades/" +
-	       subAreaId
-	   )
-	   .then(r => r.json())
-	   .then(data => {
-
-	       console.log("HABILIDADES:", data);
-
-	       
-	   });
-
-    fetch(
-        "/matriz-habilidad/habilidades/" +
-        subAreaId
-    )
-    .then(r => r.json())
-    .then(data => {
-
-        console.log("HABILIDADES:");
-        console.log(data);
-
-        let contenedor =
-            document.getElementById(
-                "contenedorHabilidades"
-            );
-
-        contenedor.innerHTML = "";
-
-        data.forEach(h => {
-
-            contenedor.innerHTML += `
-                <div class="form-check">
-
-                    <input
-                        type="checkbox"
-                        name="habilidadIds"
-                        value="${h.id}"
-                        class="form-check-input">
-
-                    <label>
-                        ${h.nombreHabilidad}
-                    </label>
-
-                </div>
-            `;
-        });
-
+    cargarHabilidades().then(() => {
+        modalHabilidad = new bootstrap.Modal(document.getElementById("modalHabilidad"));
+        modalHabilidad.show();
     });
 }
 
-
-
 // =====================================
-// PASO 2 -> PASO 3
+// REGRESOS
 // =====================================
-
-function abrirPaso3(){
-
+function regresarPaso1(){
     modalHabilidad.hide();
+    modalArea.show();
+}
 
-    modalTipo = new bootstrap.Modal(
-        document.getElementById("modalTipo")
-    );
+function regresarPaso2(){
+    modalTipo.hide();
+    modalHabilidad.show();
+}
 
+function regresarPaso3(){
+    modalCursos.hide();
     modalTipo.show();
 }
 
-// =====================================
-// PASO 3 -> PASO 2
-// =====================================
+function regresarPaso4(){
+    modalTrabajadores.hide();
+    modalCursos.show();
+}
 
-function regresarPaso2(){
-
-    modalTipo.hide();
-
-    modalHabilidad.show();
+function regresarPaso5(){
+    modalNombre.hide();
+    modalTrabajadores.show();
 }
 
 // =====================================
 // CARGAR SUBAREAS
 // =====================================
-
-document
-.getElementById("area")
-.addEventListener("change", function(){
+document.getElementById("area").addEventListener("change", function(){
 
     let areaId = this.value;
+    let comboSubArea = document.getElementById("subArea");
 
-    let comboSubArea =
-        document.getElementById("subArea");
+    if(!areaId){
+        comboSubArea.innerHTML = "<option value=''>Seleccione</option>";
+        return;
+    }
 
-    comboSubArea.innerHTML =
-        "<option>Cargando...</option>";
+    comboSubArea.innerHTML = "<option value=''>Cargando...</option>";
 
-    fetch(
-        "/matriz-habilidad/subareas/" +
-        areaId
-    )
-    .then(r => r.json())
-    .then(data => {
+    fetch("/matriz-habilidad/subareas/" + areaId)
+        .then(r => r.json())
+        .then(data => {
+            comboSubArea.innerHTML = "<option value=''>Seleccione</option>";
 
-        comboSubArea.innerHTML =
-            "<option value=''>Seleccione</option>";
+            data.forEach(sub => {
+                comboSubArea.innerHTML += `
+                    <option value="${sub.id}">
+                        ${sub.nombreSubArea}
+                    </option>
+                `;
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            comboSubArea.innerHTML = "<option value=''>Error al cargar</option>";
+        });
+});
 
-        data.forEach(sub => {
+// =====================================
+// CARGAR HABILIDADES
+// =====================================
+function cargarHabilidades(){
 
-            comboSubArea.innerHTML +=
-            `
-            <option value="${sub.id}">
-                ${sub.nombreSubArea}
-            </option>
+    let subAreaId = document.getElementById("subArea").value;
+    let contenedor = document.getElementById("contenedorHabilidades");
+
+    contenedor.innerHTML = "Cargando habilidades...";
+
+    return fetch("/matriz-habilidad/habilidades/" + subAreaId)
+        .then(r => r.json())
+        .then(data => {
+
+            contenedor.innerHTML = "";
+
+            if(!data || data.length === 0){
+                contenedor.innerHTML = `
+                    <div class="text-secondary">
+                        No hay habilidades registradas para esta subárea
+                    </div>
+                `;
+                return;
+            }
+
+            data.forEach(h => {
+
+                let checked =
+                    habilidadesSeleccionadas.has(String(h.id))
+                    ? "checked"
+                    : "";
+
+                contenedor.innerHTML += `
+                    <div class="form-check mb-2">
+                        <input
+                            type="checkbox"
+                            name="habilidadIds"
+                            value="${h.id}"
+                            id="hab_${h.id}"
+                            class="form-check-input habilidad-check"
+                            ${checked}
+                            onchange="toggleHabilidadSeleccionada(this)">
+
+                        <label for="hab_${h.id}" class="form-check-label">
+                            ${h.nombreHabilidad}
+                        </label>
+                    </div>
+                `;
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            contenedor.innerHTML = `
+                <div class="text-danger">
+                    Error al cargar habilidades
+                </div>
             `;
         });
+}
 
+function toggleHabilidadSeleccionada(check){
+
+    let valor = String(check.value);
+
+    if(check.checked){
+        habilidadesSeleccionadas.add(valor);
+    }else{
+        habilidadesSeleccionadas.delete(valor);
+    }
+}
+
+function agregarHabilidad(){
+
+    let subAreaId = document.getElementById("subArea").value;
+    let input = document.getElementById("nuevaHabilidad");
+    let mensaje = document.getElementById("mensajeHabilidad");
+
+    let nombre = input.value.trim();
+
+    mensaje.innerHTML = "";
+
+    if(!subAreaId){
+        mensaje.innerHTML = `<span class="text-danger">Primero selecciona una subárea.</span>`;
+        return;
+    }
+
+    if(nombre === ""){
+        mensaje.innerHTML = `<span class="text-danger">Escribe el nombre de la habilidad.</span>`;
+        return;
+    }
+
+    let formData = new URLSearchParams();
+    formData.append("subAreaId", subAreaId);
+    formData.append("nombreHabilidad", nombre);
+
+    fetch("/matriz-habilidad/habilidades/guardar", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: formData.toString()
+    })
+    .then(r => {
+        if(!r.ok){
+            throw new Error("No se pudo guardar la habilidad");
+        }
+        return r.json();
+    })
+    .then(habilidadNueva => {
+
+        // La marcamos automáticamente
+        habilidadesSeleccionadas.add(String(habilidadNueva.id));
+
+        // Limpiamos input
+        input.value = "";
+
+        mensaje.innerHTML = `
+            <span class="text-success">
+                Habilidad guardada correctamente
+            </span>
+        `;
+
+        // Recargamos la lista y ya aparecerá marcada
+        return cargarHabilidades();
+    })
+    .catch(err => {
+        console.error(err);
+        mensaje.innerHTML = `
+            <span class="text-danger">
+                Error al guardar la habilidad
+            </span>
+        `;
+    });
+}
+
+// =====================================
+// PASO 2 -> PASO 3
+// =====================================
+function abrirPaso3(){
+
+    document.querySelectorAll(".habilidad-check").forEach(chk => {
+        let valor = String(chk.value);
+
+        if(chk.checked){
+            habilidadesSeleccionadas.add(valor);
+        }else{
+            habilidadesSeleccionadas.delete(valor);
+        }
     });
 
-});
+    modalHabilidad.hide();
+    modalTipo = new bootstrap.Modal(document.getElementById("modalTipo"));
+    modalTipo.show();
+}
 
 // =====================================
 // PASO 3 -> PASO 4
 // =====================================
-
 function cargarCursos(){
 
-    let tipo =
-        document.getElementById(
-            "tipoTrabajador"
-        ).value;
+    let tipo = document.getElementById("tipoTrabajador").value;
+    document.getElementById("tipoTrabajadorHidden").value = tipo;
 
-    document
-        .getElementById(
-            "tipoTrabajadorHidden"
-        )
-        .value = tipo;
+    fetch("/matriz-habilidad/cursos/" + tipo)
+        .then(r => r.json())
+        .then(data => {
 
-    fetch(
-        "/matriz-habilidad/cursos/" +
-        tipo
-    )
+            let contenedor = document.getElementById("contenedorCursos");
+            contenedor.innerHTML = "";
 
-    .then(r => r.json())
+            if(!data || data.length === 0){
+                contenedor.innerHTML = `
+                    <div class="text-secondary">
+                        No hay cursos para este tipo de trabajador
+                    </div>
+                `;
+            }else{
+                data.forEach(curso => {
+                    contenedor.innerHTML += `
+                        <div class="form-check mb-2">
+                            <input
+                                type="checkbox"
+                                class="form-check-input"
+                                name="cursoIds"
+                                value="${curso.id}"
+                                id="curso_${curso.id}">
 
-    .then(data => {
+                            <label class="form-check-label" for="curso_${curso.id}">
+                                ${curso.nombreCurso}
+                            </label>
+                        </div>
+                    `;
+                });
+            }
 
-        let contenedor =
-            document.getElementById(
-                "contenedorCursos"
-            );
-
-        contenedor.innerHTML = "";
-
-        data.forEach(curso => {
-
-            contenedor.innerHTML +=
-            `
-            <div class="form-check mb-2">
-
-                <input
-                    type="checkbox"
-                    class="form-check-input"
-                    name="cursoIds"
-                    value="${curso.id}">
-
-                <label class="form-check-label">
-
-                    ${curso.nombreCurso}
-
-                </label>
-
-            </div>
-            `;
+            modalTipo.hide();
+            modalCursos = new bootstrap.Modal(document.getElementById("modalCursos"));
+            modalCursos.show();
+        })
+        .catch(error => {
+            console.error(error);
+            alert("Error al cargar cursos");
         });
-
-        modalTipo.hide();
-
-        modalCursos =
-            new bootstrap.Modal(
-                document.getElementById(
-                    "modalCursos"
-                )
-            );
-
-        modalCursos.show();
-
-    })
-
-    .catch(error => {
-
-        console.error(error);
-
-    });
-
-}
-
-// =====================================
-// PASO 4 -> PASO 3
-// =====================================
-
-function regresarPaso3(){
-
-    modalCursos.hide();
-
-    modalTipo.show();
 }
 
 // =====================================
 // PASO 4 -> PASO 5
 // =====================================
-
 function abrirPaso5(){
 
-    let tipo =
-        document.getElementById(
-            "tipoTrabajador"
-        ).value;
+    let tipo = document.getElementById("tipoTrabajador").value;
 
-    fetch(
-        "/matriz-habilidad/trabajadores/" +
-        tipo
-    )
-    .then(r => r.json())
-    .then(data => {
+    fetch("/matriz-habilidad/trabajadores/" + tipo)
+        .then(r => r.json())
+        .then(data => {
 
-        let contenedor =
-            document.getElementById(
-                "contenedorTrabajadores"
-            );
+            let contenedor = document.getElementById("contenedorTrabajadores");
+            contenedor.innerHTML = "";
 
-        contenedor.innerHTML = "";
+            if(!data || data.length === 0){
+                contenedor.innerHTML = `
+                    <div class="text-secondary">
+                        No hay trabajadores para este tipo
+                    </div>
+                `;
+            }else{
+                data.forEach(t => {
+                    contenedor.innerHTML += `
+                        <div class="form-check mb-2">
+                            <input
+                                type="checkbox"
+                                class="form-check-input"
+                                name="trabajadorIds"
+                                value="${t.id}"
+                                id="trab_${t.id}">
 
-        data.forEach(t => {
+                            <label class="form-check-label" for="trab_${t.id}">
+                                ${t.numeroPersonal ?? ''} - ${t.nombre ?? ''} ${t.primerApellido ?? ''}
+                            </label>
+                        </div>
+                    `;
+                });
+            }
 
-            contenedor.innerHTML +=
-            `
-            <div class="form-check mb-2">
+            document.getElementById("tipoTrabajadorHidden").value =
+                document.getElementById("tipoTrabajador").value;
 
-                <input
-                    type="checkbox"
-                    class="form-check-input"
-                    name="trabajadorIds"
-                    value="${t.id}">
-
-                <label class="form-check-label">
-
-                    ${t.nombre}
-                    ${t.primerApellido}
-
-                </label>
-
-            </div>
-            `;
+            modalCursos.hide();
+            modalTrabajadores = new bootstrap.Modal(document.getElementById("modalTrabajadores"));
+            modalTrabajadores.show();
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Error al cargar trabajadores");
         });
-		
-		document
-		.getElementById(
-		    "tipoTrabajadorHidden"
-		)
-		.value =
-		document
-		.getElementById(
-		    "tipoTrabajador"
-		)
-		.value;
-
-        modalCursos.hide();
-
-        modalTrabajadores =
-            new bootstrap.Modal(
-                document.getElementById(
-                    "modalTrabajadores"
-                )
-            );
-
-        modalTrabajadores.show();
-
-    });
-
-}
-
-// =====================================
-// PASO 5 -> PASO 4
-// =====================================
-
-function regresarPaso4(){
-
-    modalTrabajadores.hide();
-
-    modalCursos.show();
 }
 
 // =====================================
 // PASO 5 -> PASO 6
 // =====================================
-
 function abrirPaso6(){
-
     modalTrabajadores.hide();
-
-    modalNombre =
-        new bootstrap.Modal(
-            document.getElementById(
-                "modalNombre"
-            )
-        );
-
+    modalNombre = new bootstrap.Modal(document.getElementById("modalNombre"));
     modalNombre.show();
 }
-
-// =====================================
-// PASO 6 -> PASO 5
-// =====================================
-
-function regresarPaso5(){
-
-    modalNombre.hide();
-
-    modalTrabajadores.show();
-}
-
 </script>
 
-</form>
-
 </body>
-
 </html>

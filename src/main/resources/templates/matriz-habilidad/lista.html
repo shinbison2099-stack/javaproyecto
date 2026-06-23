@@ -30,10 +30,19 @@ body{
 
 .table th{
     background:#334155;
+    color:white;
 }
 
 .table td{
     vertical-align:middle;
+}
+
+.badge-habilidad{
+    background:#22d3ee;
+    color:#0f172a;
+    font-weight:600;
+    margin-right:4px;
+    margin-bottom:4px;
 }
 
 </style>
@@ -77,6 +86,8 @@ body{
 
                 <th>SubÁrea</th>
 
+                <th>Habilidades</th>
+
                 <th>Tipo Trabajador</th>
 
                 <th>Acciones</th>
@@ -98,49 +109,61 @@ body{
                 <td th:text="${m.subArea != null ? m.subArea.nombreSubArea : ''}"></td>
 
                 <td>
+                    <span th:if="${#lists.isEmpty(m.detalles)}"
+                          class="text-secondary">
+                        Sin habilidades
+                    </span>
 
+                    <th:block th:each="d : ${m.detalles}">
+                        <span class="badge badge-habilidad"
+                              th:text="${d.habilidad.nombreHabilidad}">
+                            Habilidad
+                        </span>
+                    </th:block>
+                </td>
+
+                <td>
                     <span class="badge bg-primary"
                           th:text="${m.tipoTrabajador}">
                     </span>
-
                 </td>
 
-				<td>
+                <td>
 
-				    <a th:href="@{/matriz-habilidad/ver/{id}(id=${m.id})}"
-				       class="btn btn-info btn-sm">
+                    <a th:href="@{/matriz-habilidad/ver/{id}(id=${m.id})}"
+                       class="btn btn-info btn-sm">
 
-				        <i class="bi bi-grid-3x3-gap-fill"></i>
-				        Ver
+                        <i class="bi bi-grid-3x3-gap-fill"></i>
+                        Ver
 
-				    </a>
+                    </a>
 
-				    <a th:href="@{/matriz-habilidad/editar/{id}(id=${m.id})}"
-				       class="btn btn-warning btn-sm">
+                    <a th:href="@{/matriz-habilidad/editar/{id}(id=${m.id})}"
+                       class="btn btn-warning btn-sm">
 
-				        <i class="bi bi-pencil-fill"></i>
-				        Editar
+                        <i class="bi bi-pencil-fill"></i>
+                        Editar
 
-				    </a>
+                    </a>
 
-					<button
-					    type="button"
-					    class="btn btn-danger btn-sm"
-					    th:attr="data-id=${m.id}"
-					    onclick="confirmarEliminacion(this)">
+                    <button
+                        type="button"
+                        class="btn btn-danger btn-sm"
+                        th:attr="data-id=${m.id}"
+                        onclick="confirmarEliminacion(this)">
 
-					    <i class="bi bi-trash-fill"></i>
-					    Eliminar
+                        <i class="bi bi-trash-fill"></i>
+                        Eliminar
 
-					</button>
+                    </button>
 
-				</td>
+                </td>
 
             </tr>
 
             <tr th:if="${#lists.isEmpty(matrices)}">
 
-                <td colspan="6" class="text-center">
+                <td colspan="7" class="text-center">
 
                     No existen matrices registradas
 
@@ -157,7 +180,6 @@ body{
 </div>
 
 <!-- MODAL ELIMINAR -->
-
 <div class="modal fade"
      id="modalEliminar"
      tabindex="-1">
@@ -171,7 +193,6 @@ body{
                 <h5 class="modal-title">
 
                     <i class="bi bi-exclamation-triangle-fill text-warning"></i>
-
                     Confirmar eliminación
 
                 </h5>
@@ -179,9 +200,7 @@ body{
             </div>
 
             <div class="modal-body">
-
                 ¿Deseas eliminar esta matriz?
-
             </div>
 
             <div class="modal-footer">
@@ -190,17 +209,13 @@ body{
                     type="button"
                     class="btn btn-secondary"
                     data-bs-dismiss="modal">
-
                     Cancelar
-
                 </button>
 
                 <a id="btnEliminar"
                    href="#"
                    class="btn btn-danger">
-
                     Eliminar
-
                 </a>
 
             </div>
@@ -210,52 +225,44 @@ body{
     </div>
 
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-</body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
 
-	function confirmarEliminacion(btn){
+function confirmarEliminacion(btn){
 
-	    let id =
-	        btn.getAttribute("data-id");
+    let id = btn.getAttribute("data-id");
 
-	    fetch(
-	        "/matriz-habilidad/validar-eliminar/" + id
-	    )
-	    .then(r => r.json())
-	    .then(data => {
+    fetch("/matriz-habilidad/validar-eliminar/" + id)
+    .then(r => r.json())
+    .then(data => {
 
-	        if(!data.puedeEliminar){
+        if(!data.puedeEliminar){
 
-	            alert(
-	                "No se puede eliminar la matriz.\n\n" +
-	                "Tiene " +
-	                data.totalTrabajadores +
-	                " trabajadores asignados."
-	            );
+            alert(
+                "No se puede eliminar la matriz.\n\n" +
+                "Tiene " +
+                data.totalTrabajadores +
+                " trabajadores asignados."
+            );
 
-	            return;
-	        }
+            return;
+        }
 
-	        document
-	            .getElementById("btnEliminar")
-	            .href =
-	            "/matriz-habilidad/eliminar/" + id;
+        document.getElementById("btnEliminar").href =
+            "/matriz-habilidad/eliminar/" + id;
 
-	        let modal =
-	            new bootstrap.Modal(
-	                document.getElementById(
-	                    "modalEliminar"
-	                )
-	            );
+        let modal = new bootstrap.Modal(
+            document.getElementById("modalEliminar")
+        );
 
-	        modal.show();
+        modal.show();
 
-	    });
-	}
+    });
+}
 
 </script>
 
+</body>
 </html>
